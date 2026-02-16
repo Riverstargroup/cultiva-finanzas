@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, User, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import logoSemilla from "@/assets/logo-semilla.png";
 
 const passwordRules = [
@@ -25,6 +27,9 @@ const Signup = () => {
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { signUp } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const allPasswordValid = passwordRules.every((r) => r.test(password));
   const canSubmit = name.trim() && email && allPasswordValid && termsAccepted && privacyAccepted;
@@ -34,8 +39,17 @@ const Signup = () => {
     if (!canSubmit) return;
     setError("");
     setLoading(true);
-    // TODO: Supabase auth signup
-    setTimeout(() => setLoading(false), 1000);
+    const { error } = await signUp(email, password, name);
+    if (error) {
+      setError(error);
+    } else {
+      toast({
+        title: "¡Cuenta creada!",
+        description: "Revisa tu correo para verificar tu cuenta.",
+      });
+      navigate("/login");
+    }
+    setLoading(false);
   };
 
   return (
@@ -57,50 +71,22 @@ const Signup = () => {
               <Label htmlFor="name">Nombre completo</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="name"
-                  placeholder="Tu nombre"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="pl-10"
-                  required
-                />
+                <Input id="name" placeholder="Tu nombre" value={name} onChange={(e) => setName(e.target.value)} className="pl-10" required />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Correo electrónico</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="tu@correo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  required
-                />
+                <Input id="email" type="email" placeholder="tu@correo.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10" required />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Contraseña</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                >
+                <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 pr-10" required />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}>
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -118,15 +104,9 @@ const Signup = () => {
                 </ul>
               )}
             </div>
-
-            {/* Terms */}
             <div className="space-y-3">
               <div className="flex items-start gap-2">
-                <Checkbox
-                  id="terms"
-                  checked={termsAccepted}
-                  onCheckedChange={(v) => setTermsAccepted(v === true)}
-                />
+                <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(v) => setTermsAccepted(v === true)} />
                 <label htmlFor="terms" className="text-xs leading-tight text-muted-foreground">
                   Acepto los{" "}
                   <Dialog>
@@ -134,9 +114,7 @@ const Signup = () => {
                       <button type="button" className="font-semibold text-primary underline">Términos y Condiciones</button>
                     </DialogTrigger>
                     <DialogContent className="max-w-lg">
-                      <DialogHeader>
-                        <DialogTitle>Términos y Condiciones</DialogTitle>
-                      </DialogHeader>
+                      <DialogHeader><DialogTitle>Términos y Condiciones</DialogTitle></DialogHeader>
                       <ScrollArea className="max-h-80">
                         <div className="space-y-3 pr-4 text-sm text-muted-foreground">
                           <p>Bienvenido a Semilla. Al registrarte y utilizar nuestra plataforma, aceptas los siguientes términos y condiciones de uso.</p>
@@ -152,11 +130,7 @@ const Signup = () => {
                 </label>
               </div>
               <div className="flex items-start gap-2">
-                <Checkbox
-                  id="privacy"
-                  checked={privacyAccepted}
-                  onCheckedChange={(v) => setPrivacyAccepted(v === true)}
-                />
+                <Checkbox id="privacy" checked={privacyAccepted} onCheckedChange={(v) => setPrivacyAccepted(v === true)} />
                 <label htmlFor="privacy" className="text-xs leading-tight text-muted-foreground">
                   Acepto el{" "}
                   <Dialog>
@@ -164,9 +138,7 @@ const Signup = () => {
                       <button type="button" className="font-semibold text-primary underline">Aviso de Privacidad</button>
                     </DialogTrigger>
                     <DialogContent className="max-w-lg">
-                      <DialogHeader>
-                        <DialogTitle>Aviso de Privacidad</DialogTitle>
-                      </DialogHeader>
+                      <DialogHeader><DialogTitle>Aviso de Privacidad</DialogTitle></DialogHeader>
                       <ScrollArea className="max-h-80">
                         <div className="space-y-3 pr-4 text-sm text-muted-foreground">
                           <p>En cumplimiento con la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP):</p>
@@ -182,16 +154,13 @@ const Signup = () => {
                 </label>
               </div>
             </div>
-
             <Button type="submit" className="w-full font-bold" disabled={!canSubmit || loading}>
               {loading ? "Creando cuenta..." : "Crear cuenta"}
             </Button>
           </form>
           <p className="mt-6 text-center text-sm text-muted-foreground">
             ¿Ya tienes cuenta?{" "}
-            <Link to="/login" className="font-semibold text-primary hover:underline">
-              Inicia sesión
-            </Link>
+            <Link to="/login" className="font-semibold text-primary hover:underline">Inicia sesión</Link>
           </p>
         </CardContent>
       </Card>
