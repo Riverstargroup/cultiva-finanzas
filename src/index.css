@@ -6,110 +6,129 @@
 
 @layer base {
   :root {
-    /* Semilla Brand - Organic/Earth palette */
-    /* Base: Warm Cream/Paper */
-    --background: 40 30% 96%;
-    --foreground: 150 40% 10%;
+    /* Semilla Brand - Organic/Earth palette - AAA Refined */
 
-    /* Cards: Slightly white/warmer */
-    --card: 40 30% 95%;
+    /* Base: Warm Cream/Paper - Slightly darker for less glare */
+    --background: 40 30% 97%;
+    --foreground: 150 40% 10%;
+    /* Deep green-black for text */
+
+    /* Cards: Brighter than background for depth */
+    --card: 40 30% 99%;
     --card-foreground: 150 40% 10%;
 
     /* Popovers */
-    --popover: 40 30% 96%;
+    --popover: 40 30% 99%;
     --popover-foreground: 150 40% 10%;
 
-    /* Primary: Deep Organic Green */
-    --primary: 146 60% 18%;
-    --primary-foreground: 40 30% 96%;
+    /* Primary: Rich Forest Green - Darker for better contrast on light buttons/text */
+    --primary: 156 50% 12%;
+    --primary-foreground: 40 30% 97%;
 
-    /* Secondary: Rich Earth/Soil */
-    --secondary: 28 45% 35%;
-    --secondary-foreground: 40 30% 96%;
+    /* Secondary: Warm Earth Clay - Adjusted for vibrancy */
+    --secondary: 28 55% 45%;
+    --secondary-foreground: 40 30% 97%;
 
-    /* Muted: Soft earth tones */
-    --muted: 40 20% 90%;
-    --muted-foreground: 150 15% 40%;
+    /* Muted: Soft earth/stone tones */
+    --muted: 150 10% 92%;
+    --muted-foreground: 150 15% 35%;
+    /* Darker for legibility */
 
-    /* Accent: Vibrant Growth Green / Gold */
-    --accent: 38 90% 50%;
-    --accent-foreground: 146 60% 10%;
+    /* Accent: Vibrant Gold/Sunlight - Cheerful but readable */
+    --accent: 38 95% 48%;
+    --accent-foreground: 156 50% 10%;
 
     /* Destructive */
     --destructive: 0 70% 45%;
-    --destructive-foreground: 40 30% 96%;
+    --destructive-foreground: 40 30% 97%;
 
-    /* Borders & Inputs */
-    --border: 146 20% 80%;
-    --input: 146 20% 80%;
-    --ring: 146 60% 18%;
+    /* Borders & Inputs - Subtle but visible */
+    --border: 150 10% 85%;
+    --input: 150 10% 85%;
+    --ring: 156 50% 12%;
 
     --radius: 0.75rem;
 
-    /* Semilla Specific Tokens */
-    --semilla-green: 146 60% 18%;
-    --semilla-green-light: 146 40% 85%;
-    --semilla-earth: 28 45% 35%;
-    --semilla-earth-light: 40 30% 92%;
-    --semilla-gold: 38 90% 50%;
-    --semilla-cream: 40 30% 96%;
+    /* Semilla Specific Tokens - Enhanced for AAA */
+    --semilla-green: 156 50% 12%;
+    /* Deepest green */
+    --semilla-green-light: 156 40% 90%;
+    /* Very light tint for backgrounds */
+    --semilla-earth: 28 55% 45%;
+    /* Clay/Planter pot color */
+    --semilla-earth-light: 28 50% 94%;
+    /* Light clay tint */
+    --semilla-gold: 38 95% 48%;
+    /* Sun/Energy */
+    --semilla-cream: 40 30% 97%;
+    /* Paper texture base */
 
     /* Sidebar (if used) */
-    --sidebar-background: 146 60% 15%;
-    --sidebar-foreground: 40 30% 96%;
-    --sidebar-primary: 38 90% 50%;
-    --sidebar-primary-foreground: 146 60% 15%;
-    --sidebar-accent: 146 50% 25%;
-    --sidebar-accent-foreground: 40 30% 96%;
-    --sidebar-border: 146 50% 25%;
-    --sidebar-ring: 38 90% 50%;
+    --sidebar-background: 40 30% 97%;
+    --sidebar-foreground: 150 40% 10%;
+    --sidebar-primary: 156 50% 12%;
+    --sidebar-primary-foreground: 40 30% 97%;
+    --sidebar-accent: 150 10% 92%;
+    --sidebar-accent-foreground: 150 40% 10%;
+    --sidebar-border: 150 10% 85%;
+    --sidebar-ring: 156 50% 12%;
   }
 
   .dark {
-    /* Branding for dark mode - Deep Forest */
-    --background: 146 50% 8%;
-    --foreground: 40 20% 94%;
+    /* Branding for dark mode - Deep Night Forest */
+    /* Background: Very dark green, almost black, for OLED richness */
+    --background: 156 40% 4%;
+    --foreground: 40 20% 96%;
+    /* Bright cream text */
 
-    --card: 146 50% 10%;
-    --card-foreground: 40 20% 94%;
+    /* Cards: Slightly lighter forest green */
+    --card: 156 40% 6%;
+    --card-foreground: 40 20% 96%;
 
-    --popover: 146 50% 10%;
-    --popover-foreground: 40 20% 94%;
+    --popover: 156 40% 6%;
+    --popover-foreground: 40 20% 96%;
 
-    --primary: 146 40% 50%;
-    --primary-foreground: 146 60% 10%;
+    /* Primary: Vibrant sprout green for dark mode actions */
+    --primary: 146 50% 45%;
+    --primary-foreground: 156 50% 5%;
 
-    --secondary: 28 40% 40%;
-    --secondary-foreground: 40 20% 94%;
+    /* Secondary: Burnt orange/clay */
+    --secondary: 28 45% 40%;
+    --secondary-foreground: 40 20% 96%;
 
-    --muted: 146 30% 20%;
-    --muted-foreground: 146 15% 70%;
+    /* Muted */
+    --muted: 156 30% 12%;
+    --muted-foreground: 156 10% 65%;
 
-    --accent: 38 80% 50%;
-    --accent-foreground: 146 60% 10%;
+    /* Accent */
+    --accent: 38 90% 50%;
+    --accent-foreground: 156 50% 5%;
 
     --destructive: 0 60% 40%;
-    --destructive-foreground: 40 20% 94%;
+    --destructive-foreground: 40 20% 96%;
 
-    --border: 146 30% 20%;
-    --input: 146 30% 20%;
-    --ring: 146 40% 50%;
+    --border: 156 30% 12%;
+    --input: 156 30% 12%;
+    --ring: 146 50% 45%;
 
-    --semilla-green: 146 60% 18%;
-    --semilla-green-light: 146 40% 25%;
-    --semilla-earth: 28 45% 35%;
-    --semilla-earth-light: 28 30% 20%;
+    /* Semilla Specific Tokens - Dark Mode */
+    --semilla-green: 146 50% 45%;
+    /* Bright sprout green */
+    --semilla-green-light: 156 40% 10%;
+    /* Dark tint */
+    --semilla-earth: 28 45% 40%;
+    --semilla-earth-light: 28 30% 15%;
     --semilla-gold: 38 90% 50%;
-    --semilla-cream: 146 50% 12%;
+    --semilla-cream: 156 40% 6%;
 
-    --sidebar-background: 146 60% 6%;
-    --sidebar-foreground: 40 20% 94%;
-    --sidebar-primary: 38 90% 50%;
-    --sidebar-primary-foreground: 146 60% 10%;
-    --sidebar-accent: 146 40% 15%;
-    --sidebar-accent-foreground: 40 20% 94%;
-    --sidebar-border: 146 40% 15%;
-    --sidebar-ring: 38 90% 50%;
+    --sidebar-background: 156 40% 4%;
+    --sidebar-foreground: 40 20% 96%;
+    --sidebar-primary: 146 50% 45%;
+    --sidebar-primary-foreground: 156 50% 5%;
+    --sidebar-accent: 156 30% 12%;
+    --sidebar-accent-foreground: 40 20% 96%;
+    --sidebar-border: 156 30% 12%;
+    --sidebar-ring: 146 50% 45%;
   }
 }
 
