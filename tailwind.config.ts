@@ -15,7 +15,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Nunito", "sans-serif"],
-        display: ["Nunito", "sans-serif"],
+        display: ["Playfair Display", "serif"],
+        serif: ["Playfair Display", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -52,7 +53,7 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
         semilla: {
-          green: "hsl(var(--primary))",
+          green: "hsl(var(--semilla-green))",
           "green-light": "hsl(var(--semilla-green-light))",
           earth: "hsl(var(--semilla-earth))",
           "earth-light": "hsl(var(--semilla-earth-light))",

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,97 +6,110 @@
 
 @layer base {
   :root {
-    /* Semilla Brand - Earth/Green palette */
-    --background: 60 20% 97%;
-    --foreground: 150 30% 12%;
+    /* Semilla Brand - Organic/Earth palette */
+    /* Base: Warm Cream/Paper */
+    --background: 40 30% 96%;
+    --foreground: 150 40% 10%;
 
-    --card: 60 15% 98%;
-    --card-foreground: 150 30% 12%;
+    /* Cards: Slightly white/warmer */
+    --card: 40 30% 95%;
+    --card-foreground: 150 40% 10%;
 
-    --popover: 60 15% 98%;
-    --popover-foreground: 150 30% 12%;
+    /* Popovers */
+    --popover: 40 30% 96%;
+    --popover-foreground: 150 40% 10%;
 
-    --primary: 145 55% 32%;
-    --primary-foreground: 60 20% 97%;
+    /* Primary: Deep Organic Green */
+    --primary: 146 60% 18%;
+    --primary-foreground: 40 30% 96%;
 
-    --secondary: 35 45% 90%;
-    --secondary-foreground: 30 40% 25%;
+    /* Secondary: Rich Earth/Soil */
+    --secondary: 28 45% 35%;
+    --secondary-foreground: 40 30% 96%;
 
-    --muted: 60 10% 93%;
-    --muted-foreground: 150 10% 45%;
+    /* Muted: Soft earth tones */
+    --muted: 40 20% 90%;
+    --muted-foreground: 150 15% 40%;
 
-    --accent: 35 60% 55%;
-    --accent-foreground: 35 60% 15%;
+    /* Accent: Vibrant Growth Green / Gold */
+    --accent: 38 90% 50%;
+    --accent-foreground: 146 60% 10%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 60 20% 97%;
+    /* Destructive */
+    --destructive: 0 70% 45%;
+    --destructive-foreground: 40 30% 96%;
 
-    --border: 60 10% 88%;
-    --input: 60 10% 88%;
-    --ring: 145 55% 32%;
+    /* Borders & Inputs */
+    --border: 146 20% 80%;
+    --input: 146 20% 80%;
+    --ring: 146 60% 18%;
 
     --radius: 0.75rem;
 
-    /* Custom Semilla tokens */
-    --semilla-green-light: 145 45% 88%;
-    --semilla-earth: 30 35% 45%;
-    --semilla-earth-light: 35 30% 92%;
-    --semilla-gold: 42 80% 55%;
-    --semilla-cream: 45 30% 96%;
+    /* Semilla Specific Tokens */
+    --semilla-green: 146 60% 18%;
+    --semilla-green-light: 146 40% 85%;
+    --semilla-earth: 28 45% 35%;
+    --semilla-earth-light: 40 30% 92%;
+    --semilla-gold: 38 90% 50%;
+    --semilla-cream: 40 30% 96%;
 
-    --sidebar-background: 145 30% 96%;
-    --sidebar-foreground: 150 30% 15%;
-    --sidebar-primary: 145 55% 32%;
-    --sidebar-primary-foreground: 60 20% 97%;
-    --sidebar-accent: 145 25% 90%;
-    --sidebar-accent-foreground: 150 30% 15%;
-    --sidebar-border: 145 15% 88%;
-    --sidebar-ring: 145 55% 32%;
+    /* Sidebar (if used) */
+    --sidebar-background: 146 60% 15%;
+    --sidebar-foreground: 40 30% 96%;
+    --sidebar-primary: 38 90% 50%;
+    --sidebar-primary-foreground: 146 60% 15%;
+    --sidebar-accent: 146 50% 25%;
+    --sidebar-accent-foreground: 40 30% 96%;
+    --sidebar-border: 146 50% 25%;
+    --sidebar-ring: 38 90% 50%;
   }
 
   .dark {
-    --background: 150 25% 8%;
-    --foreground: 60 15% 93%;
+    /* Branding for dark mode - Deep Forest */
+    --background: 146 50% 8%;
+    --foreground: 40 20% 94%;
 
-    --card: 150 20% 11%;
-    --card-foreground: 60 15% 93%;
+    --card: 146 50% 10%;
+    --card-foreground: 40 20% 94%;
 
-    --popover: 150 20% 11%;
-    --popover-foreground: 60 15% 93%;
+    --popover: 146 50% 10%;
+    --popover-foreground: 40 20% 94%;
 
-    --primary: 145 50% 45%;
-    --primary-foreground: 150 30% 8%;
+    --primary: 146 40% 50%;
+    --primary-foreground: 146 60% 10%;
 
-    --secondary: 30 25% 18%;
-    --secondary-foreground: 35 30% 85%;
+    --secondary: 28 40% 40%;
+    --secondary-foreground: 40 20% 94%;
 
-    --muted: 150 15% 18%;
-    --muted-foreground: 150 10% 60%;
+    --muted: 146 30% 20%;
+    --muted-foreground: 146 15% 70%;
 
-    --accent: 35 50% 40%;
-    --accent-foreground: 35 40% 90%;
+    --accent: 38 80% 50%;
+    --accent-foreground: 146 60% 10%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 60 15% 93%;
+    --destructive: 0 60% 40%;
+    --destructive-foreground: 40 20% 94%;
 
-    --border: 150 15% 20%;
-    --input: 150 15% 20%;
-    --ring: 145 50% 45%;
+    --border: 146 30% 20%;
+    --input: 146 30% 20%;
+    --ring: 146 40% 50%;
 
-    --semilla-green-light: 145 30% 20%;
-    --semilla-earth: 30 25% 55%;
-    --semilla-earth-light: 30 15% 18%;
-    --semilla-gold: 42 70% 50%;
-    --semilla-cream: 45 10% 12%;
+    --semilla-green: 146 60% 18%;
+    --semilla-green-light: 146 40% 25%;
+    --semilla-earth: 28 45% 35%;
+    --semilla-earth-light: 28 30% 20%;
+    --semilla-gold: 38 90% 50%;
+    --semilla-cream: 146 50% 12%;
 
-    --sidebar-background: 150 20% 10%;
-    --sidebar-foreground: 60 10% 90%;
-    --sidebar-primary: 145 50% 45%;
-    --sidebar-primary-foreground: 150 30% 8%;
-    --sidebar-accent: 150 15% 16%;
-    --sidebar-accent-foreground: 60 10% 90%;
-    --sidebar-border: 150 15% 18%;
-    --sidebar-ring: 145 50% 45%;
+    --sidebar-background: 146 60% 6%;
+    --sidebar-foreground: 40 20% 94%;
+    --sidebar-primary: 38 90% 50%;
+    --sidebar-primary-foreground: 146 60% 10%;
+    --sidebar-accent: 146 40% 15%;
+    --sidebar-accent-foreground: 40 20% 94%;
+    --sidebar-border: 146 40% 15%;
+    --sidebar-ring: 38 90% 50%;
   }
 }
 
@@ -110,7 +123,9 @@
     font-family: 'Nunito', sans-serif;
   }
 
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
   }
