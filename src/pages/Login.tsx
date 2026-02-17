@@ -17,14 +17,18 @@ const Login = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
+  // Manejo del envio del formulario de inicio de sesion
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    // Intento de autenticacion con Supabase/Contexto
     const { error } = await signIn(email, password);
     if (error) {
       setError(error);
     } else {
+      // Redireccion al exito
       navigate("/");
     }
     setLoading(false);

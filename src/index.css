@@ -6,12 +6,12 @@
 
 @layer base {
   :root {
-    /* Semilla Brand - Organic/Earth palette - AAA Refined */
+    /* Marca Semilla - Paleta Organica y Terrosa - Refinada para cumplimiento AAA */
 
-    /* Base: Warm Cream/Paper - Slightly darker for less glare */
+    /* Base: Crema Calido/Papel - Ligeramente mas oscuro para reducir el brillo */
     --background: 40 30% 97%;
     --foreground: 150 40% 10%;
-    /* Deep green-black for text */
+    /* Verde profundo casi negro para el texto */
 
     /* Cards: Brighter than background for depth */
     --card: 40 30% 99%;

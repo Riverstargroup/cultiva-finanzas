@@ -1,73 +1,74 @@
-# Welcome to your Lovable project
+# Semilla - Educacion Financiera Organica
 
-## Project info
+Semilla es una plataforma de educacion financiera diseñada para cultivar habitos saludables de forma organica y accesible. Inspirada en la naturaleza, busca simplificar conceptos complejos a traves de metaforas de crecimiento y cuidado botanico.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Concepto "Semilla"
 
-## How can I edit this code?
+El proyecto se aleja de la estetica SaaS generica para adoptar un enfoque "0 AI", utilizando una paleta de colores tierra y bosque, tipografias serif elegantes y un lenguaje visual basado en el ciclo de vida de una planta.
 
-There are several ways of editing your application.
+### Metaforas Centrales
+- **Raices Fuertes (Educacion Base):** Aprender desde los cimientos financieros.
+- **Fotosintesis de Datos (Visualizacion):** Convertir informacion bruta en energia y crecimiento visible.
+- **Poda de Malos Habitos (Ahorro):** Identificar y recortar gastos innecesarios para fortalecer el tallo principal.
+- **Invernadero Personal (Herramientas):** Un set de herramientas personalizadas para el cuidado de tus finanzas.
 
-**Use Lovable**
+## Tecnologias
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Este proyecto esta construido con:
+- **Vite** + **React** (Frontend ultra-rapido)
+- **TypeScript** (Seguridad y tipado)
+- **Tailwind CSS** (Diseño flexible y organico)
+- **Framer Motion** (Animaciones fluidas y naturales)
+- **Lucide React** (Iconografia minimalista)
+- **shadcn/ui** (Componentes de alta calidad personalizados)
 
-Changes made via Lovable will be committed automatically to this repo.
+## Estructura del Proyecto
 
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```text
+.
+├── public/             # Archivos estaticos
+├── src/
+│   ├── assets/         # Imagenes y texturas organicas
+│   ├── components/
+│   │   ├── ui/         # Componentes base (shadcn)
+│   │   └── NavLink.tsx # Elementos de navegacion
+│   ├── contexts/       # Manejo de estado global
+│   ├── hooks/          # Logica reutilizable
+│   ├── lib/            # Utilidades y configuracion (utils.ts)
+│   ├── pages/          # Vistas principales del sistema
+│   │   ├── Index.tsx   # Landing Page "Semilla"
+│   │   ├── Login.tsx   # Acceso al jardin
+│   │   └── Signup.tsx  # Registro de nuevos cultivadores
+│   ├── App.tsx         # Enrutamiento principal
+│   ├── index.css       # Sistema de Diseño y variables globales
+│   └── main.tsx        # Punto de entrada de la aplicacion
+├── tailwind.config.ts  # Configuracion del motor de diseño
+└── vite.config.ts      # Configuracion de compilacion
 ```
 
-**Edit a file directly in GitHub**
+## Desarrollo Local
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Si deseas contribuir o probar el proyecto en tu maquina local:
 
-**Use GitHub Codespaces**
+1. **Clona el repositorio**
+   ```sh
+   git clone <URL_DEL_REPOSITORIO>
+   cd cultiva-finanzas
+   ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. **Instala las dependencias**
+   ```sh
+   npm install
+   ```
 
-## What technologies are used for this project?
+3. **Inicia el servidor de desarrollo**
+   ```sh
+   npm run dev
+   ```
 
-This project is built with:
+## Impacto Social
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+Semilla es un proyecto orgullosamente impulsado en el ecosistema de **Enactus Mexico**, enfocado en generar impacto social real a traves de la inclusion y resiliencia financiera.
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+*Cultiva tu futuro, planta una semilla hoy.*
