@@ -1,13 +1,11 @@
 import { motion } from "framer-motion";
-import { BookOpen, Clock, Trophy, Flame, ArrowRight, Calculator, User, Award } from "lucide-react";
+import { BookOpen, Clock, Trophy, Flame, ArrowRight, LayoutDashboard, Calculator, User, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
-import StatCard from "@/components/StatCard";
-import EmptyState from "@/components/EmptyState";
 import { COURSES_LIST } from "@/data/placeholders";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import {
@@ -25,24 +23,42 @@ const weeklyData = [
 ];
 
 const metrics = [
-  { title: "Escenarios completados", value: "0", icon: BookOpen, accent: "text-primary" },
-  { title: "Tiempo invertido", value: "0h", icon: Clock, accent: "text-secondary" },
-  { title: "Insignias obtenidas", value: "0/8", icon: Trophy, accent: "text-accent" },
-  { title: "Racha de días", value: "0", icon: Flame, accent: "text-destructive" },
+  { title: "Escenarios", value: "0", icon: BookOpen, accent: "text-primary" },
+  { title: "Tiempo", value: "0h", icon: Clock, accent: "text-secondary" },
+  { title: "Insignias", value: "0/8", icon: Trophy, accent: "text-accent" },
+  { title: "Racha", value: "0", icon: Flame, accent: "text-destructive" },
 ];
 
 const quickLinks = [
+  { label: "Inicio", icon: LayoutDashboard, path: "/dashboard" },
   { label: "Cursos", icon: Award, path: "/cursos" },
   { label: "Calculadora", icon: Calculator, path: "/calculadora" },
+  { label: "Logros", icon: Trophy, path: "/logros" },
   { label: "Perfil", icon: User, path: "/perfil" },
 ];
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Buenos días";
+  if (h < 18) return "Buenas tardes";
+  return "Buenas noches";
+}
+
+function getFormattedDate(): string {
+  return new Date().toLocaleDateString("es-MX", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+}
 
 export default function Dashboard() {
   const { profile, loading } = useProfile();
   const navigate = useNavigate();
   const reduced = useReducedMotion();
 
-  const greeting = loading ? "Cargando..." : `Hola, ${profile?.full_name || "Jardinero"}`;
+  const name = loading ? "..." : profile?.full_name || "Jardinero";
+  const greeting = `${getGreeting()}, ${name}`;
 
   // Placeholder: no courses started
   const currentCourse = null as typeof COURSES_LIST[0] | null;
@@ -53,59 +69,102 @@ export default function Dashboard() {
 
   return (
     <PageTransition>
-      <div className="space-y-6 md:space-y-8">
-        {/* Greeting */}
+      <div className="space-y-6">
+        {/* A) Compact Header */}
         <div>
-          <h1 className="font-display text-3xl font-bold text-primary md:text-4xl">
+          <h1 className="font-display text-2xl font-bold text-primary md:text-3xl">
             {greeting} 🌱
           </h1>
-          <p className="mt-1 text-muted-foreground">
-            Bienvenido de vuelta a tu jardín financiero.
+          <p className="mt-0.5 text-sm capitalize text-muted-foreground">
+            {getFormattedDate()}
           </p>
         </div>
 
-        {/* Continue section */}
+        {/* B) Card Hero "Continuar" — max-h constrained */}
         {currentCourse ? (
           <motion.div
             whileHover={reduced ? undefined : { y: -2 }}
             whileTap={reduced ? undefined : { scale: 0.99 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
-            <Card className="border-primary/30 bg-primary/5 cursor-pointer" onClick={() => navigate(`/cursos/${currentCourse.id}`)}>
-              <CardContent className="p-5 space-y-3">
-                <p className="text-xs text-primary font-medium uppercase tracking-wider">Continuar aprendiendo</p>
-                <h3 className="font-bold text-lg text-foreground">{currentCourse.title}</h3>
-                <Progress value={currentProgress} className="h-2" />
-                <Button size="sm" className="rounded-full min-h-[44px]">
-                  Continuar <ArrowRight className="ml-2 h-4 w-4" />
+            <Card className="max-h-[140px] cursor-pointer border-primary/30 bg-primary/5" onClick={() => navigate(`/cursos/${currentCourse.id}`)}>
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="flex-1 space-y-2">
+                  <p className="text-xs font-medium uppercase tracking-wider text-primary">Continuar</p>
+                  <h3 className="truncate font-bold text-foreground">{currentCourse.title}</h3>
+                  <Progress value={currentProgress} className="h-1.5" />
+                </div>
+                <Button size="sm" className="min-h-[44px] shrink-0 rounded-full">
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </CardContent>
             </Card>
           </motion.div>
         ) : (
-          <EmptyState
-            icon={BookOpen}
-            title="Tu jardín está listo"
-            description="Inicia tu primer curso y comienza a sembrar conocimiento financiero."
-            actionLabel="Explorar cursos"
-            onAction={() => navigate("/cursos")}
-          />
+          <Card className="max-h-[140px] border-primary/20 bg-primary/5">
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                <BookOpen className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-foreground">Empieza tu primer curso</p>
+                <p className="text-sm text-muted-foreground">Siembra conocimiento financiero hoy.</p>
+              </div>
+              <Button
+                size="sm"
+                variant="secondary"
+                className="min-h-[44px] shrink-0 rounded-full"
+                onClick={() => navigate("/cursos")}
+              >
+                Ver cursos
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
-        {/* Metrics */}
-        <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* C) Quick Access Launcher — horizontal scroll with no-swipe */}
+        <div
+          className="no-swipe -mx-4 flex gap-3 overflow-x-auto px-4 pb-1"
+          style={{ scrollSnapType: "x mandatory" }}
+        >
+          {quickLinks.map((link) => (
+            <motion.button
+              key={link.path}
+              whileTap={reduced ? undefined : { scale: 0.96 }}
+              onClick={() => navigate(link.path)}
+              className="flex min-h-[44px] min-w-[72px] shrink-0 scroll-snap-align-start flex-col items-center gap-1 rounded-xl border border-border/50 px-3 py-2.5 transition-colors hover:bg-accent/10 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              style={{ scrollSnapAlign: "start" }}
+            >
+              <link.icon className="h-5 w-5 text-primary" />
+              <span className="text-xs font-medium text-foreground">{link.label}</span>
+            </motion.button>
+          ))}
+        </div>
+
+        {/* D) Stats Grid — improved */}
+        <motion.div variants={stagger} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
           {metrics.map((m) => (
             <motion.div key={m.title} variants={item}>
-              <StatCard title={m.title} value={m.value} icon={m.icon} accentClass={m.accent} />
+              <Card className="border-border/50">
+                <CardContent className="flex items-center gap-3 p-4">
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10`}>
+                    <m.icon className={`h-5 w-5 ${m.accent}`} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{m.value}</p>
+                    <p className="text-xs text-muted-foreground">{m.title}</p>
+                  </div>
+                </CardContent>
+              </Card>
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Weekly chart */}
+        {/* E) Weekly Chart */}
         <Card className="border-border/50">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-bold text-primary mb-4">Progreso semanal</h3>
-            <div className="h-64">
+          <CardContent className="no-swipe p-5">
+            <h3 className="mb-4 text-lg font-bold text-primary">Progreso semanal</h3>
+            <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weeklyData}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -125,28 +184,6 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Quick links */}
-        <div className="grid gap-3 grid-cols-3">
-          {quickLinks.map((link) => (
-            <motion.div
-              key={link.path}
-              whileHover={reduced ? undefined : { y: -2 }}
-              whileTap={reduced ? undefined : { scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              <Card
-                className="border-border/50 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => navigate(link.path)}
-              >
-                <CardContent className="p-4 flex flex-col items-center gap-2 text-center">
-                  <link.icon className="h-6 w-6 text-primary" />
-                  <span className="text-sm font-medium text-foreground">{link.label}</span>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
       </div>
     </PageTransition>
   );
