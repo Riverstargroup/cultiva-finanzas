@@ -1,186 +1,184 @@
 
 
-# Dashboard Re-skin: Mockup Organico Fiel
+# Botanical Skin para todas las paginas protegidas
 
 ## Resumen
 
-Transformar visualmente el Dashboard y DockNav para coincidir con el mockup HTML organico. Fuentes Fraunces+Quicksand se aplican SOLO dentro de `.dashboard-skin` (Dashboard y DockNav), sin tocar el body global. Colores via CSS variables, no hex hardcodeado.
+Aplicar el skin organico existente (botanical-bg, organic-card, card-stat, vibrant-btn, Fraunces/Quicksand via `.dashboard-skin`) a las 4 paginas restantes: Cursos, Calculadora, Logros, Perfil. Crear un wrapper reutilizable `BotanicalPage` para evitar duplicacion. Actualizar componentes compartidos (CourseCard, BadgeCard, StatCard, EmptyState) para usar estilos organicos.
 
 ---
 
-## Archivos a modificar/crear
+## Archivos a crear/modificar
 
 | Accion | Archivo | Descripcion |
 |--------|---------|-------------|
-| Editar | `src/index.css` | Agregar imports de Fraunces, Quicksand, Material Symbols. Agregar CSS vars del dashboard. Agregar clases utilitarias organicas. NO cambiar body font-family |
-| Editar | `tailwind.config.ts` | Agregar fontFamily heading/body, colores `dash.*` mapeados a CSS vars |
-| Reescribir | `src/pages/Dashboard.tsx` | Layout completo del mockup: header organico, hero card con blobs, stat grid, chart con div bars (tap tooltip + aria-label), todo dentro de `.dashboard-skin` |
-| Editar | `src/components/navigation/DockNav.tsx` | Re-estilizar con look organico (bg-white/90, border clay, labels siempre visibles, dot activo con layoutId) |
-| Editar | `src/components/AppLayout.tsx` | Ocultar header global en /dashboard (dashboard tiene su propio header inline) |
+| Crear | `src/components/layout/BotanicalPage.tsx` | Wrapper reutilizable con botanical-bg, dashboard-skin, header organico |
+| Editar | `src/pages/Cursos.tsx` | Envolver con BotanicalPage, tabs organicos |
+| Editar | `src/pages/Calculadora.tsx` | Envolver con BotanicalPage, form en organic-card, boton vibrant-btn, resultados card-stat |
+| Editar | `src/pages/Logros.tsx` | Envolver con BotanicalPage, contador en chip organico |
+| Editar | `src/pages/Perfil.tsx` | Envolver con BotanicalPage, avatar organico, stats card-stat, boton cerrar sesion organico |
+| Editar | `src/components/CourseCard.tsx` | organic-card, tipografia organica, badge chip organico, progress bar con colores leaf |
+| Editar | `src/components/BadgeCard.tsx` | organic-card, icon bubble organico, estados locked/unlocked con colores del skin |
+| Editar | `src/components/StatCard.tsx` | Convertir a card-stat con icon bubble organico, value en font-heading, label uppercase |
+| Editar | `src/components/EmptyState.tsx` | Estilizar dentro de organic-card compacto |
+| Editar | `src/components/AppLayout.tsx` | Ocultar header en TODAS las paginas protegidas (BotanicalPage incluye su propio header) |
 
 ---
 
 ## Detalle tecnico
 
-### 1. CSS Variables (src/index.css, bajo :root)
+### 1. BotanicalPage.tsx (nuevo componente)
 
-Agregar al bloque `:root` existente (NO reemplazar):
+```text
+Props:
+  - title: string
+  - subtitle: string
+  - children: ReactNode
 
-```css
---forest-deep: #1b2e1f;
---leaf-bright: #78a94b;
---leaf-fresh: #98c66a;
---terracotta-vivid: #d4633d;
---terracotta-warm: #e57c5a;
---clay-soft: #f4ece1;
---soil-warm: #fcfaf5;
---text-warm: #4a4f41;
---leaf-muted: #889e81;
---dashboard-bg: #faf9f6;
+Render:
+  <PageTransition>
+    <div className="dashboard-skin botanical-bg -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-28 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
+      <div className="mx-auto max-w-4xl space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="font-heading text-2xl font-black md:text-3xl"
+              style={{ color: "var(--forest-deep)" }}>
+            {title}
+          </h1>
+          <p className="mt-1.5 text-xs font-medium uppercase tracking-widest"
+             style={{ color: "var(--leaf-muted)" }}>
+            {subtitle}
+          </p>
+        </div>
+        {children}
+      </div>
+    </div>
+  </PageTransition>
 ```
 
-### 2. Font imports (src/index.css)
+Usa los mismos margenes negativos y paddings que Dashboard.tsx para que el fondo botanico cubra toda la pantalla. Incluye `dashboard-skin` para activar Quicksand/Fraunces.
 
-Agregar (sin eliminar Nunito/Playfair):
-```css
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Quicksand:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+### 2. AppLayout.tsx
+
+Eliminar el header condicional por completo (ya que TODAS las paginas protegidas ahora usan BotanicalPage con su propio titulo). Simplificar:
+
+```text
+return (
+  <div className="flex min-h-screen w-full flex-col">
+    <main className="flex-1 p-4 pb-28 md:p-6 md:pb-28 lg:p-8 lg:pb-28">
+      <SwipeNavigator>
+        <Outlet />
+      </SwipeNavigator>
+    </main>
+    <DockNav />
+  </div>
+);
 ```
 
-### 3. Scoped font application
+Eliminar imports de Sprout, useLocation, y el bloque header.
 
-Clase `.dashboard-skin` en CSS:
-```css
-.dashboard-skin {
-  font-family: 'Quicksand', sans-serif;
-}
-.dashboard-skin h1,
-.dashboard-skin h2,
-.dashboard-skin h3 {
-  font-family: 'Fraunces', serif;
-}
-```
+### 3. Cursos.tsx
 
-El Dashboard wrapper y DockNav aplican esta clase. NO se toca `body { font-family }`.
+- Envolver con `<BotanicalPage title="Cursos" subtitle="Explora y avanza en tu jardin financiero.">`
+- Eliminar PageTransition (ya lo incluye BotanicalPage)
+- Tabs: reemplazar TabsList/TabsTrigger con botones custom estilo chip organico:
+  - Container: `flex gap-2 flex-wrap`
+  - Cada tab: `px-4 py-2 rounded-full text-sm font-semibold border transition-all min-h-[44px]`
+  - Activo: `bg-white border-[var(--leaf-bright)] text-[var(--forest-deep)] shadow-sm`
+  - Inactivo: `bg-transparent border-[var(--clay-soft)] text-[var(--leaf-muted)] hover:border-[var(--leaf-fresh)]`
+- Mantener grid y CourseCard (CourseCard se actualiza por separado)
+- EmptyState dentro de organic-card (EmptyState se actualiza por separado)
 
-### 4. Clases utilitarias organicas (@layer components)
+### 4. Calculadora.tsx
 
-- `.botanical-bg`: fondo SVG botanico con opacidad 0.03, bg dashboard-bg
-- `.organic-border`: border-radius irregular (30px 60px 40px 50px / 50px 30px 60px 40px)
-- `.organic-card`: bg white, border 1.5px clay-soft, organic-border, shadow sutil
-- `.card-stat`: organic-card + hover translateY(-4px) rotate(1deg) + border leaf-fresh
-- `.vibrant-btn`: bg terracotta-vivid, texto blanco, organic-border, hover scale(1.05) rotate(-1deg) + bg terracotta-warm
+- Envolver con `<BotanicalPage title="Calculadora" subtitle="Simula el crecimiento de tu dinero con interes compuesto.">`
+- Formulario: reemplazar `<Card>` con `<div className="organic-card p-6 md:p-8 space-y-4">`
+- Labels: agregar `className="text-[10px] font-semibold uppercase tracking-widest"` con `style={{ color: "var(--leaf-muted)" }}`
+- Inputs: agregar estilos `bg-[var(--soil-warm)] border-[var(--clay-soft)]` via className
+- Boton Calcular: reemplazar `<Button>` con `<button className="vibrant-btn w-full justify-center">`
+- Resultados (3 cards): reemplazar `<Card>` con `<div className="card-stat p-4 text-center">`, valor en `font-heading font-bold text-2xl` con color forest-deep, label uppercase leaf-muted
+- Chart Recharts: mantener pero estilizar:
+  - Card contenedora: `organic-card p-5 md:p-6`
+  - Titulo con barra verde accent (como en Dashboard chart)
+  - Line stroke: `var(--leaf-bright)`
+  - Dot fill: `var(--leaf-bright)`
+  - CartesianGrid: stroke tenue `var(--clay-soft)`
+  - Tooltip background: white con border clay-soft
 
-### 5. Tailwind config (tailwind.config.ts)
+### 5. Logros.tsx
 
-Agregar a `extend.fontFamily`:
-```ts
-heading: ["Fraunces", "serif"],
-body: ["Quicksand", "sans-serif"],
-```
+- Envolver con `<BotanicalPage title="Logros" subtitle="0 de 8 insignias desbloqueadas.">`
+- Agregar chip contador arriba del grid: `<div className="organic-card inline-flex px-4 py-2" style con colores organicos>`
+- Mantener grid, BadgeCard se actualiza por separado
+- Eliminar PageTransition (BotanicalPage lo incluye)
 
-Agregar a `extend.colors` usando CSS vars:
-```ts
-dash: {
-  bg: "var(--dashboard-bg)",
-  forest: "var(--forest-deep)",
-  "leaf-bright": "var(--leaf-bright)",
-  "leaf-fresh": "var(--leaf-fresh)",
-  terracotta: "var(--terracotta-vivid)",
-  "terracotta-warm": "var(--terracotta-warm)",
-  clay: "var(--clay-soft)",
-  soil: "var(--soil-warm)",
-  text: "var(--text-warm)",
-  "leaf-muted": "var(--leaf-muted)",
-},
-```
+### 6. Perfil.tsx
 
-### 6. Dashboard.tsx (reescritura visual)
+- Envolver con `<BotanicalPage title="Perfil" subtitle={user?.email || "Tu invernadero personal"}>`
+- Card avatar: reemplazar `<Card>` con `<div className="organic-card p-6">`
+  - Avatar circulo: `organic-border` con `bg-[color-mix(in srgb, var(--leaf-fresh) 20%, transparent)]`, iniciales en `font-heading font-bold` color leaf-bright
+  - Nombre: `font-heading font-bold text-lg` color forest-deep
+  - Email: `text-sm` color leaf-muted
+  - Boton editar: estilo secundario (bg white, border clay-soft, rounded-full)
+  - Inputs (modo edicion): bg soil-warm, border clay-soft
+  - Boton guardar: vibrant-btn
+  - Boton cancelar: bg transparent, border clay-soft
+- Stats: 3 StatCards (actualizados por separado a card-stat)
+- Boton cerrar sesion: `vibrant-btn w-full justify-center` (terracotta, organico). No rojo destructivo sino terracotta con icono LogOut. Mantiene onClick handleSignOut.
+- Contenedor: `max-w-4xl` (consistente con dashboard)
 
-Mantiene: `useProfile`, `useNavigate`, `useReducedMotion`, `PageTransition`, datos placeholder, logica greeting/fecha.
+### 7. CourseCard.tsx
 
-Estructura del mockup:
+- Reemplazar `<Card>` con `<div className="organic-card overflow-hidden h-full">`
+- Gradient header: mantener pero con organic-border arriba (agregar `style={{ borderRadius: "30px 60px 0 0 / 50px 30px 0 0" }}`)
+- Badge dificultad: chip organico `bg-[var(--soil-warm)] text-[var(--forest-deep)] border-[var(--clay-soft)]`
+- Titulo h3: `font-heading font-bold` color forest-deep
+- Descripcion: color text-warm
+- Progress bar: div custom con bg clay-soft, fill leaf-bright, border-radius organico
+- Hover: ya tiene whileHover y whileTap, mantener
 
-**Wrapper**: `<div className="dashboard-skin botanical-bg max-w-4xl mx-auto">`
+### 8. BadgeCard.tsx
 
-**A) Header organico**
-- Icono Sprout en circulo verde (bg leaf-fresh/20) + "Buenos dias, {nombre}" en font-heading text-3xl font-black color forest-deep
-- Fecha en uppercase tracking-widest text-xs color leaf-muted
-- Desktop: botones notificacion + avatar decorativos (hidden en mobile)
+- Reemplazar `<Card>` con `<div className="organic-card h-full">`
+- Icon bubble: `organic-border` con `bg-[color-mix(in srgb, var(--leaf-fresh) 15%, transparent)]` cuando unlocked
+- Locked: misma forma organica pero `bg-[var(--clay-soft)]`, icono color leaf-muted, opacidad 0.65 en vez de 0.5 (legible)
+- Nombre: `font-heading font-bold text-sm` color forest-deep
+- Descripcion: color text-warm
+- unlockedAt: color leaf-bright
 
-**B) Hero card "Empieza tu primer curso"**
-- `organic-card` con overflow hidden, position relative
-- Dos blobs decorativos (divs absolutos con border-radius organico, bg leaf-fresh/15 y terracotta/10, blur)
-- Icono BookOpen en boton verde organico
-- Titulo en font-heading font-bold
-- CTA "Ver cursos" con `.vibrant-btn`
+### 9. StatCard.tsx
 
-**C) Stats grid (2x2 mobile, 4 cols desktop)**
-- 4 `.card-stat` cards
-- Icono en burbuja organica (bg leaf-fresh/15)
-- Valor en font-heading font-bold text-2xl color forest-deep
-- Label uppercase tracking-widest text-xs color leaf-muted
+- Reemplazar `<Card>` completo con `<div className="card-stat p-4 md:p-5">`
+- Icon bubble organico arriba: `organic-border h-10 w-10` con bg `color-mix(in srgb, var(--leaf-fresh) 15%, transparent)`
+- Icono: color leaf-bright (ignorar accentClass prop, usar siempre organico)
+- Valor: `font-heading text-2xl font-bold` color forest-deep
+- Label: `text-[10px] font-semibold uppercase tracking-widest` color leaf-muted
+- Eliminar CardHeader/CardContent, render directo dentro del div
 
-**D) Chart "Progreso semanal" con div bars**
-- `organic-card` con titulo + barra accent verde
-- 7 barras HTML (divs) con alturas proporcionales
-- Border-radius organico en cada barra (redondeado arriba)
-- Color leaf-bright, hover leaf-fresh
-- **Mobile**: tap en barra muestra tooltip (estado React: `activeBar`)
-- **Desktop**: hover CSS muestra tooltip
-- **Accesibilidad**: cada barra tiene `aria-label="Lunes: 25 minutos"` y `role="img"`
+### 10. EmptyState.tsx
 
-**E) Eliminar Quick Access Launcher** (redundante con Dock)
-
-### 7. DockNav.tsx
-
-Cambios visuales (mantener logica, aria, framer-motion):
-
-- Agregar `className="dashboard-skin"` al `<nav>` wrapper
-- Container: `bg-white/90 backdrop-blur-xl border-2 border-[var(--clay-soft)] organic-border`
-- Labels: siempre visibles (mobile y desktop), uppercase, text-[10px], font-semibold
-- Iconos: mantener Lucide, 20px
-- Activo: color `var(--leaf-bright)`, inactivo: color `var(--leaf-muted)`
-- Reemplazar pill (`layoutId="dock-pill"`) por DOT circular (`w-1.5 h-1.5 rounded-full bg-[var(--leaf-bright)]`) con **layoutId="dock-dot"** para animacion Apple-like deslizante
-- Transicion: spring stiffness 400 damping 30, reduced-motion: duration 0.15
-
-### 8. AppLayout.tsx
-
-Usar `useLocation` para ocultar el header cuando `pathname === "/dashboard"` (el dashboard tiene su propio header inline):
-
-```tsx
-const { pathname } = useLocation();
-const showHeader = pathname !== "/dashboard";
-```
-
-Envolver header en `{showHeader && (...)}`.
+- Envolver contenido en `organic-card p-8`
+- Icon bubble: `organic-border` con bg leaf-fresh/15 en vez de bg-muted
+- Titulo: `font-heading font-bold` color forest-deep
+- Descripcion: color text-warm
+- Boton accion: vibrant-btn
+- Reducir padding vertical (py-10 en vez de py-16)
 
 ---
 
-## Impacto en otras paginas
+## Impacto
 
-- Body font-family NO cambia (sigue Nunito)
-- Los colores `dash.*` son nuevos y no afectan tokens existentes
-- Las clases organicas (.organic-card, etc.) son aditivas
-- El DockNav cambia visualmente en toda la app (deseable para consistencia)
-- Otras paginas NO tienen `.dashboard-skin`, asi que conservan Nunito/Playfair
+- Dashboard.tsx: SIN CAMBIOS (ya tiene su propio wrapper skin)
+- DockNav: SIN CAMBIOS (ya estilizado)
+- Rutas, DB, auth: SIN CAMBIOS
+- Body font global: SIN CAMBIOS (Nunito se mantiene fuera de .dashboard-skin)
+- Todas las paginas protegidas ahora comparten el mismo fondo, tipografia y estilo de cards
 
 ## Responsive
 
-- Stats grid: `grid-cols-2` mobile, `grid-cols-4` en lg
-- Chart barras: flex con gap, se adaptan al ancho
-- Header: avatar/notificacion ocultos en mobile (`hidden md:flex`)
-- Hero card: layout flexible
-- Dock: padding y gap ajustados para 360-430px
-- Max-width `max-w-4xl` centrado en desktop
+- BotanicalPage usa max-w-4xl centrado, responsive padding
+- Grids mantienen sus breakpoints existentes
+- Tabs chip se hacen wrap en mobile
+- Todos los botones >= 44px
+- pb-28 en BotanicalPage asegura que dock no tape contenido
 
-## Checklist
-
-- Sin overflow-x en 360/390/430/768/1024/1440
-- Botones >= 44px en mobile
-- Fuentes Fraunces/Quicksand SOLO dentro de .dashboard-skin
-- Colores via CSS vars, no hex directo en componentes
-- Chart bars con aria-label por barra y tap tooltip mobile
-- DockNav dot activo con layoutId para animacion deslizante
-- prefers-reduced-motion respetado
-- Body font-family global intacto (Nunito)
