@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Quicksand:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -11,7 +13,6 @@
     /* Base: Crema Calido/Papel - Ligeramente mas oscuro para reducir el brillo */
     --background: 40 30% 97%;
     --foreground: 150 40% 10%;
-    /* Verde profundo casi negro para el texto */
 
     /* Cards: Brighter than background for depth */
     --card: 40 30% 99%;
@@ -21,20 +22,19 @@
     --popover: 40 30% 99%;
     --popover-foreground: 150 40% 10%;
 
-    /* Primary: Rich Forest Green - Darker for better contrast on light buttons/text */
+    /* Primary: Rich Forest Green */
     --primary: 156 50% 12%;
     --primary-foreground: 40 30% 97%;
 
-    /* Secondary: Warm Earth Clay - Adjusted for vibrancy */
+    /* Secondary: Warm Earth Clay */
     --secondary: 28 55% 45%;
     --secondary-foreground: 40 30% 97%;
 
     /* Muted: Soft earth/stone tones */
     --muted: 150 10% 92%;
     --muted-foreground: 150 15% 35%;
-    /* Darker for legibility */
 
-    /* Accent: Vibrant Gold/Sunlight - Cheerful but readable */
+    /* Accent: Vibrant Gold/Sunlight */
     --accent: 38 95% 48%;
     --accent-foreground: 156 50% 10%;
 
@@ -42,28 +42,22 @@
     --destructive: 0 70% 45%;
     --destructive-foreground: 40 30% 97%;
 
-    /* Borders & Inputs - Subtle but visible */
+    /* Borders & Inputs */
     --border: 150 10% 85%;
     --input: 150 10% 85%;
     --ring: 156 50% 12%;
 
     --radius: 0.75rem;
 
-    /* Semilla Specific Tokens - Enhanced for AAA */
+    /* Semilla Specific Tokens */
     --semilla-green: 156 50% 12%;
-    /* Deepest green */
     --semilla-green-light: 156 40% 90%;
-    /* Very light tint for backgrounds */
     --semilla-earth: 28 55% 45%;
-    /* Clay/Planter pot color */
     --semilla-earth-light: 28 50% 94%;
-    /* Light clay tint */
     --semilla-gold: 38 95% 48%;
-    /* Sun/Energy */
     --semilla-cream: 40 30% 97%;
-    /* Paper texture base */
 
-    /* Sidebar (if used) */
+    /* Sidebar */
     --sidebar-background: 40 30% 97%;
     --sidebar-foreground: 150 40% 10%;
     --sidebar-primary: 156 50% 12%;
@@ -72,35 +66,39 @@
     --sidebar-accent-foreground: 150 40% 10%;
     --sidebar-border: 150 10% 85%;
     --sidebar-ring: 156 50% 12%;
+
+    /* Dashboard Organic Tokens */
+    --forest-deep: #1b2e1f;
+    --leaf-bright: #78a94b;
+    --leaf-fresh: #98c66a;
+    --terracotta-vivid: #d4633d;
+    --terracotta-warm: #e57c5a;
+    --clay-soft: #f4ece1;
+    --soil-warm: #fcfaf5;
+    --text-warm: #4a4f41;
+    --leaf-muted: #889e81;
+    --dashboard-bg: #faf9f6;
   }
 
   .dark {
-    /* Branding for dark mode - Deep Night Forest */
-    /* Background: Very dark green, almost black, for OLED richness */
     --background: 156 40% 4%;
     --foreground: 40 20% 96%;
-    /* Bright cream text */
 
-    /* Cards: Slightly lighter forest green */
     --card: 156 40% 6%;
     --card-foreground: 40 20% 96%;
 
     --popover: 156 40% 6%;
     --popover-foreground: 40 20% 96%;
 
-    /* Primary: Vibrant sprout green for dark mode actions */
     --primary: 146 50% 45%;
     --primary-foreground: 156 50% 5%;
 
-    /* Secondary: Burnt orange/clay */
     --secondary: 28 45% 40%;
     --secondary-foreground: 40 20% 96%;
 
-    /* Muted */
     --muted: 156 30% 12%;
     --muted-foreground: 156 10% 65%;
 
-    /* Accent */
     --accent: 38 90% 50%;
     --accent-foreground: 156 50% 5%;
 
@@ -111,11 +109,8 @@
     --input: 156 30% 12%;
     --ring: 146 50% 45%;
 
-    /* Semilla Specific Tokens - Dark Mode */
     --semilla-green: 146 50% 45%;
-    /* Bright sprout green */
     --semilla-green-light: 156 40% 10%;
-    /* Dark tint */
     --semilla-earth: 28 45% 40%;
     --semilla-earth-light: 28 30% 15%;
     --semilla-gold: 38 90% 50%;
@@ -147,5 +142,69 @@
   h3 {
     font-family: 'Nunito', sans-serif;
     font-weight: 800;
+  }
+}
+
+/* Dashboard Scoped Skin — fonts only apply inside this class */
+.dashboard-skin {
+  font-family: 'Quicksand', sans-serif;
+}
+
+.dashboard-skin h1,
+.dashboard-skin h2,
+.dashboard-skin h3,
+.dashboard-skin .font-heading {
+  font-family: 'Fraunces', serif;
+}
+
+@layer components {
+  .botanical-bg {
+    background-color: var(--dashboard-bg);
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5c-5 8-15 12-15 25s10 20 15 25c5-5 15-12 15-25S35 13 30 5z' fill='%2378a94b' fill-opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  .organic-border {
+    border-radius: 30px 60px 40px 50px / 50px 30px 60px 40px;
+  }
+
+  .organic-card {
+    background: white;
+    border: 1.5px solid var(--clay-soft);
+    border-radius: 30px 60px 40px 50px / 50px 30px 60px 40px;
+    box-shadow: 0 2px 15px rgba(244, 236, 225, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+
+  .card-stat {
+    background: white;
+    border: 1.5px solid var(--clay-soft);
+    border-radius: 30px 60px 40px 50px / 50px 30px 60px 40px;
+    box-shadow: 0 2px 15px rgba(244, 236, 225, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .card-stat:hover {
+    transform: translateY(-4px) rotate(1deg);
+    border-color: var(--leaf-fresh);
+    box-shadow: 0 8px 25px rgba(120, 169, 75, 0.15);
+  }
+
+  .vibrant-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--terracotta-vivid);
+    color: white;
+    font-weight: 700;
+    padding: 0.75rem 1.75rem;
+    border-radius: 30px 60px 40px 50px / 50px 30px 60px 40px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    min-height: 44px;
+  }
+
+  .vibrant-btn:hover {
+    background: var(--terracotta-warm);
+    transform: scale(1.05) rotate(-1deg);
   }
 }
