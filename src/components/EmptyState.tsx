@@ -1,5 +1,4 @@
 import type { LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
   icon: LucideIcon;
@@ -11,17 +10,26 @@ interface EmptyStateProps {
 
 export default function EmptyState({ icon: Icon, title, description, actionLabel, onAction }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="rounded-full bg-muted p-4 mb-4">
-        <Icon className="h-8 w-8 text-muted-foreground" />
+    <div className="organic-card p-8">
+      <div className="flex flex-col items-center justify-center py-10 text-center">
+        <div
+          className="organic-border h-14 w-14 flex items-center justify-center mb-4"
+          style={{ background: "color-mix(in srgb, var(--leaf-fresh) 15%, transparent)" }}
+        >
+          <Icon className="h-7 w-7" style={{ color: "var(--leaf-bright)" }} />
+        </div>
+        <h3 className="font-heading font-bold text-lg mb-1" style={{ color: "var(--forest-deep)" }}>
+          {title}
+        </h3>
+        <p className="text-sm max-w-xs leading-relaxed" style={{ color: "var(--text-warm)" }}>
+          {description}
+        </p>
+        {actionLabel && onAction && (
+          <button onClick={onAction} className="vibrant-btn mt-6 min-h-[44px] px-6">
+            {actionLabel}
+          </button>
+        )}
       </div>
-      <h3 className="font-bold text-lg text-foreground mb-1">{title}</h3>
-      <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">{description}</p>
-      {actionLabel && onAction && (
-        <Button onClick={onAction} className="mt-6 min-h-[44px] rounded-full px-6">
-          {actionLabel}
-        </Button>
-      )}
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
 import { Lock } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import type { LucideIcon } from "lucide-react";
@@ -21,22 +20,35 @@ export default function BadgeCard({ icon: Icon, name, description, unlocked, unl
       whileTap={reduced ? undefined : { scale: 0.98 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <Card className={`border-border/50 h-full ${unlocked ? "" : "opacity-50"}`}>
-        <CardContent className="p-4 flex flex-col items-center text-center space-y-2">
-          <div className={`rounded-full p-3 ${unlocked ? "bg-primary/15" : "bg-muted"}`}>
+      <div className={`organic-card h-full ${unlocked ? "" : "opacity-[0.65]"}`}>
+        <div className="p-4 flex flex-col items-center text-center space-y-2">
+          <div
+            className="organic-border h-12 w-12 flex items-center justify-center"
+            style={{
+              background: unlocked
+                ? "color-mix(in srgb, var(--leaf-fresh) 15%, transparent)"
+                : "var(--clay-soft)",
+            }}
+          >
             {unlocked ? (
-              <Icon className="h-6 w-6 text-primary" />
+              <Icon className="h-6 w-6" style={{ color: "var(--leaf-bright)" }} />
             ) : (
-              <Lock className="h-6 w-6 text-muted-foreground" />
+              <Lock className="h-6 w-6" style={{ color: "var(--leaf-muted)" }} />
             )}
           </div>
-          <h4 className="font-bold text-sm text-foreground">{name}</h4>
-          <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+          <h4 className="font-heading font-bold text-sm" style={{ color: "var(--forest-deep)" }}>
+            {name}
+          </h4>
+          <p className="text-xs leading-relaxed" style={{ color: "var(--text-warm)" }}>
+            {description}
+          </p>
           {unlocked && unlockedAt && (
-            <span className="text-xs text-primary font-medium">{unlockedAt}</span>
+            <span className="text-xs font-medium" style={{ color: "var(--leaf-bright)" }}>
+              {unlockedAt}
+            </span>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </motion.div>
   );
 }

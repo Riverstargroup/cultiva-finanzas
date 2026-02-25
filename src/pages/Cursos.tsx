@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CourseCard from "@/components/CourseCard";
 import EmptyState from "@/components/EmptyState";
-import PageTransition from "@/components/PageTransition";
+import BotanicalPage from "@/components/layout/BotanicalPage";
 import { BookOpen } from "lucide-react";
 import { COURSES_LIST } from "@/data/placeholders";
 
-// Placeholder progress — Phase 3 will replace with real data
 const userProgress: Record<string, { completedCount: number }> = {};
+
+const TABS = [
+  { key: "todos", label: "Todos" },
+  { key: "progreso", label: "En progreso" },
+  { key: "completados", label: "Completados" },
+] as const;
 
 export default function Cursos() {
   const [tab, setTab] = useState("todos");
@@ -37,52 +41,57 @@ export default function Cursos() {
   };
 
   return (
-    <PageTransition>
-      <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-3xl font-bold text-primary">Cursos</h1>
-          <p className="mt-1 text-muted-foreground">Explora y avanza en tu jardín financiero.</p>
-        </div>
-
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList>
-            <TabsTrigger value="todos">Todos</TabsTrigger>
-            <TabsTrigger value="progreso">En progreso</TabsTrigger>
-            <TabsTrigger value="completados">Completados</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={tab} className="mt-4">
-            {filtered.length === 0 ? (
-              <EmptyState
-                icon={BookOpen}
-                title={tab === "todos" ? "Sin cursos disponibles" : tab === "progreso" ? "Ningún curso en progreso" : "Ningún curso completado"}
-                description={tab === "todos" ? "Pronto habrá nuevos cursos para ti." : "Inicia un curso para verlo aquí."}
-              />
-            ) : (
-              <motion.div
-                variants={stagger}
-                initial="hidden"
-                animate="show"
-                className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-              >
-                {filtered.map((c) => (
-                  <motion.div key={c.id} variants={item}>
-                    <CourseCard
-                      id={c.id}
-                      title={c.title}
-                      description={c.description}
-                      difficulty={c.difficulty}
-                      progress={c.progress}
-                      scenarioCount={c.scenarios.length}
-                      completedCount={c.completedCount}
-                    />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </TabsContent>
-        </Tabs>
+    <BotanicalPage title="Cursos" subtitle="Explora y avanza en tu jardín financiero.">
+      {/* Organic chip tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all min-h-[44px] ${
+              tab === t.key
+                ? "shadow-sm"
+                : "hover:border-[var(--leaf-fresh)]"
+            }`}
+            style={{
+              background: tab === t.key ? "white" : "transparent",
+              borderColor: tab === t.key ? "var(--leaf-bright)" : "var(--clay-soft)",
+              color: tab === t.key ? "var(--forest-deep)" : "var(--leaf-muted)",
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
-    </PageTransition>
+
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon={BookOpen}
+          title={tab === "todos" ? "Sin cursos disponibles" : tab === "progreso" ? "Ningún curso en progreso" : "Ningún curso completado"}
+          description={tab === "todos" ? "Pronto habrá nuevos cursos para ti." : "Inicia un curso para verlo aquí."}
+        />
+      ) : (
+        <motion.div
+          variants={stagger}
+          initial="hidden"
+          animate="show"
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {filtered.map((c) => (
+            <motion.div key={c.id} variants={item}>
+              <CourseCard
+                id={c.id}
+                title={c.title}
+                description={c.description}
+                difficulty={c.difficulty}
+                progress={c.progress}
+                scenarioCount={c.scenarios.length}
+                completedCount={c.completedCount}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
+    </BotanicalPage>
   );
 }
