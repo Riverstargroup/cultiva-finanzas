@@ -1,229 +1,163 @@
 
 
-# Semilla -- Implementacion Completa en 3 Fases
+# Dock Navigation + Swipe Navigator + Dashboard Refactor
 
-## Estado actual del TARGET
+## Context Confirmed
 
-- 1 ruta protegida: `/dashboard` (placeholder con metricas hardcodeadas)
-- Sidebar con links a `/cursos`, `/calculadora`, `/logros`, `/perfil` (todos dan 404)
-- DB: solo tabla `profiles` (id, full_name, avatar_url)
-- `types.ts` solo tiene `profiles` -- **no se puede llamar `supabase.from("courses")` sin romper TS**
-- Framer Motion instalado, Recharts instalado, shadcn/ui completo
-- Design system: Nunito + Playfair Display, tokens Semilla (green, earth, gold, cream)
-
----
-
-## FASE 1: UI con datos placeholder (sin tocar DB)
-
-Todas las paginas usan constantes locales hardcodeadas. Cero llamadas a `supabase.from()` para tablas inexistentes. Build limpio garantizado.
-
-### Archivos nuevos
-
-| Archivo | Proposito |
-|---------|-----------|
-| `src/hooks/useReducedMotion.ts` | Hook: `prefers-reduced-motion` media query |
-| `src/components/PageTransition.tsx` | Wrapper framer-motion con soporte reduced-motion |
-| `src/components/StatCard.tsx` | Card de metrica reutilizable (icono, titulo, valor, acento) |
-| `src/components/CourseCard.tsx` | Card de curso con progreso, dificultad badge, tap/hover |
-| `src/components/EmptyState.tsx` | Estado vacio con icono + texto + CTA |
-| `src/components/SkeletonCard.tsx` | Skeleton loading card |
-| `src/components/BadgeCard.tsx` | Card de logro (desbloqueado/bloqueado) |
-| `src/components/ProgressRing.tsx` | Anillo SVG circular de progreso |
-| `src/components/ScenarioCard.tsx` | Card de escenario con estado (locked/in_progress/completed) |
-| `src/pages/Cursos.tsx` | Lista de cursos con tabs (Todos/En progreso/Completados) |
-| `src/pages/CursoDetalle.tsx` | Detalle de curso con lista de 5 escenarios y estados |
-| `src/pages/Escenario.tsx` | Escenario interactivo con 3 opciones y feedback |
-| `src/pages/Perfil.tsx` | Info basica, estadisticas, editar nombre, cerrar sesion |
-| `src/pages/Logros.tsx` | Grid de 8 badges (alineados con Kimi IDs) |
-| `src/pages/Calculadora.tsx` | Calculadora de interes compuesto con grafico Recharts |
-
-### Archivos modificados
-
-| Archivo | Cambio |
-|---------|--------|
-| `src/App.tsx` | Agregar 6 rutas nuevas dentro del ProtectedRoute/AppLayout |
-| `src/pages/Dashboard.tsx` | Refactor completo: PageTransition, StatCards, seccion "Continuar", empty state, accesos rapidos, animaciones stagger |
-| `src/components/AppLayout.tsx` | Envolver Outlet con PageTransition |
-
-### Datos placeholder (constantes locales)
-
-Curso piloto "Fundamentos Financieros" con 5 escenarios:
-
-1. **Aguinaldo** -- "Recibes tu aguinaldo, que haces?" -- opciones con id estable: `opt_a`, `opt_b`, `opt_c`
-2. **Presupuesto** -- "Tu ingreso mensual es $12,000, como lo distribuyes?"
-3. **Tarjeta de credito** -- "Tienes una deuda de tarjeta, que estrategia sigues?"
-4. **Fondo de emergencia** -- "Surge un gasto inesperado, como lo cubres?"
-5. **CETES** -- "Tienes un ahorro, donde lo pones a trabajar?"
-
-Cada opcion: `{ id: "opt_a" | "opt_b" | "opt_c", text, feedback, is_best: boolean }`
-
-8 badges con IDs de Kimi: `first_steps`, `steady_learner`, `financial_master`, `streak_3`, `streak_7`, `calculator_user`, `debt_expert`, `saver`
-
-### Animaciones (Fase 1)
-
-- `PageTransition`: fade + slide-up (0.28s, easeOut). Reduced-motion: solo opacity 0.15s
-- Cards: `whileTap={{ scale: 0.98 }}` mobile, `whileHover={{ y: -4 }}` desktop (spring stiffness 300, damping 30)
-- Listas: stagger children 0.06s delay
-- Escenario feedback: scale-in al seleccionar opcion
-
-### Tipografia y accesibilidad
-
-- Body: `text-base` (16px), lectura: `text-lg` (18px)
-- `leading-relaxed` (line-height 1.625) en contenido
-- Botones: `min-h-[44px]` en mobile
-- Font weights: minimo `font-normal` (400), labels `font-medium` (500)
-- Focus visible (ya provisto por shadcn)
+- **Routing**: React Router v6 with `useLocation`, `useNavigate`, and `<Outlet />` inside `AppLayout.tsx`.
+- **Layout**: `AppLayout.tsx` wraps all protected routes with `SidebarProvider` + `AppSidebar` + `<Outlet />`.
+- **Icons**: Lucide-react (already used throughout).
+- **Reduced motion**: `useReducedMotion` hook exists and is used by `PageTransition`, `StatCard`, etc.
+- **Viewport meta**: Missing `viewport-fit=cover` (needs adding to `index.html`).
+- **Mobile breakpoint**: 768px (defined in `use-mobile.tsx`).
 
 ---
 
-## FASE 2: Migracion DB + Seed + RLS
+## Phase 1 -- Structure (DockNav + Layout Changes)
 
-Se ejecuta despues de que Fase 1 compile correctamente.
+### 1.1 Update `index.html` viewport meta
+Add `viewport-fit=cover` to the existing viewport meta tag for safe-area support on notched devices.
 
-### Migracion SQL
+### 1.2 Create `src/hooks/useSectionNavigation.ts`
+- Exports `SECTION_ORDER = ['/dashboard', '/cursos', '/calculadora', '/logros', '/perfil']`
+- Exports `useSectionNavigation()` hook that returns:
+  - `currentIndex`: index of current route in `SECTION_ORDER` (using `useLocation().pathname`)
+  - `goNext()` / `goPrev()`: navigate to next/prev section (clamped at bounds)
+  - `goTo(path)`: navigate to specific section
+  - `canGoNext` / `canGoPrev`: boolean flags
+- Uses `useNavigate()` and `useLocation()` from react-router-dom.
 
-```text
--- Tabla courses
-CREATE TABLE public.courses (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  title text NOT NULL,
-  description text,
-  image_url text,
-  category text,
-  difficulty text,
-  duration_min integer DEFAULT 0,
-  is_published boolean DEFAULT true,
-  sort_order integer DEFAULT 0,
-  created_at timestamptz DEFAULT now()
-);
+### 1.3 Create `src/components/navigation/DockNav.tsx`
+- **Position**: `fixed bottom-0 left-1/2 -translate-x-1/2 z-50` with `pb-[max(1rem,env(safe-area-inset-bottom))]`
+- **Container**: `bg-background/80 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl`
+- **Items**: 5 nav items matching `SECTION_ORDER` (Dashboard, Cursos, Calculadora, Logros, Perfil) using same Lucide icons as `AppSidebar`
+- **Active indicator**: Framer Motion `layoutId="dock-pill"` pill that slides between items (animated underline bar `h-1 w-8 bg-primary rounded-full`)
+- **Responsive behavior**:
+  - Mobile (<768px): icons only, `gap-1`, `px-2 py-3`
+  - Desktop (>=768px): icon + label, `gap-2`, `px-4 py-3`
+- **Animations** (framer-motion, respects `useReducedMotion`):
+  - `whileHover={{ scale: 1.08 }}` on desktop (spring stiffness 400, damping 30)
+  - `whileTap={{ scale: 0.96 }}`
+  - Reduced motion: no scale, only opacity
+- **Accessibility**:
+  - `<nav role="navigation" aria-label="Navegacion principal">`
+  - Each item: `<button aria-label="Ir a {label}" aria-current={isActive ? "page" : undefined}>`
+  - Touch targets: `min-h-[44px] min-w-[44px]`
+  - Focus visible: `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`
+- Uses `useLocation()` to determine active item, `useNavigate()` to navigate on click.
 
--- Tabla scenarios
-CREATE TABLE public.scenarios (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  course_id uuid NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
-  title text NOT NULL,
-  description text,
-  sort_order integer DEFAULT 0,
-  options jsonb DEFAULT '[]',
-  created_at timestamptz DEFAULT now()
-);
+### 1.4 Modify `src/components/AppLayout.tsx`
+- **Mobile (<768px)**: Hide the sidebar entirely. Show a compact header with:
+  - Hamburger button (SidebarTrigger) that opens the sidebar as a Sheet/Drawer (this behavior already exists in the shadcn Sidebar component when `isMobile` is true)
+  - App logo/name centered
+- **Desktop (>=768px)**: Keep sidebar as-is (complementary navigation)
+- **All viewports**: Render `<DockNav />` as the primary fixed bottom navigation
+- Add `pb-24` to the main content area to prevent Dock from covering content
+- Wrap `<Outlet />` content area -- keep the existing structure, just add bottom padding
 
--- Tabla user_course_progress
-CREATE TABLE public.user_course_progress (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  course_id uuid NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
-  completed_scenarios uuid[] DEFAULT '{}',        -- uuid[], no text[]
-  last_scenario_id uuid,                          -- uuid, no text
-  last_selected_option_id text,                   -- guarda opt_a/opt_b/opt_c
-  started_at timestamptz DEFAULT now(),
-  completed_at timestamptz,
-  updated_at timestamptz DEFAULT now(),
-  UNIQUE(user_id, course_id)
-);
-
--- Tabla user_achievements
-CREATE TABLE public.user_achievements (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL,
-  badge_id text NOT NULL,
-  unlocked_at timestamptz DEFAULT now(),
-  UNIQUE(user_id, badge_id)
-);
-```
-
-### RLS Policies
-
-- `courses`: SELECT para authenticated (lectura publica dentro de sesion)
-- `scenarios`: SELECT para authenticated
-- `user_course_progress`: SELECT/INSERT/UPDATE donde `user_id = auth.uid()`
-- `user_achievements`: SELECT/INSERT donde `user_id = auth.uid()`
-
-### Seed Data
-
-1 curso "Fundamentos Financieros" (basico, ~30min) con 5 escenarios insertados en `scenarios`, cada uno con `options` jsonb usando IDs estables (`opt_a`, `opt_b`, `opt_c`).
-
-### Trigger
-
-`update_updated_at` trigger en `user_course_progress` para auto-actualizar `updated_at`.
-
-### Post-migracion: types.ts
-
-Tras ejecutar la migracion, verificar que `types.ts` se regenero con las nuevas tablas. Si no se actualizo automaticamente, se actualizara manualmente agregando las definiciones de `courses`, `scenarios`, `user_course_progress` y `user_achievements` al tipo `Database`.
+### 1.5 Add safe-area CSS
+In `src/index.css`, add a utility for safe-area bottom padding on the main content container.
 
 ---
 
-## FASE 3: Hooks de datos + integracion real + motion polish
+## Phase 2 -- Swipe Navigation
 
-### Hooks nuevos
+### 2.1 Create `src/components/navigation/SwipeNavigator.tsx`
+- Wraps the `<Outlet />` content
+- Touch event handling (onTouchStart, onTouchMove, onTouchEnd):
+  - Track `startX`, `startY`, `deltaX`, `deltaY`
+  - **Activation conditions** (ALL must be true):
+    - `Math.abs(deltaX) > Math.abs(deltaY) * 1.5` (predominantly horizontal)
+    - `Math.abs(deltaX) > 60` (minimum threshold)
+    - Touch did NOT start on: `input[type=range]`, elements with class `no-swipe`, or elements inside a container with `overflow-x: scroll` or `overflow-x: auto`
+  - **Exclusion detection**: Walk up the DOM from `event.target` checking for `scrollWidth > clientWidth` (has horizontal scroll content) or `.no-swipe` class
+- On valid swipe:
+  - Left swipe (deltaX < -60): `goNext()`
+  - Right swipe (deltaX > 60): `goPrev()`
+- **Page transition direction**: Pass direction to `PageTransition` via context or prop:
+  - Forward (higher index): slide from right (`x: 30 -> 0`)
+  - Backward (lower index): slide from left (`x: -30 -> 0`)
+- Uses `useSectionNavigation` hook
+- CSS on wrapper: `touch-action: pan-y` and `overscroll-behavior-x: none` to prevent iOS Safari back-swipe interference
 
-| Hook | Funcion |
-|------|---------|
-| `src/hooks/useCourses.ts` | Fetch cursos con escenarios desde DB |
-| `src/hooks/useCourseProgress.ts` | CRUD progreso: iniciar curso, completar escenario (guardar `last_selected_option_id`), verificar finalizacion |
-| `src/hooks/useAchievements.ts` | Fetch logros, desbloquear nuevos (con logica de condiciones) |
-
-### Integracion por pagina
-
-- **Dashboard**: queries reales (cursos en progreso, escenarios completados count, logros count). Empty state si 0 cursos iniciados
-- **Cursos**: fetch `courses` + left join progreso del usuario para mostrar estado por curso
-- **CursoDetalle**: fetch `scenarios` del curso + progreso para marcar estados (locked si el anterior no completado, in_progress, completed)
-- **Escenario**: al elegir opcion, upsert en `user_course_progress` agregando scenario_id a `completed_scenarios[]` y guardando `last_selected_option_id`. Verificar y desbloquear logros
-- **Perfil**: stats reales desde progreso + logros count
-- **Logros**: cruzar 8 badges estaticos con `user_achievements`
-- **Calculadora**: al usarla por primera vez, desbloquear logro `calculator_user`
-
-### Logica de logros
-
-| Badge ID | Condicion |
-|----------|-----------|
-| `first_steps` | `completed_scenarios.length >= 1` |
-| `steady_learner` | `completed_scenarios.length >= 3` |
-| `financial_master` | Todos los escenarios del curso completados |
-| `streak_3` | Placeholder (no hay tabla de actividad diaria aun) |
-| `streak_7` | Placeholder |
-| `calculator_user` | Usuario visita `/calculadora` y ejecuta un calculo |
-| `debt_expert` | Completar escenario "Tarjeta de credito" |
-| `saver` | Completar escenario "Fondo de emergencia" |
-
-### Motion polish final
-
-- Verificar que todas las animaciones respetan `prefers-reduced-motion`
-- Transiciones de pagina consistentes via PageTransition
-- Feedback visual en escenarios: opcion seleccionada escala + color + texto feedback con fade-in
-- Cards con spring physics en hover/tap
+### 2.2 Keyboard shortcuts
+- In `SwipeNavigator` or `useSectionNavigation`, add `useEffect` for keydown:
+  - `Alt + ArrowRight`: `goNext()` with `e.preventDefault()`
+  - `Alt + ArrowLeft`: `goPrev()` with `e.preventDefault()`
+  - Only Alt key (not Cmd/Ctrl which is browser history)
 
 ---
 
-## Checklist de calidad (aplicado al final)
+## Phase 3 -- Dashboard Refactor
 
-- Sin overflow-x en 360/390/430/768/1024/1440
-- Todos los botones >= 44px en mobile
-- Body text >= 16px, lectura >= 18px
-- line-height >= 1.55
-- Skeleton loading en cada pagina
-- Empty state con CTA en listas vacias
-- Error handling con toast
-- Build sin errores TS
-- Componentes reutilizados sin duplicacion
-- `prefers-reduced-motion` respetado
-- Focus visible en interactivos
-- IDs de opciones estables (opt_a/opt_b/opt_c)
-- `completed_scenarios` es uuid[]
-- `last_selected_option_id` se guarda al completar escenario
+### 3.1 Modify `src/pages/Dashboard.tsx`
+Restructure the visual hierarchy (top to bottom):
+
+**A) Header (compact)**
+- Time-based greeting: "Buenos dias/tardes/noches" + profile name
+- Subtitle: current date formatted in Spanish (`text-sm text-muted-foreground`)
+- Skeleton during loading
+
+**B) Card Hero "Continuar" (max-h ~140px)**
+- If course in progress: compact card with progress %, title (1 line truncated), "Continuar" button
+- If empty: compact card (NOT full EmptyState) with small icon (40px), 1-line text "Empieza tu primer curso", secondary CTA "Ver cursos"
+- Max height constrained, no full-page empty state
+
+**C) Quick Access Launcher (horizontal scroll)**
+- `overflow-x-auto` with `scroll-snap-type: x mandatory`
+- 5 items: Dashboard, Cursos, Calculadora, Logros, Perfil
+- Each: small card with icon + label, `border border-border/50`, `hover:bg-accent/10`
+- **Critical**: Add `className="no-swipe"` to the scroll container to prevent swipe navigation conflict
+- Touch-friendly: `min-h-[44px]` per item
+
+**D) Stats Grid**
+- Same 4 StatCards but with improved visual:
+  - Icon wrapped in `bg-primary/10 rounded-xl p-2` for visual grouping
+  - Larger number (`text-2xl font-bold`), smaller label (`text-xs text-muted-foreground`)
+  - Better `gap-4` spacing
+
+**E) Weekly Chart**
+- Keep as-is, ensure container has `className="no-swipe"` if it has any horizontal interaction
 
 ---
 
-## Orden de ejecucion
+## Phase 4 -- Polish
 
-1. `useReducedMotion` + componentes compartidos (PageTransition, StatCard, CourseCard, EmptyState, SkeletonCard, BadgeCard, ProgressRing, ScenarioCard)
-2. Paginas con placeholder: Cursos, CursoDetalle, Escenario, Perfil, Logros, Calculadora
-3. Dashboard refactor
-4. App.tsx: agregar rutas
-5. AppLayout.tsx: PageTransition wrapper
-6. Migracion SQL (tablas + seed + RLS + trigger)
-7. Verificar/actualizar types.ts post-migracion
-8. Hooks de datos (useCourses, useCourseProgress, useAchievements)
-9. Reemplazar placeholders por datos reales en todas las paginas
-10. Polish final: animaciones, responsive QA, accesibilidad
+### 4.1 Accessibility verification
+- All Dock buttons >= 44px touch target
+- Focus ring visible on all interactive elements
+- `aria-current="page"` on active Dock item
+- `prefers-reduced-motion` respected in all new animations (DockNav pill, SwipeNavigator transitions)
+
+### 4.2 Overflow prevention
+- No `overflow-x` issues at 360, 390, 430, 768, 1024, 1440px
+- Dock centered and never wider than viewport
+- Quick Access launcher contained within padding
+
+### 4.3 iOS Safari considerations
+- `overscroll-behavior-x: none` on SwipeNavigator wrapper
+- `touch-action: pan-y` to prevent competing with browser gestures
+- Safe-area inset on Dock via `env(safe-area-inset-bottom)`
+
+### 4.4 Z-index hierarchy
+- Dock: `z-50`
+- Sheet/Drawer (sidebar mobile): `z-50` (shadcn default, Sheet overlay covers Dock)
+- Modals: `z-50` (Dialog overlay covers Dock)
+- The Sheet overlay (`fixed inset-0 z-50 bg-black/80`) will naturally cover the Dock
+
+---
+
+## Files Summary
+
+| Action | File | Description |
+|--------|------|-------------|
+| Edit | `index.html` | Add `viewport-fit=cover` to meta viewport |
+| Create | `src/hooks/useSectionNavigation.ts` | Route order + navigation hook |
+| Create | `src/components/navigation/DockNav.tsx` | Fixed bottom dock navigation |
+| Create | `src/components/navigation/SwipeNavigator.tsx` | Gesture-based page navigation wrapper |
+| Edit | `src/components/AppLayout.tsx` | Integrate DockNav, SwipeNavigator, adjust padding, simplify mobile header |
+| Edit | `src/pages/Dashboard.tsx` | Compact hero, time-based greeting, horizontal launcher with no-swipe, improved stats |
+| Edit | `src/index.css` | Add safe-area utility if needed |
+
+No database, auth, or routing changes. Pure UI/UX layer.
 
