@@ -1,7 +1,4 @@
 import { motion } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useNavigate } from "react-router-dom";
 
@@ -10,16 +7,10 @@ interface CourseCardProps {
   title: string;
   description: string;
   difficulty: string;
-  progress: number; // 0-100
+  progress: number;
   scenarioCount: number;
   completedCount: number;
 }
-
-const difficultyColors: Record<string, string> = {
-  basico: "bg-primary/15 text-primary border-primary/30",
-  intermedio: "bg-accent/15 text-accent-foreground border-accent/30",
-  avanzado: "bg-destructive/15 text-destructive border-destructive/30",
-};
 
 export default function CourseCard({
   id, title, description, difficulty, progress, scenarioCount, completedCount,
@@ -35,32 +26,50 @@ export default function CourseCard({
       className="cursor-pointer"
       onClick={() => navigate(`/cursos/${id}`)}
     >
-      <Card className="border-border/50 overflow-hidden h-full">
-        {/* Gradient placeholder image */}
-        <div className="h-32 bg-gradient-to-br from-primary/20 via-secondary/30 to-accent/20" />
-        <CardContent className="p-4 space-y-3">
+      <div className="organic-card overflow-hidden h-full">
+        {/* Gradient header with organic top radius */}
+        <div
+          className="h-32"
+          style={{
+            background: "linear-gradient(135deg, color-mix(in srgb, var(--leaf-bright) 20%, transparent), color-mix(in srgb, var(--leaf-fresh) 30%, transparent), color-mix(in srgb, var(--terracotta-vivid) 15%, transparent))",
+            borderRadius: "30px 60px 0 0 / 50px 30px 0 0",
+          }}
+        />
+        <div className="p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <Badge
-              variant="outline"
-              className={`text-xs capitalize ${difficultyColors[difficulty] || ""}`}
+            <span
+              className="text-xs capitalize font-semibold px-3 py-1 rounded-full border"
+              style={{
+                background: "var(--soil-warm)",
+                color: "var(--forest-deep)",
+                borderColor: "var(--clay-soft)",
+              }}
             >
               {difficulty}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
+            </span>
+            <span className="text-xs" style={{ color: "var(--leaf-muted)" }}>
               {completedCount}/{scenarioCount} escenarios
             </span>
           </div>
-          <h3 className="font-bold text-foreground leading-tight line-clamp-2">
+          <h3 className="font-heading font-bold leading-tight line-clamp-2" style={{ color: "var(--forest-deep)" }}>
             {title}
           </h3>
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+          <p className="text-sm leading-relaxed line-clamp-2" style={{ color: "var(--text-warm)" }}>
             {description}
           </p>
           {progress > 0 && (
-            <Progress value={progress} className="h-2" />
+            <div
+              className="h-2 rounded-full overflow-hidden"
+              style={{ background: "var(--clay-soft)" }}
+            >
+              <div
+                className="h-full rounded-full transition-all"
+                style={{ width: `${progress}%`, background: "var(--leaf-bright)" }}
+              />
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </motion.div>
   );
 }
