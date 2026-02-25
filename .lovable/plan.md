@@ -1,163 +1,186 @@
 
 
-# Dock Navigation + Swipe Navigator + Dashboard Refactor
+# Dashboard Re-skin: Mockup Organico Fiel
 
-## Context Confirmed
+## Resumen
 
-- **Routing**: React Router v6 with `useLocation`, `useNavigate`, and `<Outlet />` inside `AppLayout.tsx`.
-- **Layout**: `AppLayout.tsx` wraps all protected routes with `SidebarProvider` + `AppSidebar` + `<Outlet />`.
-- **Icons**: Lucide-react (already used throughout).
-- **Reduced motion**: `useReducedMotion` hook exists and is used by `PageTransition`, `StatCard`, etc.
-- **Viewport meta**: Missing `viewport-fit=cover` (needs adding to `index.html`).
-- **Mobile breakpoint**: 768px (defined in `use-mobile.tsx`).
+Transformar visualmente el Dashboard y DockNav para coincidir con el mockup HTML organico. Fuentes Fraunces+Quicksand se aplican SOLO dentro de `.dashboard-skin` (Dashboard y DockNav), sin tocar el body global. Colores via CSS variables, no hex hardcodeado.
 
 ---
 
-## Phase 1 -- Structure (DockNav + Layout Changes)
+## Archivos a modificar/crear
 
-### 1.1 Update `index.html` viewport meta
-Add `viewport-fit=cover` to the existing viewport meta tag for safe-area support on notched devices.
-
-### 1.2 Create `src/hooks/useSectionNavigation.ts`
-- Exports `SECTION_ORDER = ['/dashboard', '/cursos', '/calculadora', '/logros', '/perfil']`
-- Exports `useSectionNavigation()` hook that returns:
-  - `currentIndex`: index of current route in `SECTION_ORDER` (using `useLocation().pathname`)
-  - `goNext()` / `goPrev()`: navigate to next/prev section (clamped at bounds)
-  - `goTo(path)`: navigate to specific section
-  - `canGoNext` / `canGoPrev`: boolean flags
-- Uses `useNavigate()` and `useLocation()` from react-router-dom.
-
-### 1.3 Create `src/components/navigation/DockNav.tsx`
-- **Position**: `fixed bottom-0 left-1/2 -translate-x-1/2 z-50` with `pb-[max(1rem,env(safe-area-inset-bottom))]`
-- **Container**: `bg-background/80 backdrop-blur-xl border border-border/50 shadow-2xl rounded-2xl`
-- **Items**: 5 nav items matching `SECTION_ORDER` (Dashboard, Cursos, Calculadora, Logros, Perfil) using same Lucide icons as `AppSidebar`
-- **Active indicator**: Framer Motion `layoutId="dock-pill"` pill that slides between items (animated underline bar `h-1 w-8 bg-primary rounded-full`)
-- **Responsive behavior**:
-  - Mobile (<768px): icons only, `gap-1`, `px-2 py-3`
-  - Desktop (>=768px): icon + label, `gap-2`, `px-4 py-3`
-- **Animations** (framer-motion, respects `useReducedMotion`):
-  - `whileHover={{ scale: 1.08 }}` on desktop (spring stiffness 400, damping 30)
-  - `whileTap={{ scale: 0.96 }}`
-  - Reduced motion: no scale, only opacity
-- **Accessibility**:
-  - `<nav role="navigation" aria-label="Navegacion principal">`
-  - Each item: `<button aria-label="Ir a {label}" aria-current={isActive ? "page" : undefined}>`
-  - Touch targets: `min-h-[44px] min-w-[44px]`
-  - Focus visible: `focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`
-- Uses `useLocation()` to determine active item, `useNavigate()` to navigate on click.
-
-### 1.4 Modify `src/components/AppLayout.tsx`
-- **Mobile (<768px)**: Hide the sidebar entirely. Show a compact header with:
-  - Hamburger button (SidebarTrigger) that opens the sidebar as a Sheet/Drawer (this behavior already exists in the shadcn Sidebar component when `isMobile` is true)
-  - App logo/name centered
-- **Desktop (>=768px)**: Keep sidebar as-is (complementary navigation)
-- **All viewports**: Render `<DockNav />` as the primary fixed bottom navigation
-- Add `pb-24` to the main content area to prevent Dock from covering content
-- Wrap `<Outlet />` content area -- keep the existing structure, just add bottom padding
-
-### 1.5 Add safe-area CSS
-In `src/index.css`, add a utility for safe-area bottom padding on the main content container.
+| Accion | Archivo | Descripcion |
+|--------|---------|-------------|
+| Editar | `src/index.css` | Agregar imports de Fraunces, Quicksand, Material Symbols. Agregar CSS vars del dashboard. Agregar clases utilitarias organicas. NO cambiar body font-family |
+| Editar | `tailwind.config.ts` | Agregar fontFamily heading/body, colores `dash.*` mapeados a CSS vars |
+| Reescribir | `src/pages/Dashboard.tsx` | Layout completo del mockup: header organico, hero card con blobs, stat grid, chart con div bars (tap tooltip + aria-label), todo dentro de `.dashboard-skin` |
+| Editar | `src/components/navigation/DockNav.tsx` | Re-estilizar con look organico (bg-white/90, border clay, labels siempre visibles, dot activo con layoutId) |
+| Editar | `src/components/AppLayout.tsx` | Ocultar header global en /dashboard (dashboard tiene su propio header inline) |
 
 ---
 
-## Phase 2 -- Swipe Navigation
+## Detalle tecnico
 
-### 2.1 Create `src/components/navigation/SwipeNavigator.tsx`
-- Wraps the `<Outlet />` content
-- Touch event handling (onTouchStart, onTouchMove, onTouchEnd):
-  - Track `startX`, `startY`, `deltaX`, `deltaY`
-  - **Activation conditions** (ALL must be true):
-    - `Math.abs(deltaX) > Math.abs(deltaY) * 1.5` (predominantly horizontal)
-    - `Math.abs(deltaX) > 60` (minimum threshold)
-    - Touch did NOT start on: `input[type=range]`, elements with class `no-swipe`, or elements inside a container with `overflow-x: scroll` or `overflow-x: auto`
-  - **Exclusion detection**: Walk up the DOM from `event.target` checking for `scrollWidth > clientWidth` (has horizontal scroll content) or `.no-swipe` class
-- On valid swipe:
-  - Left swipe (deltaX < -60): `goNext()`
-  - Right swipe (deltaX > 60): `goPrev()`
-- **Page transition direction**: Pass direction to `PageTransition` via context or prop:
-  - Forward (higher index): slide from right (`x: 30 -> 0`)
-  - Backward (lower index): slide from left (`x: -30 -> 0`)
-- Uses `useSectionNavigation` hook
-- CSS on wrapper: `touch-action: pan-y` and `overscroll-behavior-x: none` to prevent iOS Safari back-swipe interference
+### 1. CSS Variables (src/index.css, bajo :root)
 
-### 2.2 Keyboard shortcuts
-- In `SwipeNavigator` or `useSectionNavigation`, add `useEffect` for keydown:
-  - `Alt + ArrowRight`: `goNext()` with `e.preventDefault()`
-  - `Alt + ArrowLeft`: `goPrev()` with `e.preventDefault()`
-  - Only Alt key (not Cmd/Ctrl which is browser history)
+Agregar al bloque `:root` existente (NO reemplazar):
+
+```css
+--forest-deep: #1b2e1f;
+--leaf-bright: #78a94b;
+--leaf-fresh: #98c66a;
+--terracotta-vivid: #d4633d;
+--terracotta-warm: #e57c5a;
+--clay-soft: #f4ece1;
+--soil-warm: #fcfaf5;
+--text-warm: #4a4f41;
+--leaf-muted: #889e81;
+--dashboard-bg: #faf9f6;
+```
+
+### 2. Font imports (src/index.css)
+
+Agregar (sin eliminar Nunito/Playfair):
+```css
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Quicksand:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+```
+
+### 3. Scoped font application
+
+Clase `.dashboard-skin` en CSS:
+```css
+.dashboard-skin {
+  font-family: 'Quicksand', sans-serif;
+}
+.dashboard-skin h1,
+.dashboard-skin h2,
+.dashboard-skin h3 {
+  font-family: 'Fraunces', serif;
+}
+```
+
+El Dashboard wrapper y DockNav aplican esta clase. NO se toca `body { font-family }`.
+
+### 4. Clases utilitarias organicas (@layer components)
+
+- `.botanical-bg`: fondo SVG botanico con opacidad 0.03, bg dashboard-bg
+- `.organic-border`: border-radius irregular (30px 60px 40px 50px / 50px 30px 60px 40px)
+- `.organic-card`: bg white, border 1.5px clay-soft, organic-border, shadow sutil
+- `.card-stat`: organic-card + hover translateY(-4px) rotate(1deg) + border leaf-fresh
+- `.vibrant-btn`: bg terracotta-vivid, texto blanco, organic-border, hover scale(1.05) rotate(-1deg) + bg terracotta-warm
+
+### 5. Tailwind config (tailwind.config.ts)
+
+Agregar a `extend.fontFamily`:
+```ts
+heading: ["Fraunces", "serif"],
+body: ["Quicksand", "sans-serif"],
+```
+
+Agregar a `extend.colors` usando CSS vars:
+```ts
+dash: {
+  bg: "var(--dashboard-bg)",
+  forest: "var(--forest-deep)",
+  "leaf-bright": "var(--leaf-bright)",
+  "leaf-fresh": "var(--leaf-fresh)",
+  terracotta: "var(--terracotta-vivid)",
+  "terracotta-warm": "var(--terracotta-warm)",
+  clay: "var(--clay-soft)",
+  soil: "var(--soil-warm)",
+  text: "var(--text-warm)",
+  "leaf-muted": "var(--leaf-muted)",
+},
+```
+
+### 6. Dashboard.tsx (reescritura visual)
+
+Mantiene: `useProfile`, `useNavigate`, `useReducedMotion`, `PageTransition`, datos placeholder, logica greeting/fecha.
+
+Estructura del mockup:
+
+**Wrapper**: `<div className="dashboard-skin botanical-bg max-w-4xl mx-auto">`
+
+**A) Header organico**
+- Icono Sprout en circulo verde (bg leaf-fresh/20) + "Buenos dias, {nombre}" en font-heading text-3xl font-black color forest-deep
+- Fecha en uppercase tracking-widest text-xs color leaf-muted
+- Desktop: botones notificacion + avatar decorativos (hidden en mobile)
+
+**B) Hero card "Empieza tu primer curso"**
+- `organic-card` con overflow hidden, position relative
+- Dos blobs decorativos (divs absolutos con border-radius organico, bg leaf-fresh/15 y terracotta/10, blur)
+- Icono BookOpen en boton verde organico
+- Titulo en font-heading font-bold
+- CTA "Ver cursos" con `.vibrant-btn`
+
+**C) Stats grid (2x2 mobile, 4 cols desktop)**
+- 4 `.card-stat` cards
+- Icono en burbuja organica (bg leaf-fresh/15)
+- Valor en font-heading font-bold text-2xl color forest-deep
+- Label uppercase tracking-widest text-xs color leaf-muted
+
+**D) Chart "Progreso semanal" con div bars**
+- `organic-card` con titulo + barra accent verde
+- 7 barras HTML (divs) con alturas proporcionales
+- Border-radius organico en cada barra (redondeado arriba)
+- Color leaf-bright, hover leaf-fresh
+- **Mobile**: tap en barra muestra tooltip (estado React: `activeBar`)
+- **Desktop**: hover CSS muestra tooltip
+- **Accesibilidad**: cada barra tiene `aria-label="Lunes: 25 minutos"` y `role="img"`
+
+**E) Eliminar Quick Access Launcher** (redundante con Dock)
+
+### 7. DockNav.tsx
+
+Cambios visuales (mantener logica, aria, framer-motion):
+
+- Agregar `className="dashboard-skin"` al `<nav>` wrapper
+- Container: `bg-white/90 backdrop-blur-xl border-2 border-[var(--clay-soft)] organic-border`
+- Labels: siempre visibles (mobile y desktop), uppercase, text-[10px], font-semibold
+- Iconos: mantener Lucide, 20px
+- Activo: color `var(--leaf-bright)`, inactivo: color `var(--leaf-muted)`
+- Reemplazar pill (`layoutId="dock-pill"`) por DOT circular (`w-1.5 h-1.5 rounded-full bg-[var(--leaf-bright)]`) con **layoutId="dock-dot"** para animacion Apple-like deslizante
+- Transicion: spring stiffness 400 damping 30, reduced-motion: duration 0.15
+
+### 8. AppLayout.tsx
+
+Usar `useLocation` para ocultar el header cuando `pathname === "/dashboard"` (el dashboard tiene su propio header inline):
+
+```tsx
+const { pathname } = useLocation();
+const showHeader = pathname !== "/dashboard";
+```
+
+Envolver header en `{showHeader && (...)}`.
 
 ---
 
-## Phase 3 -- Dashboard Refactor
+## Impacto en otras paginas
 
-### 3.1 Modify `src/pages/Dashboard.tsx`
-Restructure the visual hierarchy (top to bottom):
+- Body font-family NO cambia (sigue Nunito)
+- Los colores `dash.*` son nuevos y no afectan tokens existentes
+- Las clases organicas (.organic-card, etc.) son aditivas
+- El DockNav cambia visualmente en toda la app (deseable para consistencia)
+- Otras paginas NO tienen `.dashboard-skin`, asi que conservan Nunito/Playfair
 
-**A) Header (compact)**
-- Time-based greeting: "Buenos dias/tardes/noches" + profile name
-- Subtitle: current date formatted in Spanish (`text-sm text-muted-foreground`)
-- Skeleton during loading
+## Responsive
 
-**B) Card Hero "Continuar" (max-h ~140px)**
-- If course in progress: compact card with progress %, title (1 line truncated), "Continuar" button
-- If empty: compact card (NOT full EmptyState) with small icon (40px), 1-line text "Empieza tu primer curso", secondary CTA "Ver cursos"
-- Max height constrained, no full-page empty state
+- Stats grid: `grid-cols-2` mobile, `grid-cols-4` en lg
+- Chart barras: flex con gap, se adaptan al ancho
+- Header: avatar/notificacion ocultos en mobile (`hidden md:flex`)
+- Hero card: layout flexible
+- Dock: padding y gap ajustados para 360-430px
+- Max-width `max-w-4xl` centrado en desktop
 
-**C) Quick Access Launcher (horizontal scroll)**
-- `overflow-x-auto` with `scroll-snap-type: x mandatory`
-- 5 items: Dashboard, Cursos, Calculadora, Logros, Perfil
-- Each: small card with icon + label, `border border-border/50`, `hover:bg-accent/10`
-- **Critical**: Add `className="no-swipe"` to the scroll container to prevent swipe navigation conflict
-- Touch-friendly: `min-h-[44px]` per item
+## Checklist
 
-**D) Stats Grid**
-- Same 4 StatCards but with improved visual:
-  - Icon wrapped in `bg-primary/10 rounded-xl p-2` for visual grouping
-  - Larger number (`text-2xl font-bold`), smaller label (`text-xs text-muted-foreground`)
-  - Better `gap-4` spacing
-
-**E) Weekly Chart**
-- Keep as-is, ensure container has `className="no-swipe"` if it has any horizontal interaction
-
----
-
-## Phase 4 -- Polish
-
-### 4.1 Accessibility verification
-- All Dock buttons >= 44px touch target
-- Focus ring visible on all interactive elements
-- `aria-current="page"` on active Dock item
-- `prefers-reduced-motion` respected in all new animations (DockNav pill, SwipeNavigator transitions)
-
-### 4.2 Overflow prevention
-- No `overflow-x` issues at 360, 390, 430, 768, 1024, 1440px
-- Dock centered and never wider than viewport
-- Quick Access launcher contained within padding
-
-### 4.3 iOS Safari considerations
-- `overscroll-behavior-x: none` on SwipeNavigator wrapper
-- `touch-action: pan-y` to prevent competing with browser gestures
-- Safe-area inset on Dock via `env(safe-area-inset-bottom)`
-
-### 4.4 Z-index hierarchy
-- Dock: `z-50`
-- Sheet/Drawer (sidebar mobile): `z-50` (shadcn default, Sheet overlay covers Dock)
-- Modals: `z-50` (Dialog overlay covers Dock)
-- The Sheet overlay (`fixed inset-0 z-50 bg-black/80`) will naturally cover the Dock
-
----
-
-## Files Summary
-
-| Action | File | Description |
-|--------|------|-------------|
-| Edit | `index.html` | Add `viewport-fit=cover` to meta viewport |
-| Create | `src/hooks/useSectionNavigation.ts` | Route order + navigation hook |
-| Create | `src/components/navigation/DockNav.tsx` | Fixed bottom dock navigation |
-| Create | `src/components/navigation/SwipeNavigator.tsx` | Gesture-based page navigation wrapper |
-| Edit | `src/components/AppLayout.tsx` | Integrate DockNav, SwipeNavigator, adjust padding, simplify mobile header |
-| Edit | `src/pages/Dashboard.tsx` | Compact hero, time-based greeting, horizontal launcher with no-swipe, improved stats |
-| Edit | `src/index.css` | Add safe-area utility if needed |
-
-No database, auth, or routing changes. Pure UI/UX layer.
-
+- Sin overflow-x en 360/390/430/768/1024/1440
+- Botones >= 44px en mobile
+- Fuentes Fraunces/Quicksand SOLO dentro de .dashboard-skin
+- Colores via CSS vars, no hex directo en componentes
+- Chart bars con aria-label por barra y tap tooltip mobile
+- DockNav dot activo con layoutId para animacion deslizante
+- prefers-reduced-motion respetado
+- Body font-family global intacto (Nunito)
