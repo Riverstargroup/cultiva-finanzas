@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { LayoutDashboard, BookOpen, Calculator, Trophy, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { SECTION_ORDER } from "@/hooks/useSectionNavigation";
 import type { LucideIcon } from "lucide-react";
 
@@ -24,7 +23,6 @@ export default function DockNav() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const reduced = useReducedMotion();
-  const isMobile = useIsMobile();
 
   const spring = { type: "spring" as const, stiffness: 400, damping: 30 };
 
@@ -32,10 +30,18 @@ export default function DockNav() {
     <nav
       role="navigation"
       aria-label="Navegación principal"
-      className="fixed bottom-0 left-1/2 z-50 -translate-x-1/2"
+      className="dashboard-skin fixed bottom-0 left-1/2 z-50 -translate-x-1/2"
       style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
     >
-      <div className="flex items-end gap-1 rounded-2xl border border-border/50 bg-background/80 px-2 py-2 shadow-2xl backdrop-blur-xl md:gap-2 md:px-4 md:py-3">
+      <div
+        className="flex items-end gap-1 px-3 py-2.5 backdrop-blur-xl md:gap-2 md:px-5 md:py-3"
+        style={{
+          background: "rgba(255,255,255,0.9)",
+          border: "2px solid var(--clay-soft)",
+          borderRadius: "30px 60px 40px 50px / 50px 30px 60px 40px",
+          boxShadow: "0 4px 20px rgba(244, 236, 225, 0.5)",
+        }}
+      >
         {DOCK_ITEMS.map((item) => {
           const isActive = pathname === item.path || pathname.startsWith(item.path + "/");
           const Icon = item.icon;
@@ -46,29 +52,30 @@ export default function DockNav() {
               onClick={() => navigate(item.path)}
               aria-label={`Ir a ${item.label}`}
               aria-current={isActive ? "page" : undefined}
-              whileHover={reduced || isMobile ? undefined : { scale: 1.08 }}
+              whileHover={reduced ? undefined : { scale: 1.08 }}
               whileTap={reduced ? undefined : { scale: 0.96 }}
               transition={spring}
-              className="relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-center rounded-xl px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:px-3"
+              className="relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-center rounded-xl px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 md:px-3"
+              style={{
+                // @ts-ignore
+                "--tw-ring-color": "var(--leaf-bright)",
+              }}
             >
               <Icon
-                className={`h-5 w-5 transition-colors ${
-                  isActive ? "text-primary" : "text-muted-foreground"
-                }`}
+                className="h-5 w-5 transition-colors"
+                style={{ color: isActive ? "var(--leaf-bright)" : "var(--leaf-muted)" }}
               />
-              {!isMobile && (
-                <span
-                  className={`mt-0.5 text-[11px] font-medium transition-colors ${
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  {item.label}
-                </span>
-              )}
+              <span
+                className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider transition-colors"
+                style={{ color: isActive ? "var(--leaf-bright)" : "var(--leaf-muted)" }}
+              >
+                {item.label}
+              </span>
               {isActive && (
                 <motion.div
-                  layoutId="dock-pill"
-                  className="absolute -bottom-0.5 h-1 w-8 rounded-full bg-primary"
+                  layoutId="dock-dot"
+                  className="absolute -bottom-0.5 h-1.5 w-1.5 rounded-full"
+                  style={{ background: "var(--leaf-bright)" }}
                   transition={reduced ? { duration: 0.15 } : spring}
                 />
               )}
