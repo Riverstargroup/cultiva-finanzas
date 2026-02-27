@@ -1,260 +1,160 @@
 
-# Semilla: Curso 1 Completo + Motor de Aprendizaje
+
+# Curso 2 + Presets Deuda + Tags-Skills + Misiones Gamificadas
 
 ## Resumen
 
-Implementar el sistema completo de aprendizaje con persistencia en DB: schema con 6 tablas, seed del curso "Raices" con 7 seeds (escenarios + recall quiz), hooks de datos, motor de espaciado SM-2, sistema de logros real, y la integracion en todas las paginas existentes sin romper el Botanical Skin.
+Bundle de 4 features independientes que se implementan en secuencia:
+1. Seed del Curso 2 "Credito sin miedo" (9 scenarios) en DB
+2. Tab "Deuda" en Calculadora con presets y simulador snowball/avalanche
+3. Sistema de Skills (DB + logica de actualizacion al completar escenarios)
+4. Misiones guiadas con persistencia (user_missions) y UI en FeedbackStep
 
 ---
 
-## FASE 1 -- Migracion SQL + RLS + Seed
+## FASE 1: Migracion SQL (3 tablas nuevas + seed)
 
-### 1.1 Tablas a crear (1 migracion SQL)
+### 1.1 Nuevas tablas
 
-| Tabla | Proposito |
-|-------|-----------|
-| `courses` | Cursos publicados (slug, title, level, etc.) |
-| `scenarios` | Seeds/lecciones con opciones, recall quiz, mision |
-| `user_course_progress` | Progreso del usuario por curso (completed_scenarios[], mastery_score) |
-| `user_scenario_state` | Estado de espaciado SM-2 por escenario (interval, ease_factor, next_due_at) |
-| `user_achievements` | Insignias desbloqueadas |
-| `user_activity_days` | Actividad diaria para streak real |
+| Tabla | Columnas clave |
+|-------|---------------|
+| `skills` | id(text PK), domain(text), title(text), description(text), icon(text), sort_order(int) |
+| `user_skills` | user_id(uuid default auth.uid()), skill_id(text references skills), mastery(numeric default 0), status(text default 'locked'), updated_at(timestamptz) -- UNIQUE(user_id, skill_id) |
+| `user_missions` | user_id(uuid default auth.uid()), scenario_id(uuid references scenarios on delete cascade), status(text default 'pending'), done_at(timestamptz) -- UNIQUE(user_id, scenario_id) |
 
-### 1.2 RLS Policies
+### 1.2 RLS
 
-- `courses` y `scenarios`: SELECT para authenticated (lectura). No INSERT/UPDATE/DELETE desde cliente.
-- `user_course_progress`, `user_scenario_state`, `user_achievements`, `user_activity_days`: SELECT/INSERT/UPDATE con `user_id = auth.uid()`.
+- `skills`: SELECT para authenticated (lectura publica)
+- `user_skills`: SELECT/INSERT/UPDATE con user_id = auth.uid()
+- `user_missions`: SELECT/INSERT/UPDATE con user_id = auth.uid()
 
-### 1.3 Triggers
+### 1.3 Seed Skills (15 skills) + Edges
 
-- `update_updated_at` en `user_course_progress` y `user_scenario_state` (reutilizar la funcion existente `update_updated_at_column`).
+Insertar los 15 skills con ids estables (control_basics, budget_3_buckets, etc.) usando ON CONFLICT DO NOTHING.
 
-### 1.4 Seed Data
+Nota: "edges" (path entre skills) se implementan como constante front en `src/data/skillEdges.ts`, no como tabla DB. Esto simplifica y evita queries innecesarios.
 
-Insertar 1 curso: **"Raices: Control de dinero sin dolor"** con 7 scenarios. Cada scenario tiene:
-- `options` jsonb: 3 opciones con `id`, `text`, `feedback`, `is_best`
-- `recall` jsonb: 2-3 preguntas multiple choice con `correct_choice_id` y `explanation`
-- `mission` text: mini accion 60-120s sin datos sensibles
-- `tags` text[]: para logros tematicos
+### 1.4 Seed Curso 2
 
-Contenido de los 7 seeds:
-
-1. **Tu primer quincena** -- Recibes tu primer pago, como lo distribuyes
-2. **El presupuesto 50/30/20** -- Crear un presupuesto basico
-3. **Tarjeta de credito: amiga o enemiga** -- Manejo de deuda de tarjeta
-4. **Tu fondo de emergencia** -- Prepararse para imprevistos
-5. **Ahorro vs inversion** -- Diferencia entre guardar y hacer crecer
-6. **Deudas inteligentes** -- Priorizar pagos de deuda
-7. **Tu primera inversion** -- CETES y opciones accesibles
-
-Cada uno con tags relevantes para logros (`deuda`, `ahorro`, `inversion`, `presupuesto`).
+Insertar curso 'credito-sin-miedo' + 9 scenarios con el SQL exacto proporcionado por el usuario. Para idempotencia: DELETE scenarios del curso antes de re-insertar (dentro de la misma transaccion).
 
 ---
 
-## FASE 2 -- Types + Hooks
+## FASE 2: Archivos nuevos (constantes + logica)
 
-### 2.1 Tipos manuales
+### 2.1 `src/data/debtPresets.ts`
+Constante DEBT_PRESETS con los 3 presets exactos del usuario.
 
-Dado que `types.ts` se autogenera pero puede tardar, crear un archivo auxiliar `src/types/learning.ts` con interfaces TypeScript para los datos de las tablas nuevas, y usar casting generico con `.from()` donde sea necesario hasta que types.ts se regenere.
+### 2.2 `src/data/skillEdges.ts`
+Constante SKILL_EDGES con los 4 paths definidos por el usuario.
 
-### 2.2 Hooks a crear
+### 2.3 `src/lib/tagSkillMap.ts`
+Constante TAG_SKILL_MAP con el mapeo exacto tags-to-skillIds.
+
+### 2.4 `src/lib/skillUpdater.ts`
+Funcion `updateSkillsOnCompletion(userId, tags, lastScore, isFirstCompletion)`:
+- Determina skillIds desde TAG_SKILL_MAP
+- Calcula delta = clamp(0.08 + 0.22 * lastScore, 0.08, 0.30)
+- Solo aplica delta si isFirstCompletion = true (evita exploit)
+- Upsert user_skills con mastery_new = min(1.0, mastery_old + delta)
+- Status: mastery >= 0.8 = 'mastered', else 'unlocked'
+
+---
+
+## FASE 3: Integracion UI
+
+### 3.1 Escenario.tsx -- handleFinish
+
+Agregar al flujo de finalizacion (despues de achievements):
+1. Determinar `isFirstCompletion` = !completedArr.includes(scenarioId) (ya se calcula)
+2. Si isFirstCompletion: llamar `updateSkillsOnCompletion(user.id, scenario.tags, score, true)`
+3. Invalidar query key ["user-skills"]
+
+### 3.2 FeedbackStep.tsx -- Misiones interactivas
+
+Agregar props: `scenarioId`, `userId`, `missionStatus` (loaded from parent)
+
+Cambiar el bloque de mission para incluir 2 botones:
+- "Marcar como hecha" -> upsert user_missions status='done', done_at=now()
+- "Omitir" -> upsert user_missions status='skipped'
+- Si ya completada: mostrar checkmark verde "Mision completada"
+
+El estado de mision se carga en Escenario.tsx con un query simple al montar.
+
+### 3.3 Calculadora.tsx -- Tab Deuda
+
+Agregar tabs "Interes compuesto" / "Deuda" con chip organico (mismos estilos que Cursos.tsx tabs).
+
+**Tab Deuda**:
+- Dropdown "Cargar ejemplo" (Select de Radix) con los 3 presets
+- Al seleccionar: llena campos del formulario
+- Formulario en organic-card: lista de deudas (nombre, saldo, tasa anual, pago minimo) + pago extra + estrategia (snowball/avalanche)
+- CTA "Simular" con vibrant-btn
+- Resultados en card-stat: meses para salir, total pagado, intereses totales
+- Logica de simulacion pura (iterar mes a mes hasta saldo 0)
+
+### 3.4 Dashboard.tsx -- Momentum mini-metrica
+
+Agregar un 5to stat o chip con "Impulso" = count user_missions done ultimos 7 dias.
+
+Alternativa mas simple: agregar dentro del bloque de stats existente, reemplazando o agregando un dato.
+
+Para MVP: solo mostrar si hay al menos 1 mision completada. Si no, no mostrar.
+
+---
+
+## FASE 4: Types
+
+### 4.1 `src/types/learning.ts`
+Agregar interfaces: Skill, UserSkill, UserMission.
+
+### 4.2 Hooks nuevos
 
 | Hook | Archivo | Descripcion |
 |------|---------|-------------|
-| `useCourses` | `src/hooks/useCourses.ts` | Lista cursos publicados desde DB |
-| `useCourseDetail` | `src/hooks/useCourseDetail.ts` | Curso + scenarios ordenados por order_index |
-| `useScenario` | `src/hooks/useScenario.ts` | Un scenario con options/recall parsed |
-| `useProgress` | `src/hooks/useProgress.ts` | user_course_progress + user_scenario_state del curso |
-| `useReviewQueue` | `src/hooks/useReviewQueue.ts` | Scenarios con next_due_at <= now() |
-| `useStreak` | `src/hooks/useStreak.ts` | Calcula racha consecutiva desde user_activity_days |
-| `useAchievements` | `src/hooks/useAchievements.ts` | Logros del usuario + funcion unlock() idempotente |
-| `useDashboardStats` | `src/hooks/useDashboardStats.ts` | Stats agregados para dashboard (escenarios, tiempo, insignias, racha) |
-
-### 2.3 Utilidad: Motor SM-2
-
-Archivo: `src/lib/spacedRepetition.ts`
-
-```text
-calculateSM2(quality: number, currentState):
-  - quality 0..5 derivado de score (0..1)
-  - score = (bestOption ? 0.5 : 0) + (recallCorrectRatio * 0.5)
-  - quality = round(score * 5)
-  - Si quality < 3: repetitions=0, interval=1
-  - Si quality >= 3: incrementar repetitions, calcular interval y ease_factor
-  - Retorna { repetitions, interval_days, ease_factor, next_due_at, last_quality, last_score }
-```
-
-### 2.4 Utilidad: Verificador de logros
-
-Archivo: `src/lib/achievementChecker.ts`
-
-Funcion `checkAndUnlockAchievements(context)` que evalua:
-- `first_steps`: completed_scenarios.length >= 1
-- `steady_learner`: completed_scenarios.length >= 3
-- `financial_master`: completed_scenarios.length === total scenarios del curso
-- `debt_expert`: scenario completado con tag `deuda` o titulo contiene "Tarjeta"
-- `saver`: scenario completado con tag `ahorro` o titulo contiene "Fondo"
-- `calculator_user`: se desbloquea desde Calculadora
-- `streak_3`: racha >= 3
-- `streak_7`: racha >= 7
+| `useUserSkills` | `src/hooks/useUserSkills.ts` | Lista user_skills del usuario actual |
+| `useUserMission` | `src/hooks/useUserMission.ts` | Estado de mision para un scenario_id |
 
 ---
 
-## FASE 3 -- Integracion UI
+## Archivos a crear
 
-### 3.1 Dashboard.tsx
-
-Cambios dentro del layout existente (no redisenar):
-
-- **"Semilla de hoy"**: Nuevo bloque entre header y hero card
-  - Si hay reviews due: `organic-card` con CTA "Repasar (X min)" que navega al primer scenario due
-  - Si no hay due: "Todo al dia" + CTA "Continuar curso"
-  - Si no ha empezado: mantener hero card actual "Empieza tu primer curso"
-- **Stats reales**: Reemplazar los valores hardcoded "0" por datos de `useDashboardStats`
-  - Escenarios: count completed_scenarios
-  - Tiempo: sum user_activity_days.minutes (formatear como "Xh Xm")
-  - Insignias: count user_achievements / total BADGES
-  - Racha: useStreak (dias consecutivos)
-- **Progreso semanal**: Reemplazar weeklyData hardcoded por ultimos 7 dias desde user_activity_days
-
-### 3.2 Cursos.tsx
-
-- Reemplazar `COURSES_LIST` por `useCourses()` (datos de DB)
-- Reemplazar `userProgress` placeholder por `useProgress` real
-- Tabs filtran por: user_course_progress existente (en progreso) y completed_at (completados)
-- Mantener exactamente el mismo layout y estilos
-
-### 3.3 CursoDetalle.tsx
-
-- Reemplazar `COURSES_LIST.find()` por `useCourseDetail(id)`
-- Reemplazar `completedScenarioIds` placeholder por datos de `useProgress(courseId)`
-- Agregar estado "mastered" al ScenarioCard (ademas de locked/in_progress/completed)
-- Mostrar doble barra: % completados y % dominados
-- CTA navega al primer scenario no completado
-- Usar botanical skin (BotanicalPage wrapper, organic-card para hero)
-
-### 3.4 Escenario.tsx (CAMBIO MAS GRANDE)
-
-Convertir a flujo de 3 pasos dentro del mismo layout:
-
-**Estado interno**: `step: 'decision' | 'feedback' | 'recall'`
-
-**Paso 1 - Decision**: (similar al actual)
-- Mostrar prompt del scenario
-- 3 opciones en organic-cards
-- Al seleccionar: registrar eleccion y avanzar a feedback
-
-**Paso 2 - Feedback**:
-- Mostrar coaching del scenario
-- Feedback especifico de la opcion elegida
-- Si hay mission: mostrar la mision
-- Boton "Continuar al repaso"
-
-**Paso 3 - Recall Quiz**:
-- Mostrar 2-3 preguntas multiple choice una por una
-- Al responder cada una: mostrar si es correcta + explicacion
-- Al terminar todas: calcular score, actualizar DB
-
-**Al finalizar (despues de recall)**:
-- Calcular score: `(bestOption ? 0.5 : 0) + (recallCorrectRatio * 0.5)`
-- Upsert `user_scenario_state` con SM-2
-- Agregar scenario_id a `completed_scenarios` en `user_course_progress`
-- Upsert `user_activity_days` (sumar ~5 min)
-- Verificar y desbloquear logros
-- Boton: "Siguiente seed" o "Volver al curso"
-
-**Estilo**: Usar botanical skin (BotanicalPage o dashboard-skin wrapper), organic-cards para opciones y preguntas.
-
-### 3.5 ScenarioCard.tsx
-
-- Agregar estado `mastered` (ademas de locked/in_progress/completed)
-- Mastered: icono estrella/corona en color leaf-bright, borde leaf-fresh
-- Usar colores organicos en vez de los genericos (primary/accent/muted)
-
-### 3.6 Logros.tsx
-
-- Reemplazar `unlockedBadges` placeholder por `useAchievements()`
-- Contador dinamico en chip y subtitle
-- BadgeCard muestra `unlocked_at` si esta desbloqueado
-
-### 3.7 Perfil.tsx
-
-- Stats reales: usar `useDashboardStats` para escenarios/cursos/logros counts
-
-### 3.8 Calculadora.tsx
-
-- Al presionar "Calcular" por primera vez: desbloquear `calculator_user` via `useAchievements().unlock()`
-
----
-
-## FASE 4 -- QA / Checklist
-
-- Build TypeScript limpio (sin errores de tipos)
-- Sin overflow-x en 360/390/430/768/1024/1440
-- Dock no tapa contenido (pb-28 en todas las paginas)
-- Botones >= 44px en mobile
-- prefers-reduced-motion: desactivar springs, usar fades
-- RLS: usuario A no puede leer/modificar progreso de usuario B
-- Idempotencia: achievements no se duplican (UNIQUE constraint + ON CONFLICT DO NOTHING)
-- completed_scenarios se deduplica antes de upsert
-- SM-2 funciona: next_due_at avanza al futuro, si falla recall interval vuelve a 1
-- Navegacion completa: Cursos -> Detalle -> Seed 1..7 -> progreso actualizado -> logros -> dashboard
-
----
-
-## Archivos a crear/modificar
-
-### Nuevos archivos:
 | Archivo | Descripcion |
 |---------|-------------|
-| `src/types/learning.ts` | Interfaces TS para tablas nuevas |
-| `src/lib/spacedRepetition.ts` | Motor SM-2 |
-| `src/lib/achievementChecker.ts` | Logica de desbloqueo de logros |
-| `src/hooks/useCourses.ts` | Hook: lista cursos |
-| `src/hooks/useCourseDetail.ts` | Hook: curso + scenarios |
-| `src/hooks/useScenario.ts` | Hook: un scenario |
-| `src/hooks/useProgress.ts` | Hook: progreso del usuario |
-| `src/hooks/useReviewQueue.ts` | Hook: cola de repaso |
-| `src/hooks/useStreak.ts` | Hook: racha |
-| `src/hooks/useAchievements.ts` | Hook: logros |
-| `src/hooks/useDashboardStats.ts` | Hook: stats agregados |
+| `src/data/debtPresets.ts` | 3 presets de deuda |
+| `src/data/skillEdges.ts` | Paths entre skills |
+| `src/lib/tagSkillMap.ts` | Mapeo tags -> skillIds |
+| `src/lib/skillUpdater.ts` | Logica de actualizacion de skills |
+| `src/hooks/useUserSkills.ts` | Hook: skills del usuario |
+| `src/hooks/useUserMission.ts` | Hook: estado mision por scenario |
 
-### Archivos modificados:
+## Archivos a modificar
+
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/Dashboard.tsx` | Stats reales, semilla de hoy, progreso semanal real |
-| `src/pages/Cursos.tsx` | Datos de DB en vez de placeholders |
-| `src/pages/CursoDetalle.tsx` | Datos de DB, estado mastered, BotanicalPage wrapper |
-| `src/pages/Escenario.tsx` | Flujo 3 pasos (decision/feedback/recall), persistencia DB |
-| `src/pages/Logros.tsx` | Datos reales de achievements |
-| `src/pages/Perfil.tsx` | Stats reales |
-| `src/pages/Calculadora.tsx` | Unlock calculator_user |
-| `src/components/ScenarioCard.tsx` | Estado mastered + colores organicos |
-| `src/data/placeholders.ts` | Mantener como fallback pero ya no se usa como fuente primaria |
+| `src/types/learning.ts` | Agregar Skill, UserSkill, UserMission interfaces |
+| `src/pages/Escenario.tsx` | Llamar skillUpdater + cargar missionStatus + pasar props a FeedbackStep |
+| `src/components/scenario/FeedbackStep.tsx` | Botones "Marcar como hecha" / "Omitir" en bloque mission |
+| `src/pages/Calculadora.tsx` | Tabs + tab Deuda completo con presets y simulador |
+| `src/pages/Dashboard.tsx` | Momentum mini-metrica (opcional, solo si hay misiones hechas) |
 
-### Migracion SQL: 1 archivo
-- 6 tablas + RLS + triggers + seed data completo (1 curso, 7 scenarios con opciones, recall y misiones)
+## Migracion SQL: 1 archivo
+
+- 3 tablas nuevas (skills, user_skills, user_missions) + RLS
+- Seed: 15 skills + curso 2 con 9 scenarios (copy exacto del usuario)
 
 ---
 
-## Riesgos y mitigaciones
+## Checklist
 
-| Riesgo | Mitigacion |
-|--------|------------|
-| types.ts no se regenera inmediatamente | Crear src/types/learning.ts con interfaces manuales; usar `.from('table').select()` con tipo generico |
-| Escenario.tsx se vuelve muy complejo | Extraer sub-componentes: DecisionStep, FeedbackStep, RecallStep |
-| Overflow en mobile con recall quiz | Usar scroll natural, no fixed positioning, max-w-2xl |
-| SM-2 produce intervalos incorrectos | Implementar funcion pura con tests unitarios posibles |
+- No se rompe diseno (organic-card, botanical-bg, pb-28)
+- No overflow-x en 360-1440
+- No se rompen rutas existentes
+- Seed idempotente (ON CONFLICT)
+- Skills solo se actualizan en primera completion (no exploit)
+- Misiones persisten por usuario (auth.uid())
+- Presets son constantes front, no afectan DB
+- Tab Deuda es simulacion local (no persiste en DB)
+- Copy exacto del usuario, sin inventar
+- Build TS limpio
 
-## Orden de implementacion
-
-1. Migracion SQL (todas las tablas + RLS + seed)
-2. src/types/learning.ts
-3. src/lib/spacedRepetition.ts + src/lib/achievementChecker.ts
-4. Todos los hooks (en paralelo, no tienen dependencias entre si)
-5. ScenarioCard.tsx (agregar estado mastered)
-6. Escenario.tsx (flujo 3 pasos + persistencia)
-7. CursoDetalle.tsx (datos reales + BotanicalPage)
-8. Cursos.tsx (datos reales)
-9. Dashboard.tsx (stats reales + semilla de hoy + weekly chart real)
-10. Logros.tsx + Perfil.tsx + Calculadora.tsx (datos reales)
