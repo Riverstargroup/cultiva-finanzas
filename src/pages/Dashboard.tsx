@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Clock, Trophy, Flame, Sprout, Bell, ArrowRight } from "lucide-react";
+import { BookOpen, Clock, Trophy, Flame, Sprout, Bell, ArrowRight, Zap } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
@@ -8,6 +8,9 @@ import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import { useReviewQueue } from "@/hooks/useReviewQueue";
 import { useCourses } from "@/hooks/useCourses";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -36,10 +39,28 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const reduced = useReducedMotion();
   const [activeBar, setActiveBar] = useState<number | null>(null);
+  const { user } = useAuth();
 
   const { data: stats } = useDashboardStats();
   const { data: reviewQueue } = useReviewQueue();
   const { data: courses } = useCourses();
+
+  // Momentum: count missions done in last 7 days
+  const { data: momentum } = useQuery({
+    queryKey: ["momentum", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const { count } = await supabase
+        .from("user_missions" as any)
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .eq("status", "done")
+        .gte("done_at", sevenDaysAgo.toISOString());
+      return count ?? 0;
+    },
+  });
 
   const name = loading ? "..." : profile?.full_name || "Jardinero";
   const greeting = `${getGreeting()}, ${name}`;
@@ -49,6 +70,7 @@ export default function Dashboard() {
     { title: "Tiempo", value: formatTime(stats?.totalMinutes ?? 0), icon: Clock },
     { title: "Insignias", value: `${stats?.badgesUnlocked ?? 0}/${stats?.totalBadges ?? 8}`, icon: Trophy },
     { title: "Racha", value: `${stats?.streak ?? 0} días`, icon: Flame },
+    ...((momentum ?? 0) > 0 ? [{ title: "Impulso", value: `${momentum}`, icon: Zap }] : []),
   ];
 
   const weeklyData = stats?.weeklyMinutes ?? [

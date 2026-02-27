@@ -86,3 +86,29 @@ export interface UserActivityDay {
   minutes: number;
   created_at: string;
 }
+
+export interface Skill {
+  id: string;
+  domain: string;
+  title: string;
+  description: string | null;
+  icon: string | null;
+  sort_order: number;
+}
+
+export interface UserSkill {
+  id: string;
+  user_id: string;
+  skill_id: string;
+  mastery: number;
+  status: string;
+  updated_at: string;
+}
+
+export interface UserMission {
+  id: string;
+  user_id: string;
+  scenario_id: string;
+  status: string;
+  done_at: string | null;
+}

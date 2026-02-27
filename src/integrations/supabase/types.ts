@@ -124,6 +124,33 @@ export type Database = {
           },
         ]
       }
+      skills: {
+        Row: {
+          description: string | null
+          domain: string
+          icon: string | null
+          id: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          description?: string | null
+          domain: string
+          icon?: string | null
+          id: string
+          sort_order?: number
+          title: string
+        }
+        Update: {
+          description?: string | null
+          domain?: string
+          icon?: string | null
+          id?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           badge_id: string
@@ -210,6 +237,38 @@ export type Database = {
           },
         ]
       }
+      user_missions: {
+        Row: {
+          done_at: string | null
+          id: string
+          scenario_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          done_at?: string | null
+          id?: string
+          scenario_id: string
+          status?: string
+          user_id?: string
+        }
+        Update: {
+          done_at?: string | null
+          id?: string
+          scenario_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_missions_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_scenario_state: {
         Row: {
           course_id: string
@@ -266,6 +325,41 @@ export type Database = {
             columns: ["scenario_id"]
             isOneToOne: false
             referencedRelation: "scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_skills: {
+        Row: {
+          id: string
+          mastery: number
+          skill_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          mastery?: number
+          skill_id: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          id?: string
+          mastery?: number
+          skill_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "skills"
             referencedColumns: ["id"]
           },
         ]
