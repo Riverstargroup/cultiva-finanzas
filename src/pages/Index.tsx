@@ -89,11 +89,11 @@ const Index = () => {
             <span className="font-display text-2xl font-bold tracking-tight text-primary">Semilla</span>
           </Link>
           <div className="hidden gap-8 md:flex">
-            {["Cursos", "Calculadora", "Comunidad"].map((item) => {}
-
-
-
-            )}
+            {["Cursos", "Calculadora", "Comunidad"].map((item) => (
+              <a key={item} href="#" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                {item}
+              </a>
+            ))}
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login" className="hidden text-sm font-bold text-primary hover:underline underline-offset-4 transition-colors md:block">
