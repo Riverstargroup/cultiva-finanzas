@@ -5,25 +5,9 @@ import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-
-const weeklyData = [
-  { day: "Lun", full: "Lunes", minutos: 25 },
-  { day: "Mar", full: "Martes", minutos: 40 },
-  { day: "Mié", full: "Miércoles", minutos: 15 },
-  { day: "Jue", full: "Jueves", minutos: 50 },
-  { day: "Vie", full: "Viernes", minutos: 30 },
-  { day: "Sáb", full: "Sábado", minutos: 10 },
-  { day: "Dom", full: "Domingo", minutos: 0 },
-];
-
-const maxMinutos = Math.max(...weeklyData.map((d) => d.minutos), 1);
-
-const metrics = [
-  { title: "Escenarios", value: "0", icon: BookOpen, iconLabel: "menu_book" },
-  { title: "Tiempo", value: "0h", icon: Clock, iconLabel: "schedule" },
-  { title: "Insignias", value: "0/8", icon: Trophy, iconLabel: "emoji_events" },
-  { title: "Racha", value: "0 días", icon: Flame, iconLabel: "local_fire_department" },
-];
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useReviewQueue } from "@/hooks/useReviewQueue";
+import { useCourses } from "@/hooks/useCourses";
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -40,14 +24,48 @@ function getFormattedDate(): string {
   });
 }
 
+function formatTime(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+}
+
 export default function Dashboard() {
   const { profile, loading } = useProfile();
   const navigate = useNavigate();
   const reduced = useReducedMotion();
   const [activeBar, setActiveBar] = useState<number | null>(null);
 
+  const { data: stats } = useDashboardStats();
+  const { data: reviewQueue } = useReviewQueue();
+  const { data: courses } = useCourses();
+
   const name = loading ? "..." : profile?.full_name || "Jardinero";
   const greeting = `${getGreeting()}, ${name}`;
+
+  const metrics = [
+    { title: "Escenarios", value: String(stats?.completedScenarios ?? 0), icon: BookOpen },
+    { title: "Tiempo", value: formatTime(stats?.totalMinutes ?? 0), icon: Clock },
+    { title: "Insignias", value: `${stats?.badgesUnlocked ?? 0}/${stats?.totalBadges ?? 8}`, icon: Trophy },
+    { title: "Racha", value: `${stats?.streak ?? 0} días`, icon: Flame },
+  ];
+
+  const weeklyData = stats?.weeklyMinutes ?? [
+    { day: "Lun", full: "Lunes", minutos: 0 },
+    { day: "Mar", full: "Martes", minutos: 0 },
+    { day: "Mié", full: "Miércoles", minutos: 0 },
+    { day: "Jue", full: "Jueves", minutos: 0 },
+    { day: "Vie", full: "Viernes", minutos: 0 },
+    { day: "Sáb", full: "Sábado", minutos: 0 },
+    { day: "Dom", full: "Domingo", minutos: 0 },
+  ];
+
+  const maxMinutos = Math.max(...weeklyData.map((d) => d.minutos), 1);
+
+  const hasReviews = (reviewQueue?.length ?? 0) > 0;
+  const hasStarted = (stats?.completedScenarios ?? 0) > 0;
+  const firstCourse = courses?.[0];
 
   const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
   const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
@@ -88,45 +106,86 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* B) Hero Card */}
-          <div className="organic-card relative overflow-hidden p-6 md:p-8">
-            {/* Decorative blobs */}
-            <div
-              className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 blur-2xl"
-              style={{
-                background: "color-mix(in srgb, var(--leaf-fresh) 15%, transparent)",
-                borderRadius: "60% 40% 50% 50% / 40% 60% 40% 60%",
-              }}
-            />
-            <div
-              className="pointer-events-none absolute -bottom-6 -left-6 h-24 w-24 blur-xl"
-              style={{
-                background: "color-mix(in srgb, var(--terracotta-vivid) 10%, transparent)",
-                borderRadius: "40% 60% 50% 50% / 60% 40% 60% 40%",
-              }}
-            />
-
-            <div className="relative flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-              <div
-                className="flex h-14 w-14 shrink-0 items-center justify-center organic-border"
-                style={{ background: "var(--leaf-bright)" }}
-              >
-                <BookOpen className="h-7 w-7 text-white" />
+          {/* Semilla de hoy */}
+          {hasReviews ? (
+            <div className="organic-card relative overflow-hidden p-6 md:p-8">
+              <div className="relative flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+                <div
+                  className="flex h-14 w-14 shrink-0 items-center justify-center organic-border"
+                  style={{ background: "var(--terracotta-vivid)" }}
+                >
+                  <Flame className="h-7 w-7 text-white" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <h2 className="font-heading text-xl font-bold md:text-2xl" style={{ color: "var(--forest-deep)" }}>
+                    Semilla de repaso
+                  </h2>
+                  <p className="text-sm" style={{ color: "var(--text-warm)" }}>
+                    Tienes {reviewQueue!.length} semilla{reviewQueue!.length > 1 ? "s" : ""} por repasar. ¡No pierdas tu racha!
+                  </p>
+                </div>
+                <button
+                  className="vibrant-btn shrink-0"
+                  onClick={() => {
+                    const r = reviewQueue![0];
+                    navigate(`/cursos/${r.course_id}/escenario/${r.scenario_id}`);
+                  }}
+                >
+                  Repasar (~3 min) <ArrowRight className="h-4 w-4" />
+                </button>
               </div>
-              <div className="flex-1 space-y-1">
-                <h2 className="font-heading text-xl font-bold md:text-2xl" style={{ color: "var(--forest-deep)" }}>
-                  Empieza tu primer curso
-                </h2>
-                <p className="text-sm" style={{ color: "var(--text-warm)" }}>
-                  Siembra conocimiento financiero hoy. Tu jardín te espera.
-                </p>
-              </div>
-              <button className="vibrant-btn shrink-0" onClick={() => navigate("/cursos")}>
-                Ver cursos
-                <ArrowRight className="h-4 w-4" />
-              </button>
             </div>
-          </div>
+          ) : hasStarted ? (
+            <div className="organic-card relative overflow-hidden p-6 md:p-8">
+              <div className="relative flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+                <div
+                  className="flex h-14 w-14 shrink-0 items-center justify-center organic-border"
+                  style={{ background: "var(--leaf-bright)" }}
+                >
+                  <Sprout className="h-7 w-7 text-white" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <h2 className="font-heading text-xl font-bold md:text-2xl" style={{ color: "var(--forest-deep)" }}>
+                    ¡Todo al día! 🌿
+                  </h2>
+                  <p className="text-sm" style={{ color: "var(--text-warm)" }}>
+                    No tienes repasos pendientes. Sigue avanzando en tu curso.
+                  </p>
+                </div>
+                {firstCourse && (
+                  <button className="vibrant-btn shrink-0" onClick={() => navigate(`/cursos/${firstCourse.id}`)}>
+                    Continuar curso <ArrowRight className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="organic-card relative overflow-hidden p-6 md:p-8">
+              <div
+                className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 blur-2xl"
+                style={{ background: "color-mix(in srgb, var(--leaf-fresh) 15%, transparent)", borderRadius: "60% 40% 50% 50% / 40% 60% 40% 60%" }}
+              />
+              <div className="relative flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+                <div
+                  className="flex h-14 w-14 shrink-0 items-center justify-center organic-border"
+                  style={{ background: "var(--leaf-bright)" }}
+                >
+                  <BookOpen className="h-7 w-7 text-white" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <h2 className="font-heading text-xl font-bold md:text-2xl" style={{ color: "var(--forest-deep)" }}>
+                    Empieza tu primer curso
+                  </h2>
+                  <p className="text-sm" style={{ color: "var(--text-warm)" }}>
+                    Siembra conocimiento financiero hoy. Tu jardín te espera.
+                  </p>
+                </div>
+                <button className="vibrant-btn shrink-0" onClick={() => navigate("/cursos")}>
+                  Ver cursos <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* C) Stats Grid */}
           <motion.div variants={stagger} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
@@ -156,16 +215,13 @@ export default function Dashboard() {
                 Progreso semanal
               </h3>
             </div>
-
             <div className="flex items-end justify-between gap-2" style={{ height: 180 }}>
               {weeklyData.map((d, i) => {
                 const pct = maxMinutos > 0 ? (d.minutos / maxMinutos) * 100 : 0;
                 const barHeight = Math.max(pct, 4);
                 const isActive = activeBar === i;
-
                 return (
                   <div key={d.day} className="relative flex flex-1 flex-col items-center gap-1.5">
-                    {/* Tooltip */}
                     {isActive && d.minutos > 0 && (
                       <div
                         className="absolute -top-8 z-10 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold text-white shadow"
@@ -174,11 +230,10 @@ export default function Dashboard() {
                         {d.minutos} min
                       </div>
                     )}
-                    {/* Bar */}
                     <div
                       role="img"
                       aria-label={`${d.full}: ${d.minutos} minutos`}
-                      className="group w-full cursor-pointer transition-all duration-300"
+                      className="w-full cursor-pointer transition-all duration-300"
                       style={{
                         height: `${barHeight}%`,
                         background: isActive ? "var(--leaf-fresh)" : "var(--leaf-bright)",
@@ -188,16 +243,7 @@ export default function Dashboard() {
                       onMouseEnter={() => setActiveBar(i)}
                       onMouseLeave={() => setActiveBar(null)}
                       onClick={() => setActiveBar(isActive ? null : i)}
-                    >
-                      {/* Desktop hover tooltip via CSS */}
-                      {d.minutos > 0 && (
-                        <div
-                          className="pointer-events-none absolute -top-8 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold text-white shadow group-hover:block md:block"
-                          style={{ background: "var(--forest-deep)", display: isActive ? undefined : undefined }}
-                        />
-                      )}
-                    </div>
-                    {/* Day label */}
+                    />
                     <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--leaf-muted)" }}>
                       {d.day}
                     </span>

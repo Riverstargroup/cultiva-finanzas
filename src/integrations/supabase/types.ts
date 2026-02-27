@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      courses: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          estimated_minutes: number | null
+          id: string
+          is_published: boolean | null
+          level: string | null
+          slug: string
+          sort_order: number | null
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          level?: string | null
+          slug: string
+          sort_order?: number | null
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          estimated_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          level?: string | null
+          slug?: string
+          sort_order?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -37,6 +73,202 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      scenarios: {
+        Row: {
+          coaching: string
+          course_id: string
+          created_at: string | null
+          id: string
+          mission: string | null
+          options: Json
+          order_index: number | null
+          prompt: string
+          recall: Json
+          tags: string[] | null
+          title: string
+        }
+        Insert: {
+          coaching: string
+          course_id: string
+          created_at?: string | null
+          id?: string
+          mission?: string | null
+          options?: Json
+          order_index?: number | null
+          prompt: string
+          recall?: Json
+          tags?: string[] | null
+          title: string
+        }
+        Update: {
+          coaching?: string
+          course_id?: string
+          created_at?: string | null
+          id?: string
+          mission?: string | null
+          options?: Json
+          order_index?: number | null
+          prompt?: string
+          recall?: Json
+          tags?: string[] | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scenarios_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_achievements: {
+        Row: {
+          badge_id: string
+          id: string
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          id?: string
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Update: {
+          badge_id?: string
+          id?: string
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_activity_days: {
+        Row: {
+          created_at: string | null
+          day: string
+          id: string
+          minutes: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          day: string
+          id?: string
+          minutes?: number | null
+          user_id?: string
+        }
+        Update: {
+          created_at?: string | null
+          day?: string
+          id?: string
+          minutes?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_course_progress: {
+        Row: {
+          completed_at: string | null
+          completed_scenarios: string[] | null
+          course_id: string
+          id: string
+          mastery_score: number | null
+          started_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_scenarios?: string[] | null
+          course_id: string
+          id?: string
+          mastery_score?: number | null
+          started_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_scenarios?: string[] | null
+          course_id?: string
+          id?: string
+          mastery_score?: number | null
+          started_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_course_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_scenario_state: {
+        Row: {
+          course_id: string
+          ease_factor: number | null
+          id: string
+          interval_days: number | null
+          last_attempt_at: string | null
+          last_quality: number | null
+          last_score: number | null
+          next_due_at: string | null
+          repetitions: number | null
+          scenario_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id: string
+          ease_factor?: number | null
+          id?: string
+          interval_days?: number | null
+          last_attempt_at?: string | null
+          last_quality?: number | null
+          last_score?: number | null
+          next_due_at?: string | null
+          repetitions?: number | null
+          scenario_id: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Update: {
+          course_id?: string
+          ease_factor?: number | null
+          id?: string
+          interval_days?: number | null
+          last_attempt_at?: string | null
+          last_quality?: number | null
+          last_score?: number | null
+          next_due_at?: string | null
+          repetitions?: number | null
+          scenario_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_scenario_state_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_scenario_state_scenario_id_fkey"
+            columns: ["scenario_id"]
+            isOneToOne: false
+            referencedRelation: "scenarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
