@@ -10,7 +10,9 @@ import { useProgress } from "@/hooks/useProgress";
 import { supabase } from "@/integrations/supabase/client";
 import { calculateScore, calculateSM2 } from "@/lib/spacedRepetition";
 import { checkAndUnlockAchievements } from "@/lib/achievementChecker";
+import { updateSkillsOnCompletion } from "@/lib/skillUpdater";
 import { useStreak } from "@/hooks/useStreak";
+import { useUserMission } from "@/hooks/useUserMission";
 import { useQueryClient } from "@tanstack/react-query";
 import DecisionStep from "@/components/scenario/DecisionStep";
 import FeedbackStep from "@/components/scenario/FeedbackStep";
@@ -31,6 +33,7 @@ export default function Escenario() {
   const { data: courseDetail } = useCourseDetail(courseId);
   const { data: progress, invalidate: invalidateProgress } = useProgress(courseId);
   const { data: streak } = useStreak();
+  const { data: missionData } = useUserMission(scenarioId);
 
   const [step, setStep] = useState<Step>("decision");
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
@@ -87,9 +90,10 @@ export default function Escenario() {
         .maybeSingle();
 
       const completedArr: string[] = (existingProgress as any)?.completed_scenarios ?? [];
-      const updatedCompleted = completedArr.includes(scenarioId)
-        ? completedArr
-        : [...completedArr, scenarioId];
+      const isFirstCompletion = !completedArr.includes(scenarioId);
+      const updatedCompleted = isFirstCompletion
+        ? [...completedArr, scenarioId]
+        : completedArr;
 
       const completedAt = updatedCompleted.length >= scenarios.length
         ? new Date().toISOString()
@@ -146,11 +150,18 @@ export default function Escenario() {
         streak: (streak ?? 0) + (existingDay ? 0 : 1),
       });
 
+      // Update skills based on tags
+      if (isFirstCompletion && scenario?.tags) {
+        await updateSkillsOnCompletion(user.id, scenario.tags, score, true);
+      }
+
       invalidateProgress();
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
       queryClient.invalidateQueries({ queryKey: ["streak"] });
       queryClient.invalidateQueries({ queryKey: ["review-queue"] });
+      queryClient.invalidateQueries({ queryKey: ["user-skills"] });
+      queryClient.invalidateQueries({ queryKey: ["user-mission"] });
     } catch (err) {
       console.error("Error saving progress:", err);
     } finally {
@@ -232,6 +243,9 @@ export default function Escenario() {
             coaching={scenario.coaching}
             selectedOption={selectedOption}
             mission={scenario.mission}
+            scenarioId={scenarioId}
+            userId={user?.id}
+            missionStatus={missionData?.status ?? null}
             onContinue={handleFeedbackContinue}
           />
         )}
