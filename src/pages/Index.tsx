@@ -10,8 +10,8 @@ import {
   Calculator,
   Target,
   ShieldCheck,
-  Leaf
-} from "lucide-react";
+  Leaf } from
+"lucide-react";
 import { Button } from "@/components/ui/button";
 import logoSemilla from "@/assets/logo-semilla.png";
 
@@ -21,60 +21,60 @@ const fadeUp = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] as const },
-  }),
+    transition: { delay: i * 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }
+  })
 };
 
 // Propuestas de valor principales con metaforas de crecimiento
 const valueProps = [
-  {
-    icon: Sprout,
-    title: "Raices Fuertes",
-    desc: "Aprende desde la base con escenarios interactivos que simulan el ecosistema financiero real."
-  },
-  {
-    icon: Sun,
-    title: "Fotosintesis de Datos",
-    desc: "Convierte informacion en energia. Graficos vivos que muestran como crecen tus ahorros."
-  },
-  {
-    icon: Scissors,
-    title: "Poda de Malos Habitos",
-    desc: "Identifica y recorta gastos innecesarios para permitir que tus finanzas crezcan frondosas."
-  },
-];
+{
+  icon: Sprout,
+  title: "Raices Fuertes",
+  desc: "Aprende desde la base con escenarios interactivos que simulan el ecosistema financiero real."
+},
+{
+  icon: Sun,
+  title: "Fotosintesis de Datos",
+  desc: "Convierte informacion en energia. Graficos vivos que muestran como crecen tus ahorros."
+},
+{
+  icon: Scissors,
+  title: "Poda de Malos Habitos",
+  desc: "Identifica y recorta gastos innecesarios para permitir que tus finanzas crezcan frondosas."
+}];
+
 
 // Pasos del ciclo de vida del usuario en la plataforma
 const lifecycleCtx = [
-  {
-    step: "1",
-    title: "Siembra la Semilla",
-    desc: "Registrate gratis. Crea tu cuenta en suelo fertil en menos de 1 minuto y accede a todos los modulos.",
-    color: "bg-semilla-green-light"
-  },
-  {
-    step: "2",
-    title: "Riega con Conocimiento",
-    desc: "Toma decisiones en simulaciones. Observa como el agua de tus elecciones nutre o seca tu jardin financiero.",
-    color: "bg-semilla-gold"
-  },
-  {
-    step: "3",
-    title: "Cosecha Abundancia",
-    desc: "Aplica lo aprendido. Desbloquea logros y disfruta de los frutos de una estabilidad financiera duradera.",
-    color: "bg-purple-400"
-  },
-];
+{
+  step: "1",
+  title: "Siembra la Semilla",
+  desc: "Registrate gratis. Crea tu cuenta en suelo fertil en menos de 1 minuto y accede a todos los modulos.",
+  color: "bg-semilla-green-light"
+},
+{
+  step: "2",
+  title: "Riega con Conocimiento",
+  desc: "Toma decisiones en simulaciones. Observa como el agua de tus elecciones nutre o seca tu jardin financiero.",
+  color: "bg-semilla-gold"
+},
+{
+  step: "3",
+  title: "Cosecha Abundancia",
+  desc: "Aplica lo aprendido. Desbloquea logros y disfruta de los frutos de una estabilidad financiera duradera.",
+  color: "bg-purple-400"
+}];
+
 
 // Listado de caracteristicas tecnicas y herramientas
 const features = [
-  { icon: Sprout, title: "5 Escenarios Vivos", desc: "Simulaciones que respiran y cambian." },
-  { icon: Calculator, title: "Calculadora de Cosecha", desc: "Proyecta el crecimiento de tus intereses." },
-  { icon: Trophy, title: "Insignias Botanicas", desc: "Logros desbloqueables por cada meta." },
-  { icon: Target, title: "Crecimiento Organico", desc: "Rutas de aprendizaje personalizadas." },
-  { icon: Leaf, title: "Semillas Gratuitas", desc: "Contenido accesible para todos." },
-  { icon: ShieldCheck, title: "Sin Maleza", desc: "Experiencia limpia sin anuncios." },
-];
+{ icon: Sprout, title: "5 Escenarios Vivos", desc: "Simulaciones que respiran y cambian." },
+{ icon: Calculator, title: "Calculadora de Cosecha", desc: "Proyecta el crecimiento de tus intereses." },
+{ icon: Trophy, title: "Insignias Botanicas", desc: "Logros desbloqueables por cada meta." },
+{ icon: Target, title: "Crecimiento Organico", desc: "Rutas de aprendizaje personalizadas." },
+{ icon: Leaf, title: "Semillas Gratuitas", desc: "Contenido accesible para todos." },
+{ icon: ShieldCheck, title: "Sin Maleza", desc: "Experiencia limpia sin anuncios." }];
+
 
 const Index = () => {
   return (
@@ -89,11 +89,11 @@ const Index = () => {
             <span className="font-display text-2xl font-bold tracking-tight text-primary">Semilla</span>
           </Link>
           <div className="hidden gap-8 md:flex">
-            {["Cursos", "Calculadora", "Comunidad"].map((item) => (
-              <a key={item} href="#" className="text-sm font-medium text-foreground/80 transition-colors hover:text-primary">
-                {item}
-              </a>
-            ))}
+            {["Cursos", "Calculadora", "Comunidad"].map((item) => {}
+
+
+
+            )}
           </div>
           <div className="flex items-center gap-4">
             <Link to="/login" className="hidden text-sm font-bold text-primary hover:underline underline-offset-4 transition-colors md:block">
@@ -119,8 +119,8 @@ const Index = () => {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-semilla-green/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] md:h-24 md:w-24 md:rounded-3xl md:mb-8"
-          >
+            className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-white border border-semilla-green/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.05)] md:h-24 md:w-24 md:rounded-3xl md:mb-8">
+
             <Sprout className="h-8 w-8 text-primary md:h-12 md:w-12" />
           </motion.div>
 
@@ -128,8 +128,8 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="mb-4 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary md:mb-6 md:px-4 md:py-1.5 md:text-xs"
-          >
+            className="mb-4 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-primary md:mb-6 md:px-4 md:py-1.5 md:text-xs">
+
             Germinacion Digital
           </motion.span>
 
@@ -137,8 +137,8 @@ const Index = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.8 }}
-            className="mb-4 font-display text-5xl font-black leading-[1.05] tracking-tight text-primary md:mb-6 md:text-8xl lg:text-9xl"
-          >
+            className="mb-4 font-display text-5xl font-black leading-[1.05] tracking-tight text-primary md:mb-6 md:text-8xl lg:text-9xl">
+
             Semilla
           </motion.h1>
 
@@ -146,8 +146,8 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="mb-8 max-w-2xl text-base font-medium leading-relaxed text-foreground/80 md:mb-10 md:text-2xl"
-          >
+            className="mb-8 max-w-2xl text-base font-medium leading-relaxed text-foreground/80 md:mb-10 md:text-2xl">
+
             <span className="text-primary font-bold">Sembrando</span> habitos financieros saludables en tierra fertil.
             <br />
             <span className="mt-2 block text-sm font-normal text-muted-foreground md:mt-4 md:text-base">
@@ -159,8 +159,8 @@ const Index = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
-            className="flex w-full flex-col gap-3 px-4 sm:flex-row sm:justify-center sm:px-0 md:gap-4"
-          >
+            className="flex w-full flex-col gap-3 px-4 sm:flex-row sm:justify-center sm:px-0 md:gap-4">
+
             <Button size="lg" asChild className="h-14 w-full rounded-full bg-primary px-8 text-lg font-bold text-white shadow-[0_10px_40px_-10px_rgba(20,83,45,0.4)] hover:bg-primary/90 hover:scale-105 transition-all duration-300 sm:w-auto md:h-16 md:px-10 md:text-xl">
               <Link to="/signup">Plantar mi futuro</Link>
             </Button>
@@ -179,23 +179,23 @@ const Index = () => {
               className="font-display text-3xl font-bold text-primary md:text-6xl"
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-            >
+              viewport={{ once: true }}>
+
               Por que <span className="text-transparent bg-clip-text bg-gradient-to-r from-semilla-green to-semilla-gold ITALIC">florecer</span> aqui?
             </motion.h2>
           </div>
 
           <div className="grid gap-6 md:grid-cols-3 md:gap-8">
-            {valueProps.map((item, i) => (
-              <motion.div
-                key={i}
-                custom={i}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                variants={fadeUp}
-                className="group relative overflow-hidden rounded-[1.5rem] border border-primary/5 bg-white p-6 shadow-lg transition-all duration-500 hover:-translate-y-2 hover:border-semilla-gold/30 hover:shadow-xl md:rounded-[2rem] md:p-10 md:shadow-xl md:hover:shadow-2xl"
-              >
+            {valueProps.map((item, i) =>
+            <motion.div
+              key={i}
+              custom={i}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              variants={fadeUp}
+              className="group relative overflow-hidden rounded-[1.5rem] border border-primary/5 bg-white p-6 shadow-lg transition-all duration-500 hover:-translate-y-2 hover:border-semilla-gold/30 hover:shadow-xl md:rounded-[2rem] md:p-10 md:shadow-xl md:hover:shadow-2xl">
+
                 <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-semilla-green-light/20 text-primary ring-1 ring-primary/10 transition-all duration-500 group-hover:scale-110 group-hover:bg-primary group-hover:text-white md:mb-8 md:h-16 md:w-16 md:rounded-2xl`}>
                   <item.icon className="h-6 w-6 md:h-8 md:w-8" />
                 </div>
@@ -205,7 +205,7 @@ const Index = () => {
                 {/* Grafico decorativo de fondo en las tarjetas */}
                 <div className="absolute -bottom-20 -right-20 h-48 w-48 rounded-full bg-semilla-gold/10 blur-2xl transition-opacity group-hover:opacity-100 opacity-0 md:h-64 md:w-64 md:blur-3xl" />
               </motion.div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -229,15 +229,15 @@ const Index = () => {
             {/* Linea conectora para escritorio */}
             <div className="absolute left-[24px] top-0 h-full w-[2px] bg-gradient-to-b from-semilla-green/10 via-semilla-gold to-semilla-green/10 md:left-1/2 md:w-[3px] md:-ml-[1.5px]" />
 
-            {lifecycleCtx.map((step, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: i * 0.2 }}
-                className={`relative flex flex-col gap-6 md:flex-row md:gap-8 ${i % 2 === 0 ? "md:flex-row-reverse" : ""}`}
-              >
+            {lifecycleCtx.map((step, i) =>
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, delay: i * 0.2 }}
+              className={`relative flex flex-col gap-6 md:flex-row md:gap-8 ${i % 2 === 0 ? "md:flex-row-reverse" : ""}`}>
+
                 {/* Contenido del paso */}
                 <div className="flex-1 pl-16 md:pl-0 md:text-right">
                   <div className={`group rounded-[2rem] bg-background p-6 shadow-lg border border-border/50 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl md:p-10 ${i % 2 === 0 ? "md:mr-20" : "md:ml-20 md:text-left"}`}>
@@ -256,7 +256,7 @@ const Index = () => {
                 {/* Espaciador para balancear la cuadricula en escritorio */}
                 <div className="flex-1 hidden md:block" />
               </motion.div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -280,15 +280,15 @@ const Index = () => {
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 md:gap-6">
-            {features.map((f, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="group flex flex-col items-start gap-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all hover:bg-white/10 hover:border-semilla-gold/40 md:rounded-[2rem] md:p-8"
-              >
+            {features.map((f, i) =>
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+              className="group flex flex-col items-start gap-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-6 backdrop-blur-md transition-all hover:bg-white/10 hover:border-semilla-gold/40 md:rounded-[2rem] md:p-8">
+
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-semilla-gold group-hover:bg-semilla-gold group-hover:text-primary transition-colors md:h-12 md:w-12 md:rounded-2xl">
                   <f.icon className="h-5 w-5 md:h-6 md:w-6" />
                 </div>
@@ -297,7 +297,7 @@ const Index = () => {
                   <p className="text-sm text-white/70 leading-relaxed md:text-base">{f.desc}</p>
                 </div>
               </motion.div>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -346,8 +346,8 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Index;
