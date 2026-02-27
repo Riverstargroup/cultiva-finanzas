@@ -79,10 +79,10 @@ export function useDashboardStats() {
       if (dayStrings.length > 0) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const todayStr = today.toISOString().split("T")[0];
+        const todayStr = today.toLocaleDateString('en-CA');
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split("T")[0];
+        const yesterdayStr = yesterday.toLocaleDateString('en-CA');
 
         let checkDate: Date;
         if (dayStrings[0] === todayStr) {
@@ -96,7 +96,7 @@ export function useDashboardStats() {
         const daySet = new Set(dayStrings);
         if (dayStrings[0] === todayStr || dayStrings[0] === yesterdayStr) {
           while (true) {
-            const dateStr = checkDate.toISOString().split("T")[0];
+            const dateStr = checkDate.toLocaleDateString('en-CA');
             if (daySet.has(dateStr)) {
               streak++;
               checkDate.setDate(checkDate.getDate() - 1);
@@ -113,7 +113,7 @@ export function useDashboardStats() {
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dateStr = d.toISOString().split("T")[0];
+        const dateStr = d.toLocaleDateString('en-CA');
         const dayOfWeek = d.getDay();
         const names = DAY_NAMES[dayOfWeek];
         weeklyMinutes.push({

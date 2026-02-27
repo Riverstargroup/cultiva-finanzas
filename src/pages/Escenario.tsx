@@ -121,7 +121,7 @@ export default function Escenario() {
           } as any);
       }
 
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date().toLocaleDateString('en-CA');
       const { data: existingDay } = await supabase
         .from("user_activity_days" as any)
         .select("minutes")

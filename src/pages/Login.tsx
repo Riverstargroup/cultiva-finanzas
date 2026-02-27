@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ const Login = () => {
   const [error, setError] = useState("");
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
 
   // Manejo del envio del formulario de inicio de sesion
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,7 +31,7 @@ const Login = () => {
       setError(error);
     } else {
       // Redireccion al exito
-      navigate("/");
+      navigate(redirectTo, { replace: true });
     }
     setLoading(false);
   };
