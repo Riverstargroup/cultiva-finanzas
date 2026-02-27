@@ -66,7 +66,6 @@ export default function Dashboard() {
   const greeting = `${getGreeting()}, ${name}`;
 
   const metrics = [
-    { title: "Escenarios", value: String(stats?.completedScenarios ?? 0), icon: BookOpen },
     { title: "Tiempo", value: formatTime(stats?.totalMinutes ?? 0), icon: Clock },
     { title: "Insignias", value: `${stats?.badgesUnlocked ?? 0}/${stats?.totalBadges ?? 8}`, icon: Trophy },
     { title: "Racha", value: `${stats?.streak ?? 0} días`, icon: Flame },
