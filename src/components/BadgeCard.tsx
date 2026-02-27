@@ -44,7 +44,7 @@ export default function BadgeCard({ icon: Icon, name, description, unlocked, unl
           </p>
           {unlocked && unlockedAt && (
             <span className="text-xs font-medium" style={{ color: "var(--leaf-bright)" }}>
-              {unlockedAt}
+              {new Date(unlockedAt).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
             </span>
           )}
         </div>

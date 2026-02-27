@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Check, Lock, Play } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
-export type ScenarioStatus = "locked" | "in_progress" | "completed";
+export type ScenarioStatus = "locked" | "in_progress" | "completed" | "mastered";
 
 interface ScenarioCardProps {
   index: number;
@@ -13,6 +13,7 @@ interface ScenarioCardProps {
 }
 
 const statusConfig: Record<ScenarioStatus, { icon: typeof Check; bgClass: string; borderClass: string }> = {
+  mastered: { icon: Check, bgClass: "bg-primary/15", borderClass: "border-primary/40" },
   completed: { icon: Check, bgClass: "bg-primary/15", borderClass: "border-primary/40" },
   in_progress: { icon: Play, bgClass: "bg-accent/15", borderClass: "border-accent/40" },
   locked: { icon: Lock, bgClass: "bg-muted", borderClass: "border-border/50" },

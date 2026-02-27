@@ -1,151 +1,270 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import PageTransition from "@/components/PageTransition";
+import { motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, Trophy } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { COURSES_LIST, type ScenarioOption } from "@/data/placeholders";
+import { useAuth } from "@/contexts/AuthContext";
+import { useScenario } from "@/hooks/useScenario";
+import { useCourseDetail } from "@/hooks/useCourseDetail";
+import { useProgress } from "@/hooks/useProgress";
+import { supabase } from "@/integrations/supabase/client";
+import { calculateScore, calculateSM2 } from "@/lib/spacedRepetition";
+import { checkAndUnlockAchievements } from "@/lib/achievementChecker";
+import { useStreak } from "@/hooks/useStreak";
+import { useQueryClient } from "@tanstack/react-query";
+import DecisionStep from "@/components/scenario/DecisionStep";
+import FeedbackStep from "@/components/scenario/FeedbackStep";
+import RecallStep from "@/components/scenario/RecallStep";
+import BotanicalPage from "@/components/layout/BotanicalPage";
+import type { ScenarioOption } from "@/types/learning";
+
+type Step = "decision" | "feedback" | "recall" | "done";
 
 export default function Escenario() {
   const { courseId, scenarioId } = useParams<{ courseId: string; scenarioId: string }>();
   const navigate = useNavigate();
   const reduced = useReducedMotion();
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const course = COURSES_LIST.find((c) => c.id === courseId);
-  const scenario = course?.scenarios.find((s) => s.id === scenarioId);
-  const scenarioIndex = course?.scenarios.findIndex((s) => s.id === scenarioId) ?? -1;
+  const { data: scenario, isLoading: scenarioLoading } = useScenario(scenarioId);
+  const { data: courseDetail } = useCourseDetail(courseId);
+  const { data: progress, invalidate: invalidateProgress } = useProgress(courseId);
+  const { data: streak } = useStreak();
 
-  if (!course || !scenario) {
+  const [step, setStep] = useState<Step>("decision");
+  const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
+  const [finalScore, setFinalScore] = useState<number>(0);
+  const [saving, setSaving] = useState(false);
+
+  const scenarios = courseDetail?.scenarios ?? [];
+  const scenarioIndex = scenarios.findIndex((s) => s.id === scenarioId);
+  const isLast = scenarioIndex === scenarios.length - 1;
+  const nextScenario = !isLast && scenarioIndex >= 0 ? scenarios[scenarioIndex + 1] : null;
+
+  const handleFinish = useCallback(async (choseBest: boolean, recallCorrect: number, recallTotal: number) => {
+    if (!user || !courseId || !scenarioId || saving) return;
+    setSaving(true);
+    setStep("done");
+
+    try {
+      const score = calculateScore(choseBest, recallCorrect, recallTotal);
+      setFinalScore(score);
+
+      const { data: existingState } = await supabase
+        .from("user_scenario_state" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("scenario_id", scenarioId)
+        .maybeSingle();
+
+      const currentState = existingState
+        ? { repetitions: (existingState as any).repetitions, interval_days: (existingState as any).interval_days, ease_factor: (existingState as any).ease_factor }
+        : { repetitions: 0, interval_days: 1, ease_factor: 2.5 };
+
+      const sm2 = calculateSM2(score, currentState);
+
+      await supabase
+        .from("user_scenario_state" as any)
+        .upsert({
+          user_id: user.id,
+          course_id: courseId,
+          scenario_id: scenarioId,
+          repetitions: sm2.repetitions,
+          interval_days: sm2.interval_days,
+          ease_factor: sm2.ease_factor,
+          next_due_at: sm2.next_due_at,
+          last_quality: sm2.last_quality,
+          last_score: sm2.last_score,
+          last_attempt_at: new Date().toISOString(),
+        } as any, { onConflict: "user_id,scenario_id" });
+
+      const { data: existingProgress } = await supabase
+        .from("user_course_progress" as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("course_id", courseId)
+        .maybeSingle();
+
+      const completedArr: string[] = (existingProgress as any)?.completed_scenarios ?? [];
+      const updatedCompleted = completedArr.includes(scenarioId)
+        ? completedArr
+        : [...completedArr, scenarioId];
+
+      const completedAt = updatedCompleted.length >= scenarios.length
+        ? new Date().toISOString()
+        : null;
+
+      if (existingProgress) {
+        await supabase
+          .from("user_course_progress" as any)
+          .update({
+            completed_scenarios: updatedCompleted,
+            completed_at: completedAt,
+            mastery_score: updatedCompleted.length / scenarios.length,
+          } as any)
+          .eq("user_id", user.id)
+          .eq("course_id", courseId);
+      } else {
+        await supabase
+          .from("user_course_progress" as any)
+          .insert({
+            user_id: user.id,
+            course_id: courseId,
+            completed_scenarios: updatedCompleted,
+            completed_at: completedAt,
+            mastery_score: updatedCompleted.length / scenarios.length,
+          } as any);
+      }
+
+      const today = new Date().toISOString().split("T")[0];
+      const { data: existingDay } = await supabase
+        .from("user_activity_days" as any)
+        .select("minutes")
+        .eq("user_id", user.id)
+        .eq("day", today)
+        .maybeSingle();
+
+      if (existingDay) {
+        await supabase
+          .from("user_activity_days" as any)
+          .update({ minutes: ((existingDay as any).minutes ?? 0) + 5 } as any)
+          .eq("user_id", user.id)
+          .eq("day", today);
+      } else {
+        await supabase
+          .from("user_activity_days" as any)
+          .insert({ user_id: user.id, day: today, minutes: 5 } as any);
+      }
+
+      await checkAndUnlockAchievements({
+        userId: user.id,
+        completedScenarios: updatedCompleted,
+        totalScenarios: scenarios.length,
+        currentScenarioTags: scenario?.tags,
+        currentScenarioTitle: scenario?.title,
+        streak: (streak ?? 0) + (existingDay ? 0 : 1),
+      });
+
+      invalidateProgress();
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["achievements"] });
+      queryClient.invalidateQueries({ queryKey: ["streak"] });
+      queryClient.invalidateQueries({ queryKey: ["review-queue"] });
+    } catch (err) {
+      console.error("Error saving progress:", err);
+    } finally {
+      setSaving(false);
+    }
+  }, [user, courseId, scenarioId, saving, scenarios, scenario, streak, invalidateProgress, queryClient]);
+
+  if (scenarioLoading) {
     return (
-      <PageTransition>
-        <div className="text-center py-16">
-          <p className="text-muted-foreground">Escenario no encontrado.</p>
-          <Button variant="ghost" onClick={() => navigate("/cursos")}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Volver
-          </Button>
+      <BotanicalPage title="Cargando..." subtitle="">
+        <div className="organic-card p-8 text-center">
+          <p style={{ color: "var(--leaf-muted)" }}>Cargando escenario...</p>
         </div>
-      </PageTransition>
+      </BotanicalPage>
     );
   }
 
-  const selected = scenario.options.find((o) => o.id === selectedOption);
-  const isLast = scenarioIndex === course.scenarios.length - 1;
-  const nextScenario = !isLast ? course.scenarios[scenarioIndex + 1] : null;
+  if (!scenario || !courseDetail) {
+    return (
+      <BotanicalPage title="Error" subtitle="">
+        <div className="text-center py-8">
+          <p style={{ color: "var(--leaf-muted)" }}>Escenario no encontrado.</p>
+          <button className="vibrant-btn mt-4 min-h-[44px]" onClick={() => navigate("/cursos")}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Volver
+          </button>
+        </div>
+      </BotanicalPage>
+    );
+  }
 
-  const handleSelect = (opt: ScenarioOption) => {
-    if (selectedOption) return; // already picked
-    setSelectedOption(opt.id);
-    // Phase 3: update progress + check achievements here
+  const handleDecision = (opt: ScenarioOption) => {
+    setSelectedOption(opt);
+    setStep("feedback");
+  };
+
+  const handleFeedbackContinue = () => {
+    if (scenario.recall && scenario.recall.length > 0) {
+      setStep("recall");
+    } else {
+      handleFinish(selectedOption!.is_best, 0, 0);
+    }
+  };
+
+  const handleRecallComplete = (correctCount: number, total: number) => {
+    handleFinish(selectedOption!.is_best, correctCount, total);
   };
 
   const handleNext = () => {
     if (nextScenario) {
+      setStep("decision");
       setSelectedOption(null);
-      navigate(`/cursos/${course.id}/escenario/${nextScenario.id}`, { replace: true });
+      setFinalScore(0);
+      navigate(`/cursos/${courseId}/escenario/${nextScenario.id}`, { replace: true });
     } else {
-      navigate(`/cursos/${course.id}`);
+      navigate(`/cursos/${courseId}`);
     }
   };
 
   return (
-    <PageTransition>
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Breadcrumb */}
-        <Button variant="ghost" size="sm" onClick={() => navigate(`/cursos/${course.id}`)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> {course.title}
-        </Button>
+    <BotanicalPage
+      title={scenario.title}
+      subtitle={`Semilla ${scenarioIndex + 1} de ${scenarios.length}`}
+    >
+      <button
+        onClick={() => navigate(`/cursos/${courseId}`)}
+        className="flex items-center gap-2 text-sm font-semibold min-h-[44px] transition-colors"
+        style={{ color: "var(--leaf-muted)" }}
+      >
+        <ArrowLeft className="h-4 w-4" /> {courseDetail.title}
+      </button>
 
-        {/* Header */}
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-            Escenario {scenarioIndex + 1} de {course.scenarios.length}
-          </p>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            {scenario.title}
-          </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            {scenario.description}
-          </p>
-        </div>
+      <div className="organic-card p-5 md:p-6">
+        {step === "decision" && (
+          <DecisionStep prompt={scenario.prompt} options={scenario.options} onSelect={handleDecision} />
+        )}
 
-        {/* Options */}
-        <div className="space-y-3">
-          {scenario.options.map((opt) => {
-            const isSelected = selectedOption === opt.id;
-            const isRevealed = selectedOption !== null;
+        {step === "feedback" && selectedOption && (
+          <FeedbackStep
+            coaching={scenario.coaching}
+            selectedOption={selectedOption}
+            mission={scenario.mission}
+            onContinue={handleFeedbackContinue}
+          />
+        )}
 
-            return (
-              <motion.div
-                key={opt.id}
-                whileTap={!isRevealed && !reduced ? { scale: 0.98 } : undefined}
-              >
-                <Card
-                  className={`p-4 cursor-pointer transition-all min-h-[44px] border-2 ${
-                    isSelected
-                      ? opt.is_best
-                        ? "border-primary bg-primary/5"
-                        : "border-destructive/50 bg-destructive/5"
-                      : isRevealed
-                        ? opt.is_best
-                          ? "border-primary/30 opacity-60"
-                          : "border-border/50 opacity-40"
-                        : "border-border/50 hover:border-primary/40"
-                  }`}
-                  onClick={() => handleSelect(opt)}
-                >
-                  <p className="font-medium text-foreground leading-relaxed">{opt.text}</p>
+        {step === "recall" && (
+          <RecallStep questions={scenario.recall} onComplete={handleRecallComplete} />
+        )}
 
-                  <AnimatePresence>
-                    {isRevealed && (isSelected || opt.is_best) && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: reduced ? 0.1 : 0.25 }}
-                        className="mt-3 pt-3 border-t border-border/50"
-                      >
-                        <div className="flex items-start gap-2">
-                          <CheckCircle2
-                            className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
-                              opt.is_best ? "text-primary" : "text-muted-foreground"
-                            }`}
-                          />
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {opt.feedback}
-                          </p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Next */}
-        <AnimatePresence>
-          {selectedOption && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: reduced ? 0.1 : 0.25 }}
+        {step === "done" && (
+          <motion.div
+            initial={reduced ? undefined : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4 text-center"
+          >
+            <div
+              className="organic-border h-16 w-16 mx-auto flex items-center justify-center"
+              style={{ background: "color-mix(in srgb, var(--leaf-fresh) 15%, transparent)" }}
             >
-              <Button
-                size="lg"
-                className="rounded-full px-8 font-bold shadow-lg min-h-[44px] w-full sm:w-auto"
-                onClick={handleNext}
-              >
-                {isLast ? "Finalizar curso" : "Siguiente escenario"}
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <Trophy className="h-8 w-8" style={{ color: "var(--leaf-bright)" }} />
+            </div>
+            <h2 className="font-heading font-bold text-xl" style={{ color: "var(--forest-deep)" }}>
+              ¡Semilla completada!
+            </h2>
+            <p className="text-sm" style={{ color: "var(--leaf-muted)" }}>
+              Puntaje: {Math.round(finalScore * 100)}%
+            </p>
+            <button onClick={handleNext} className="vibrant-btn w-full justify-center min-h-[44px] font-bold">
+              {isLast ? "Finalizar curso" : "Siguiente semilla"}
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </button>
+          </motion.div>
+        )}
       </div>
-    </PageTransition>
+    </BotanicalPage>
   );
 }

@@ -1,11 +1,16 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import BotanicalPage from "@/components/layout/BotanicalPage";
+import { useAchievements } from "@/hooks/useAchievements";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Calculadora() {
+  const { user } = useAuth();
+  const { unlock } = useAchievements();
+  const calculatorUnlocked = useRef(false);
   const [capital, setCapital] = useState(10000);
   const [rate, setRate] = useState(11);
   const [years, setYears] = useState(5);
@@ -30,7 +35,13 @@ export default function Calculadora() {
   const totalInvested = capital + monthly * 12 * years;
   const interestsEarned = finalAmount - totalInvested;
 
-  const handleCalc = () => setCalculated(true);
+  const handleCalc = () => {
+    setCalculated(true);
+    if (!calculatorUnlocked.current && user) {
+      calculatorUnlocked.current = true;
+      unlock("calculator_user");
+    }
+  };
 
   const inputClass = "w-full rounded-lg px-3 py-2.5 text-sm border outline-none focus:ring-2 focus:ring-[var(--leaf-bright)]/30 transition-colors";
 
