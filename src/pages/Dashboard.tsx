@@ -110,7 +110,14 @@ export default function Dashboard() {
                 {getFormattedDate()}
               </p>
             </div>
-            <div className="hidden items-center gap-2 md:flex">
+            <div className="hidden items-center gap-3 md:flex">
+              <button
+                className="flex h-10 px-4 items-center justify-center gap-2 rounded-full font-bold transition-all hover:scale-105 shadow-sm"
+                style={{ background: "color-mix(in srgb, var(--leaf-fresh) 15%, transparent)", color: "var(--forest-deep)" }}
+                onClick={() => navigate('/jardin')}
+              >
+                Got It Tickets <Sprout className="h-4 w-4" style={{ color: "var(--leaf-bright)" }} />
+              </button>
               <button
                 className="flex h-10 w-10 items-center justify-center rounded-full transition-colors"
                 style={{ background: "color-mix(in srgb, var(--clay-soft) 60%, transparent)" }}
