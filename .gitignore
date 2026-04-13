@@ -22,3 +22,40 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Variables de entorno — NUNCA subir al repositorio
+.env
+.env.local
+.env.production
+.env.staging
+
+# AWS
+.aws/
+aws-exports.js
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# Archivos temporales de deploy/scripts
+/tmp/
+*.zip
+*.tar.gz
+
+# Supabase local
+.supabase/
+
+# Cobertura de tests
+coverage/
+.nyc_output/
+
+# Archivos de sistema
+Thumbs.db

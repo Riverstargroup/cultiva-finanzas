@@ -1,0 +1,222 @@
+version: 0.2
+# =============================================================================
+# buildspec.yml
+# Especificacion de build para AWS CodeBuild - Cultiva Finanzas (Semilla)
+# Documentacion: https://docs.aws.amazon.com/codebuild/latest/userguide/build-spec-ref.html
+# =============================================================================
+
+env:
+  variables:
+    NODE_VERSION: "20"
+    NPM_FLAGS: "--silent --no-progress"
+  exported-variables:
+    - BUILD_ID
+    - ENVIRONMENT
+
+phases:
+  # ---------------------------------------------------------------------------
+  # INSTALL: Configurar el entorno de construccion
+  # ---------------------------------------------------------------------------
+  install:
+    runtime-versions:
+      nodejs: 20
+    on-failure: ABORT
+    commands:
+      - echo "=== FASE INSTALL: $(date) ==="
+      - echo "CodeBuild Image OS: $(uname -a)"
+      - echo "Node.js version: $(node --version)"
+      - echo "npm version: $(npm --version)"
+      - echo "Directorio de trabajo: $(pwd)"
+      - echo "Rama: ${CODEBUILD_WEBHOOK_HEAD_REF:-N/A}"
+      - echo "Commit: ${CODEBUILD_RESOLVED_SOURCE_VERSION:-N/A}"
+
+      # Instalar Python deps para scripts de automatizacion
+      - pip3 install --quiet boto3 botocore
+
+      # Verificar AWS CLI
+      - aws --version
+
+  # ---------------------------------------------------------------------------
+  # PRE_BUILD: Instalacion de dependencias
+  # ---------------------------------------------------------------------------
+  pre_build:
+    on-failure: ABORT
+    commands:
+      - echo "=== FASE PRE_BUILD: $(date) ==="
+
+      # Instalar dependencias del proyecto
+      - echo "Instalando dependencias npm..."
+      - npm ci ${NPM_FLAGS}
+      - echo "Dependencias instaladas: $(npm list --depth=0 2>/dev/null | wc -l) paquetes"
+
+      # Verificar variables de entorno requeridas
+      - |
+        if [ -z "$S3_BUCKET" ]; then
+          echo "ERROR: S3_BUCKET no definido"
+          exit 1
+        fi
+      - |
+        if [ -z "$CLOUDFRONT_ID" ]; then
+          echo "WARN: CLOUDFRONT_ID no definido - se omitira la invalidacion de cache"
+        fi
+
+      # Exportar ID del build para metricas
+      - export BUILD_ID="${CODEBUILD_BUILD_ID}"
+      - echo "Build ID: $BUILD_ID"
+      - echo "Entorno: ${ENVIRONMENT:-production}"
+
+  # ---------------------------------------------------------------------------
+  # BUILD: Compilacion, testing y verificacion de calidad
+  # ---------------------------------------------------------------------------
+  build:
+    on-failure: ABORT
+    commands:
+      - echo "=== FASE BUILD: $(date) ==="
+
+      # Ejecutar tests unitarios
+      - echo "--- Ejecutando tests unitarios (Vitest)..."
+      - npm run test -- --run --reporter=verbose 2>&1 | tee /tmp/test-results.txt
+      - TEST_EXIT_CODE=${PIPESTATUS[0]}
+
+      # Verificar resultado de tests
+      - |
+        if [ "$TEST_EXIT_CODE" -ne 0 ]; then
+          echo "ERROR: Tests fallidos. Build abortado."
+          cat /tmp/test-results.txt
+          exit 1
+        fi
+      - echo "Tests completados exitosamente."
+
+      # Verificacion de calidad con ESLint
+      - echo "--- Verificando calidad del codigo (ESLint)..."
+      - npm run lint 2>&1 | tee /tmp/lint-results.txt || echo "WARN: Linting con advertencias"
+
+      # Compilar aplicacion
+      - echo "--- Compilando aplicacion para ${ENVIRONMENT:-production}..."
+      - |
+        if [ "${ENVIRONMENT:-production}" = "production" ]; then
+          npm run build
+        else
+          npm run build:dev
+        fi
+
+      # Verificar que el build genero archivos
+      - |
+        if [ ! -d "dist" ]; then
+          echo "ERROR: Directorio dist/ no encontrado. Build fallido."
+          exit 1
+        fi
+
+      - BUILD_SIZE=$(du -sh dist/ | cut -f1)
+      - TOTAL_FILES=$(find dist/ -type f | wc -l)
+      - echo "Build completado: $TOTAL_FILES archivos, $BUILD_SIZE total"
+
+      # Listar archivos del build para auditoria
+      - echo "Archivos generados:"
+      - find dist/ -type f | sort | head -50
+
+  # ---------------------------------------------------------------------------
+  # POST_BUILD: Despliegue y registro de metricas
+  # ---------------------------------------------------------------------------
+  post_build:
+    commands:
+      - echo "=== FASE POST_BUILD: $(date) ==="
+      - BUILD_STATUS=$CODEBUILD_BUILD_SUCCEEDING
+
+      # Sincronizar archivos HTML (cache corto)
+      - echo "--- Subiendo HTML a S3..."
+      - |
+        aws s3 sync dist/ "s3://${S3_BUCKET}" \
+          --exclude "*" \
+          --include "*.html" \
+          --cache-control "max-age=600, must-revalidate" \
+          --content-type "text/html; charset=utf-8" \
+          --delete \
+          --quiet
+
+      # Sincronizar assets estaticos (cache largo - tienen hash en nombre)
+      - echo "--- Subiendo assets estaticos a S3..."
+      - |
+        aws s3 sync dist/ "s3://${S3_BUCKET}" \
+          --exclude "*.html" \
+          --cache-control "max-age=31536000, immutable" \
+          --quiet
+
+      - echo "Archivos sincronizados con S3: s3://${S3_BUCKET}"
+
+      # Invalidar cache de CloudFront
+      - |
+        if [ -n "$CLOUDFRONT_ID" ]; then
+          echo "--- Invalidando cache CloudFront: $CLOUDFRONT_ID"
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id "$CLOUDFRONT_ID" \
+            --paths "/*" \
+            --query "Invalidation.Id" \
+            --output text)
+          echo "Invalidacion creada: $INVALIDATION_ID"
+        fi
+
+      # Registrar metrica de despliegue en CloudWatch
+      - |
+        if [ "$BUILD_STATUS" = "1" ]; then
+          DEPLOY_SUCCESS=1
+          DEPLOY_FAILURE=0
+          echo "Despliegue EXITOSO"
+        else
+          DEPLOY_SUCCESS=0
+          DEPLOY_FAILURE=1
+          echo "Despliegue FALLIDO"
+        fi
+
+      - |
+        aws cloudwatch put-metric-data \
+          --namespace "CultivaFinanzas/Pipeline" \
+          --metric-data \
+            "MetricName=DeploymentSuccess,Value=${DEPLOY_SUCCESS},Unit=Count,Dimensions=[{Name=Environment,Value=${ENVIRONMENT:-production}}]" \
+          --region "${AWS_DEFAULT_REGION:-us-east-1}" 2>/dev/null || true
+
+      - |
+        aws cloudwatch put-metric-data \
+          --namespace "CultivaFinanzas/Pipeline" \
+          --metric-data \
+            "MetricName=DeploymentFailures,Value=${DEPLOY_FAILURE},Unit=Count,Dimensions=[{Name=Environment,Value=${ENVIRONMENT:-production}}]" \
+          --region "${AWS_DEFAULT_REGION:-us-east-1}" 2>/dev/null || true
+
+      - |
+        aws cloudwatch put-metric-data \
+          --namespace "CultivaFinanzas/Deployments" \
+          --metric-data \
+            "MetricName=DeploymentCount,Value=1,Unit=Count,Dimensions=[{Name=Environment,Value=${ENVIRONMENT:-production}}]" \
+          --region "${AWS_DEFAULT_REGION:-us-east-1}" 2>/dev/null || true
+
+      - echo "=== BUILD FINALIZADO: $(date) ==="
+
+# ---------------------------------------------------------------------------
+# ARTEFACTOS: Archivos generados para la siguiente etapa del pipeline
+# ---------------------------------------------------------------------------
+artifacts:
+  files:
+    - "**/*"
+  base-directory: dist
+  discard-paths: no
+  name: "cultiva-finanzas-${ENVIRONMENT}-$(date +%Y%m%d_%H%M%S).zip"
+
+# ---------------------------------------------------------------------------
+# CACHE: Cachear node_modules para builds mas rapidos
+# ---------------------------------------------------------------------------
+cache:
+  paths:
+    - node_modules/**/*
+    - .npm/**/*
+    - /root/.npm/**/*
+
+# ---------------------------------------------------------------------------
+# REPORTES: Resultados de tests
+# ---------------------------------------------------------------------------
+reports:
+  vitest-results:
+    files:
+      - "**/*"
+    base-directory: /tmp
+    file-format: JUNITXML
+    discard-paths: true

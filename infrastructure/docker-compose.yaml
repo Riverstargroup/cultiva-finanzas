@@ -1,0 +1,233 @@
+# =============================================================================
+# docker-compose.yaml
+# Entorno de desarrollo local para Cultiva Finanzas (Semilla)
+# Uso: docker compose up -d
+# Servicios: App React (Vite), Supabase local (Kong, Postgres, Auth, Storage)
+# =============================================================================
+
+version: "3.9"
+
+# ---------------------------------------------------------------------------
+# Redes
+# ---------------------------------------------------------------------------
+networks:
+  cultiva-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# ---------------------------------------------------------------------------
+# Volumenes persistentes
+# ---------------------------------------------------------------------------
+volumes:
+  postgres-data:
+    driver: local
+  storage-data:
+    driver: local
+  kong-data:
+    driver: local
+
+# ---------------------------------------------------------------------------
+# Servicios
+# ---------------------------------------------------------------------------
+services:
+
+  # --------------------------------------------------------------------------
+  # App - Frontend React/Vite
+  # --------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: cultiva-app
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - /app/node_modules        # Evitar sobreescribir node_modules del contenedor
+    environment:
+      - NODE_ENV=development
+      - VITE_SUPABASE_URL=http://localhost:54321
+      - VITE_SUPABASE_PUBLISHABLE_KEY=${VITE_SUPABASE_PUBLISHABLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRFA0NiK7ACcPzu4FtXhzyDHMHpZhEANXbSyImXJuHU}
+    depends_on:
+      supabase-db:
+        condition: service_healthy
+      supabase-kong:
+        condition: service_started
+    networks:
+      - cultiva-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # --------------------------------------------------------------------------
+  # Nginx - Reverse proxy (simula CloudFront en local)
+  # --------------------------------------------------------------------------
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: cultiva-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/nginx-local.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - cultiva-net
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # Supabase - Base de datos PostgreSQL
+  # --------------------------------------------------------------------------
+  supabase-db:
+    image: supabase/postgres:15.1.0.117
+    container_name: cultiva-postgres
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters-long}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
+    networks:
+      - cultiva-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # --------------------------------------------------------------------------
+  # Supabase Kong - API Gateway
+  # --------------------------------------------------------------------------
+  supabase-kong:
+    image: kong:2.8.1
+    container_name: cultiva-kong
+    ports:
+      - "54321:8000"   # HTTP
+      - "54323:8443"   # HTTPS
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+    volumes:
+      - kong-data:/var/lib/kong
+    networks:
+      - cultiva-net
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # Supabase Auth - GoTrue
+  # --------------------------------------------------------------------------
+  supabase-auth:
+    image: supabase/gotrue:v2.99.0
+    container_name: cultiva-auth
+    depends_on:
+      supabase-db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: "0.0.0.0"
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: http://localhost:54321
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@supabase-db:5432/postgres
+      GOTRUE_SITE_URL: http://localhost:8080
+      GOTRUE_URI_ALLOW_LIST: http://localhost:8080,http://localhost:3000
+      GOTRUE_DISABLE_SIGNUP: "false"
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: 3600
+      GOTRUE_JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters-long}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST:-mail}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT:-2500}
+      GOTRUE_SMTP_SENDER_NAME: Cultiva Finanzas
+      GOTRUE_MAILER_AUTOCONFIRM: "true"   # En desarrollo: confirmar emails automaticamente
+    networks:
+      - cultiva-net
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # Supabase Storage
+  # --------------------------------------------------------------------------
+  supabase-storage:
+    image: supabase/storage-api:v0.43.11
+    container_name: cultiva-storage
+    depends_on:
+      supabase-db:
+        condition: service_healthy
+    environment:
+      ANON_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRFA0NiK7ACcPzu4FtXhzyDHMHpZhEANXbSyImXJuHU}
+      SERVICE_KEY: ${SUPABASE_SERVICE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hj04zWl196z2-SBc0}
+      POSTGREST_URL: http://supabase-rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters-long}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@supabase-db:5432/postgres
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: local
+      GLOBAL_S3_BUCKET: stub
+    volumes:
+      - storage-data:/var/lib/storage
+    networks:
+      - cultiva-net
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # Supabase REST - PostgREST
+  # --------------------------------------------------------------------------
+  supabase-rest:
+    image: postgrest/postgrest:v11.2.2
+    container_name: cultiva-rest
+    depends_on:
+      supabase-db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}@supabase-db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters-long}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-token-with-at-least-32-characters-long}
+      PGRST_APP_SETTINGS_JWT_EXP: 3600
+    networks:
+      - cultiva-net
+    restart: unless-stopped
+
+  # --------------------------------------------------------------------------
+  # Studio - Supabase Dashboard (desarrollo local)
+  # --------------------------------------------------------------------------
+  supabase-studio:
+    image: supabase/studio:20240101-cea346d
+    container_name: cultiva-studio
+    ports:
+      - "54324:3000"
+    environment:
+      STUDIO_PG_META_URL: http://supabase-meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your-super-secret-and-long-postgres-password}
+      DEFAULT_ORGANIZATION_NAME: CultivaFinanzas
+      DEFAULT_PROJECT_NAME: Semilla
+      SUPABASE_URL: http://supabase-kong:8000
+      SUPABASE_PUBLIC_URL: http://localhost:54321
+      SUPABASE_ANON_KEY: ${VITE_SUPABASE_PUBLISHABLE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRFA0NiK7ACcPzu4FtXhzyDHMHpZhEANXbSyImXJuHU}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hj04zWl196z2-SBc0}
+    networks:
+      - cultiva-net
+    restart: unless-stopped
