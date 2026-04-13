@@ -17,6 +17,8 @@ export default {
         sans: ["Nunito", "sans-serif"],
         display: ["Playfair Display", "serif"],
         serif: ["Playfair Display", "serif"],
+        heading: ["Fraunces", "serif"],
+        body: ["Quicksand", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -69,6 +71,18 @@ export default {
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
+        },
+        dash: {
+          bg: "var(--dashboard-bg)",
+          forest: "var(--forest-deep)",
+          "leaf-bright": "var(--leaf-bright)",
+          "leaf-fresh": "var(--leaf-fresh)",
+          terracotta: "var(--terracotta-vivid)",
+          "terracotta-warm": "var(--terracotta-warm)",
+          clay: "var(--clay-soft)",
+          soil: "var(--soil-warm)",
+          text: "var(--text-warm)",
+          "leaf-muted": "var(--leaf-muted)",
         },
       },
       borderRadius: {

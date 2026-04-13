@@ -1,87 +1,48 @@
 
+# Bugfix: Login redirect + AuthCallback + Weekly chart local dates
 
-# 🌱 Semilla - Plataforma de Educación Financiera Gamificada
+## A) Login con soporte `?redirect=`
 
-## Visión General
-Aplicación web de educación financiera para comunidades de bajos ingresos en Latinoamérica. SPA construida con React + Vite + TypeScript, conectada a Supabase externo para autenticación, base de datos y storage. Identidad visual basada en el logo Semilla con tipografías Nunito/Chonburi y paleta de colores verde/tierra.
+### Login.tsx
+- Leer `searchParams.get("redirect")` de la URL
+- En handleSubmit success: `navigate(redirectParam || "/dashboard", { replace: true })`
 
----
+### ProtectedRoute.tsx
+- Cambiar `<Navigate to="/login" />` a `<Navigate to={"/login?redirect=" + encodeURIComponent(location.pathname)} />`
+- Asi cuando un usuario no autenticado intenta acceder a `/cursos/abc`, al loguearse vuelve a esa ruta
 
-## Fase 1: Fundación y Autenticación
+## B) AuthCallback con PKCE
 
-### Landing Page
-- Página de bienvenida con logo Semilla, propuesta de valor, CTAs de registro/login
-- Secciones: hero, beneficios, cómo funciona, testimonios, footer
-- Diseño mobile-first, responsive
+### Nuevo archivo: `src/pages/AuthCallback.tsx`
+- On mount: revisar si hay `code` en URL params (`new URLSearchParams(window.location.search).get("code")`)
+- Si hay `code`: llamar `supabase.auth.exchangeCodeForSession(code)` y luego navegar a `/dashboard`
+- Si no hay `code`: llamar `supabase.auth.getSession()` -- si hay session navegar a `/dashboard`, si no mostrar mensaje "Cuenta confirmada" + link a `/login`
+- Estilo: misma card centrada que Login (reusar clases existentes)
 
-### Sistema de Autenticación Completo
-- **Registro**: nombre, email, contraseña (validación en tiempo real con Zod)
-- Modales obligatorios de Términos y Condiciones + Aviso de Privacidad (con timestamp)
-- Verificación de email vía Supabase Auth
-- **Login**: email + contraseña, mensajes genéricos de error
-- **Recuperación de contraseña**: flujo completo con página /reset-password
-- **Logout**: limpieza de sesión + redirección a landing
+### App.tsx
+- Agregar ruta publica: `<Route path="/auth/callback" element={<AuthCallback />} />`
 
-### Base de Datos (Supabase)
-- Tablas: profiles, courses, user_progress, achievements, user_achievements, scenario_decisions, saved_calculations
-- RLS policies en todas las tablas
-- Trigger para crear perfil automáticamente al registrarse
+### AuthContext.tsx
+- Cambiar `emailRedirectTo` en signUp: `${window.location.origin}/auth/callback`
 
----
+## C) Fechas locales en weekly chart
 
-## Fase 2: Dashboard y Navegación
+### Escenario.tsx (linea 124)
+- Cambiar `new Date().toISOString().split("T")[0]` a `new Date().toLocaleDateString('en-CA')`
 
-### Dashboard Principal
-- Saludo personalizado con nombre del usuario
-- Cards de métricas: cursos completados, tiempo invertido, insignias, racha de días
-- Gráfico de progreso semanal (Recharts - barras)
-- Botón CTA "Continuar aprendiendo"
-- Menú de navegación: Dashboard, Cursos, Calculadora, Logros, Perfil, Cerrar sesión
+### useDashboardStats.ts (lineas 82, 85, 99, 116)
+- Reemplazar todos los `.toISOString().split("T")[0]` por `.toLocaleDateString('en-CA')` para consistencia local
 
----
+## Archivos
 
-## Fase 3: Catálogo de Cursos y Escenarios Interactivos
+| Archivo | Cambio |
+|---------|--------|
+| `src/pages/Login.tsx` | Leer `?redirect=`, navegar a redirect o `/dashboard` |
+| `src/components/ProtectedRoute.tsx` | Pasar ruta actual como `?redirect=` al redirigir a login |
+| `src/pages/AuthCallback.tsx` | **Nuevo**: PKCE exchange + fallback getSession + UI minima |
+| `src/App.tsx` | Agregar ruta `/auth/callback` |
+| `src/contexts/AuthContext.tsx` | emailRedirectTo apunta a `/auth/callback` |
+| `src/pages/Escenario.tsx` | toLocaleDateString en linea 124 |
+| `src/hooks/useDashboardStats.ts` | toLocaleDateString en lineas 82, 85, 99, 116 |
 
-### Catálogo de Cursos
-- Grid de cards con título, descripción, duración, nivel y badge de progreso
-- Filtros por categoría (Ahorro, Crédito, Presupuesto), nivel y estado
-- 3 cursos hardcoded: "Fundamentos del Ahorro", "Crédito: Aliado o Enemigo", "Presupuesto Personal"
-
-### Escenarios Interactivos (Feature Core)
-- Escenarios de decisión financiera con múltiples opciones
-- Resultados comparativos con gráficos (Recharts - barras horizontales)
-- Tabla comparativa lado a lado con métricas financieras
-- Mensajes educativos contextuales
-- Barra de progreso por curso con auto-guardado
-- Guardado de decisiones en BD para analytics
-
----
-
-## Fase 4: Calculadora de Intereses
-
-### Calculadora Completa
-- Inputs: monto inicial (MXN), tasa de interés, plazo, tipo (simple/compuesto), operación (crédito/ahorro), frecuencia de capitalización
-- Cálculos en tiempo real con debounce
-- Card de resultado principal (monto final + interés total)
-- Gráfica de crecimiento/decrecimiento (Recharts - línea con tooltips)
-- Tabla de amortización scrolleable y responsive
-- Recomendaciones contextuales automáticas (alertas según tasa y tipo)
-- Exportación a CSV y PDF
-
----
-
-## Fase 5: Gamificación y Perfil
-
-### Sistema de Logros (5 Insignias)
-- "Primer Paso", "Racha de 3", "Calculador Experto", "Graduado", "Imparable"
-- Grid visual: bloqueadas (grises) vs desbloqueadas (color)
-- Animación de desbloqueo con toast/modal y confetti
-- Barra de progreso hacia próximo logro
-
-### Perfil de Usuario
-- Datos básicos: nombre (editable), email (readonly), fecha de registro, avatar con iniciales
-- Cambio de contraseña
-- Links a Términos y Aviso de Privacidad
-- Botón "Descargar mis datos" (JSON)
-- Botón "Eliminar cuenta" con confirmación doble
-
+No se toca: ProtectedRoute logic (solo el `to` del Navigate), skin, DockNav, motor de aprendizaje.

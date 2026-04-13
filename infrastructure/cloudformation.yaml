@@ -1,0 +1,598 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Cultiva Finanzas (Semilla) - Infraestructura AWS completa.
+  Incluye: S3 static hosting, CloudFront CDN, CodePipeline CI/CD,
+  CodeBuild, IAM roles, CloudWatch logs y alarmas.
+  Proyecto: Enactus Mexico | Educacion Financiera Organica.
+
+# =============================================================================
+# PARAMETROS
+# =============================================================================
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [production, staging, development]
+    Description: Entorno de despliegue
+
+  GithubOwner:
+    Type: String
+    Default: riverstargroup
+    Description: Propietario del repositorio GitHub
+
+  GithubRepo:
+    Type: String
+    Default: cultiva-finanzas
+    Description: Nombre del repositorio GitHub
+
+  GithubBranch:
+    Type: String
+    Default: main
+    Description: Rama de GitHub a monitorear
+
+  GithubToken:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: Token de acceso personal de GitHub (OAuth)
+
+  NotificationEmail:
+    Type: String
+    Default: ""
+    Description: Email para notificaciones de alarmas (opcional)
+
+# =============================================================================
+# CONDICIONES
+# =============================================================================
+Conditions:
+  IsProd: !Equals [!Ref Environment, production]
+  HasGithubToken: !Not [!Equals [!Ref GithubToken, ""]]
+  HasNotificationEmail: !Not [!Equals [!Ref NotificationEmail, ""]]
+
+# =============================================================================
+# RECURSOS
+# =============================================================================
+Resources:
+
+  # ---------------------------------------------------------------------------
+  # S3 - Bucket para archivos estaticos del sitio web
+  # ---------------------------------------------------------------------------
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "cultiva-finanzas-${Environment}-website-${AWS::AccountId}"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: CleanOldVersions
+            Status: Enabled
+            NoncurrentVersionExpirationInDays: 30
+      Tags:
+        - Key: Project
+          Value: CultivaFinanzas
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ManagedBy
+          Value: CloudFormation
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipal
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${WebsiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
+  # ---------------------------------------------------------------------------
+  # S3 - Bucket para artefactos de CodePipeline
+  # ---------------------------------------------------------------------------
+  ArtifactsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "cultiva-finanzas-${Environment}-artifacts-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: CleanOldArtifacts
+            Status: Enabled
+            ExpirationInDays: 90
+            NoncurrentVersionExpirationInDays: 30
+      Tags:
+        - Key: Project
+          Value: CultivaFinanzas
+        - Key: Purpose
+          Value: CICD-Artifacts
+
+  # ---------------------------------------------------------------------------
+  # CloudFront - Origin Access Control
+  # ---------------------------------------------------------------------------
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "cultiva-finanzas-${Environment}-oac"
+        Description: OAC para Cultiva Finanzas
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # ---------------------------------------------------------------------------
+  # CloudFront - Distribucion CDN
+  # ---------------------------------------------------------------------------
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "Cultiva Finanzas - ${Environment}"
+        DefaultRootObject: index.html
+        HttpVersion: http2and3
+        PriceClass: !If [IsProd, PriceClass_100, PriceClass_100]
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt WebsiteBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt CloudFrontOAC.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6   # CachingOptimized
+          OriginRequestPolicyId: 88a5eaf4-2fd4-4709-b370-b4c650ea3fcf  # CORS-S3Origin
+          ResponseHeadersPolicyId: 67f7725c-6f97-4210-82d7-5512b31e9d03  # SecurityHeadersPolicy
+          Compress: true
+        CustomErrorResponses:
+          # SPA: Redirigir errores 403/404 a index.html (React Router)
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 0
+        Logging:
+          Bucket: !GetAtt ArtifactsBucket.DomainName
+          Prefix: cloudfront-logs/
+          IncludeCookies: false
+      Tags:
+        - Key: Project
+          Value: CultivaFinanzas
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ---------------------------------------------------------------------------
+  # SNS - Topic para alertas
+  # ---------------------------------------------------------------------------
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "cultiva-finanzas-${Environment}-alerts"
+      Tags:
+        - Key: Project
+          Value: CultivaFinanzas
+
+  AlertEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasNotificationEmail
+    Properties:
+      TopicArn: !Ref AlertTopic
+      Protocol: email
+      Endpoint: !Ref NotificationEmail
+
+  # ---------------------------------------------------------------------------
+  # CloudWatch - Log Groups
+  # ---------------------------------------------------------------------------
+  AppLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/cultiva-finanzas/${Environment}/app"
+      RetentionInDays: 90
+
+  CodeBuildLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/codebuild/cultiva-finanzas-${Environment}"
+      RetentionInDays: 30
+
+  # ---------------------------------------------------------------------------
+  # CloudWatch - Alarmas
+  # ---------------------------------------------------------------------------
+  CloudFront5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "cultiva-finanzas-${Environment}-cloudfront-5xx"
+      AlarmDescription: "Tasa de errores 5xx en CloudFront supera 5%"
+      Namespace: AWS/CloudFront
+      MetricName: 5xxErrorRate
+      Dimensions:
+        - Name: DistributionId
+          Value: !Ref CloudFrontDistribution
+        - Name: Region
+          Value: Global
+      Statistic: Average
+      Period: 300
+      EvaluationPeriods: 2
+      Threshold: 5.0
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref AlertTopic
+      OKActions:
+        - !Ref AlertTopic
+      TreatMissingData: notBreaching
+
+  CodeBuildFailureAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "cultiva-finanzas-${Environment}-codebuild-failures"
+      AlarmDescription: "Mas de 2 builds fallidos en el dia"
+      Namespace: AWS/CodeBuild
+      MetricName: FailedBuilds
+      Dimensions:
+        - Name: ProjectName
+          Value: !Ref CodeBuildProject
+      Statistic: Sum
+      Period: 86400
+      EvaluationPeriods: 1
+      Threshold: 2
+      ComparisonOperator: GreaterThanThreshold
+      AlarmActions:
+        - !Ref AlertTopic
+      TreatMissingData: notBreaching
+
+  # ---------------------------------------------------------------------------
+  # IAM - Role para CodeBuild
+  # ---------------------------------------------------------------------------
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "cultiva-finanzas-${Environment}-codebuild-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      Policies:
+        - PolicyName: CodeBuildPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !GetAtt CodeBuildLogGroup.Arn
+                  - !Sub "${CodeBuildLogGroup.Arn}:*"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  - !Sub "${ArtifactsBucket.Arn}/*"
+                  - !Sub "${WebsiteBucket.Arn}/*"
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource:
+                  - !GetAtt ArtifactsBucket.Arn
+                  - !GetAtt WebsiteBucket.Arn
+              - Effect: Allow
+                Action:
+                  - cloudfront:CreateInvalidation
+                Resource: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+              - Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                Resource: "*"
+      Tags:
+        - Key: Project
+          Value: CultivaFinanzas
+
+  # ---------------------------------------------------------------------------
+  # IAM - Role para CodePipeline
+  # ---------------------------------------------------------------------------
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "cultiva-finanzas-${Environment}-pipeline-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CodePipelinePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:PutObject
+                  - s3:GetBucketVersioning
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt ArtifactsBucket.Arn
+                  - !Sub "${ArtifactsBucket.Arn}/*"
+              - Effect: Allow
+                Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                Resource: !GetAtt CodeBuildProject.Arn
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref AlertTopic
+      Tags:
+        - Key: Project
+          Value: CultivaFinanzas
+
+  # ---------------------------------------------------------------------------
+  # CodeBuild - Proyecto de compilacion
+  # ---------------------------------------------------------------------------
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "cultiva-finanzas-${Environment}"
+      Description: "Compilacion y testing de Cultiva Finanzas (Semilla)"
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/standard:7.0
+        EnvironmentVariables:
+          - Name: ENVIRONMENT
+            Value: !Ref Environment
+          - Name: S3_BUCKET
+            Value: !Ref WebsiteBucket
+          - Name: CLOUDFRONT_ID
+            Value: !Ref CloudFrontDistribution
+          - Name: NODE_ENV
+            Value: !If [IsProd, production, development]
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: infrastructure/buildspec.yml
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+          GroupName: !Ref CodeBuildLogGroup
+          StreamName: !Sub "build-{build-id}"
+      Cache:
+        Type: LOCAL
+        Modes:
+          - LOCAL_CUSTOM_CACHE
+          - LOCAL_SOURCE_CACHE
+      Tags:
+        - Key: Project
+          Value: CultivaFinanzas
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ---------------------------------------------------------------------------
+  # CodePipeline - Pipeline CI/CD
+  # ---------------------------------------------------------------------------
+  CICDPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Condition: HasGithubToken
+    Properties:
+      Name: !Sub "cultiva-finanzas-${Environment}"
+      RoleArn: !GetAtt CodePipelineRole.Arn
+      ArtifactStore:
+        Type: S3
+        Location: !Ref ArtifactsBucket
+      Stages:
+        # Stage 1: Fuente - GitHub
+        - Name: Source
+          Actions:
+            - Name: GitHubSource
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: "1"
+              Configuration:
+                Owner: !Ref GithubOwner
+                Repo: !Ref GithubRepo
+                Branch: !Ref GithubBranch
+                OAuthToken: !Ref GithubToken
+                PollForSourceChanges: false
+              OutputArtifacts:
+                - Name: SourceArtifact
+              RunOrder: 1
+
+        # Stage 2: Build & Test - CodeBuild
+        - Name: Build
+          Actions:
+            - Name: BuildAndTest
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
+              InputArtifacts:
+                - Name: SourceArtifact
+              OutputArtifacts:
+                - Name: BuildArtifact
+              RunOrder: 1
+
+        # Stage 3: Deploy - S3
+        - Name: Deploy
+          Actions:
+            - Name: DeployToS3
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: S3
+                Version: "1"
+              Configuration:
+                BucketName: !Ref WebsiteBucket
+                Extract: "true"
+                CacheControl: "max-age=31536000, immutable"
+              InputArtifacts:
+                - Name: BuildArtifact
+              RunOrder: 1
+      Tags:
+        - Key: Project
+          Value: CultivaFinanzas
+        - Key: Environment
+          Value: !Ref Environment
+
+  # ---------------------------------------------------------------------------
+  # CloudWatch - Dashboard
+  # ---------------------------------------------------------------------------
+  MonitoringDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub "cultiva-finanzas-${Environment}"
+      DashboardBody: !Sub |
+        {
+          "widgets": [
+            {
+              "type": "text",
+              "x": 0, "y": 0, "width": 24, "height": 2,
+              "properties": {
+                "markdown": "# Cultiva Finanzas - Dashboard de Monitoreo\n**Entorno:** ${Environment} | **Region:** ${AWS::Region} | **Stack:** ${AWS::StackName}"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0, "y": 2, "width": 12, "height": 6,
+              "properties": {
+                "title": "CloudFront - Solicitudes",
+                "view": "timeSeries",
+                "metrics": [
+                  ["AWS/CloudFront", "Requests", "DistributionId", "${CloudFrontDistribution}", "Region", "Global"]
+                ],
+                "period": 300,
+                "stat": "Sum",
+                "region": "us-east-1"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 12, "y": 2, "width": 12, "height": 6,
+              "properties": {
+                "title": "CloudFront - Tasa de Errores",
+                "view": "timeSeries",
+                "metrics": [
+                  ["AWS/CloudFront", "4xxErrorRate", "DistributionId", "${CloudFrontDistribution}", "Region", "Global"],
+                  ["AWS/CloudFront", "5xxErrorRate", "DistributionId", "${CloudFrontDistribution}", "Region", "Global"]
+                ],
+                "period": 300,
+                "stat": "Average",
+                "region": "us-east-1"
+              }
+            },
+            {
+              "type": "metric",
+              "x": 0, "y": 8, "width": 12, "height": 6,
+              "properties": {
+                "title": "CodeBuild - Resultados",
+                "view": "timeSeries",
+                "metrics": [
+                  ["AWS/CodeBuild", "SucceededBuilds", "ProjectName", "cultiva-finanzas-${Environment}"],
+                  ["AWS/CodeBuild", "FailedBuilds", "ProjectName", "cultiva-finanzas-${Environment}"]
+                ],
+                "period": 86400,
+                "stat": "Sum",
+                "region": "${AWS::Region}"
+              }
+            },
+            {
+              "type": "alarm",
+              "x": 12, "y": 8, "width": 12, "height": 6,
+              "properties": {
+                "title": "Estado de Alarmas",
+                "alarms": [
+                  "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:cultiva-finanzas-${Environment}-cloudfront-5xx",
+                  "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:cultiva-finanzas-${Environment}-codebuild-failures"
+                ]
+              }
+            }
+          ]
+        }
+
+# =============================================================================
+# OUTPUTS
+# =============================================================================
+Outputs:
+  WebsiteBucketName:
+    Description: Nombre del bucket S3 del sitio web
+    Value: !Ref WebsiteBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-WebsiteBucket"
+
+  ArtifactsBucketName:
+    Description: Nombre del bucket S3 de artefactos
+    Value: !Ref ArtifactsBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-ArtifactsBucket"
+
+  CloudFrontDistributionId:
+    Description: ID de la distribucion CloudFront
+    Value: !Ref CloudFrontDistribution
+    Export:
+      Name: !Sub "${AWS::StackName}-CloudFrontId"
+
+  CloudFrontURL:
+    Description: URL de la distribucion CloudFront
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Export:
+      Name: !Sub "${AWS::StackName}-CloudFrontURL"
+
+  WebsiteURL:
+    Description: URL completa del sitio web
+    Value: !Sub "https://${CloudFrontDistribution.DomainName}"
+
+  CodeBuildProjectName:
+    Description: Nombre del proyecto CodeBuild
+    Value: !Ref CodeBuildProject
+
+  PipelineName:
+    Condition: HasGithubToken
+    Description: Nombre del pipeline CI/CD
+    Value: !Ref CICDPipeline
+
+  AlertTopicArn:
+    Description: ARN del topic SNS de alertas
+    Value: !Ref AlertTopic
+    Export:
+      Name: !Sub "${AWS::StackName}-AlertTopic"
+
+  DashboardURL:
+    Description: URL del dashboard CloudWatch
+    Value: !Sub "https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=cultiva-finanzas-${Environment}"
