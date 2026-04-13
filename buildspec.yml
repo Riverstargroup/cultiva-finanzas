@@ -1,0 +1,40 @@
+version: 0.2
+
+env:
+  variables:
+    NODE_ENV: production
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - echo "Installing dependencies"
+      - npm ci
+
+  pre_build:
+    commands:
+      - echo "Running lint"
+      - npm run lint
+      - echo "Running tests"
+      - npm run test
+
+  build:
+    commands:
+      - echo "Building React app"
+      - npm run build
+      - echo "Syncing hashed assets to S3"
+      - aws s3 sync dist/ s3://semilla-hosting-275202517479/ --delete --exclude "index.html" --cache-control "public, max-age=31536000, immutable"
+      - echo "Uploading index.html with no-cache"
+      - aws s3 cp dist/index.html s3://semilla-hosting-275202517479/index.html --cache-control "no-cache, no-store, must-revalidate" --content-type "text/html"
+      - echo "Invalidating CloudFront cache"
+      - aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths "/*"
+
+  post_build:
+    commands:
+      - echo "Deployment complete - https://rsdemo3.site"
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: dist
