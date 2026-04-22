@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:GITHUB_TOKEN; [System.Environment]::GetEnvironmentVariable\\(\"GITHUB_TOKEN\", \"User\"\\); [System.Environment]::GetEnvironmentVariable\\(\"GH_TOKEN\", \"User\"\\))",
+      "PowerShell(cmdkey /list)",
+      "PowerShell($cred = \\(cmdkey /list | Select-String \"github\" -Context 0,5\\); $cred)",
+      "PowerShell(winget install --id GitHub.cli --silent 2>&1)",
+      "PowerShell(Tail -5)"
+    ]
+  }
+}
