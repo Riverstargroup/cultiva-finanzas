@@ -1,9 +1,9 @@
 import { Wheat } from 'lucide-react'
-import { useRetos } from '../hooks/useRetos'
+import { useAvailableChallenges } from '../hooks/useRetos'
 import { RetosCard } from './RetosCard'
 
 export function WeeklyRetos() {
-  const { data: challenges = [], isLoading } = useRetos()
+  const { data: challenges = [], isLoading } = useAvailableChallenges()
 
   return (
     <div className="space-y-4">
