@@ -1,19 +1,25 @@
-import type { GrowthStage } from '../../types'
+import type { GrowthStage, HealthState } from '../../types'
 
 interface GirasolProps {
   stage: GrowthStage
+  healthState?: HealthState
   size?: number
   className?: string
 }
 
-export function Girasol({ stage, size = 120, className }: GirasolProps) {
+export function Girasol({ stage, healthState, size = 120, className }: GirasolProps) {
   const h = size
   const w = size
   const cx = w / 2
   const groundY = h * 0.875
 
+  const healthFilter =
+    healthState === 'wilting' ? 'saturate(0.5) brightness(0.85)' :
+    healthState === 'dying' ? 'saturate(0.2) brightness(0.7)' :
+    undefined
+
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className={className} aria-hidden="true">
+    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className={className} style={healthFilter ? { filter: healthFilter } : undefined} aria-hidden="true">
       {stage === 'seed' && (
         <g>
           <path

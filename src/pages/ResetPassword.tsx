@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "@/components/ui/sonner";
 import { Lock, Eye, EyeOff, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,12 @@ const ResetPassword = () => {
     setError("");
     const { error } = await updatePassword(password);
     if (error) {
+      const lower = error.toLowerCase();
+      if (lower.includes('expired') || lower.includes('invalid')) {
+        toast.error(error);
+        navigate('/forgot-password?expired=true', { replace: true });
+        return;
+      }
       setError(error);
     } else {
       setSuccess(true);

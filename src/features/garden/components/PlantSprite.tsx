@@ -39,11 +39,6 @@ export function PlantSprite({
   const shouldReduceMotion = useReducedMotion()
   const SpriteComponent = SPRITE_MAP[species]
 
-  const healthFilter =
-    healthState === 'wilting' ? 'saturate(0.5) brightness(0.9)' :
-    healthState === 'dying' ? 'saturate(0.2) brightness(0.7)' :
-    undefined
-
   const activeVariants =
     animation === 'idle' ? idleVariants :
     animation === 'growth' ? growthVariants :
@@ -64,7 +59,6 @@ export function PlantSprite({
       style={{
         display: 'inline-flex',
         transformOrigin: '50% 100%',
-        filter: healthFilter,
       }}
       variants={shouldReduceMotion ? undefined : activeVariants}
       animate={shouldReduceMotion ? undefined : animateKey}
@@ -74,7 +68,7 @@ export function PlantSprite({
       onAnimationComplete={() => onAnimationComplete?.(animation)}
       aria-label={ariaLabel}
     >
-      <SpriteComponent stage={stage} size={size} />
+      <SpriteComponent stage={stage} healthState={healthState} size={size} />
     </motion.div>
   )
 }

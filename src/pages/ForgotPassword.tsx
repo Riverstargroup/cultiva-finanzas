@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Mail, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,8 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const { resetPassword } = useAuth();
+  const [searchParams] = useSearchParams();
+  const isExpired = searchParams.get("expired") === "true";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +36,11 @@ const ForgotPassword = () => {
           <CardDescription>Te enviaremos un enlace para restablecerla</CardDescription>
         </CardHeader>
         <CardContent>
+          {isExpired && !sent && (
+            <div className="mb-4 rounded-md bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+              Tu enlace anterior expiró. Solicita uno nuevo.
+            </div>
+          )}
           {sent ? (
             <div className="space-y-4 text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-semilla-green-light">

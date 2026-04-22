@@ -1,19 +1,25 @@
-import type { GrowthStage } from '../../types'
+import type { GrowthStage, HealthState } from '../../types'
 
 interface LirioProps {
   stage: GrowthStage
+  healthState?: HealthState
   size?: number
   className?: string
 }
 
-export function Lirio({ stage, size = 120, className }: LirioProps) {
+export function Lirio({ stage, healthState, size = 120, className }: LirioProps) {
   const h = size
   const w = size
   const cx = w / 2
   const groundY = h * 0.875
 
+  const healthFilter =
+    healthState === 'wilting' ? 'saturate(0.5) brightness(0.85)' :
+    healthState === 'dying' ? 'saturate(0.2) brightness(0.7)' :
+    undefined
+
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className={className} aria-hidden="true">
+    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className={className} style={healthFilter ? { filter: healthFilter } : undefined} aria-hidden="true">
       {stage === 'seed' && (
         <g>
           <ellipse cx={cx} cy={groundY} rx={5} ry={4} fill="#8B5E3C" opacity={0.6} />

@@ -1,8 +1,11 @@
+import { useEffect, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { PlantSprite } from './PlantSprite'
+import { ParticleEffect } from './ParticleEffect'
 import { masteryProgress } from '../lib/stage'
 import { DOMAIN_LABELS, PLANT_COLOR_SCHEMES, SPECIES_EMOJI } from '../types'
-import type { GardenPlot as GardenPlotData, PlantAnimationKey } from '../types'
+import { stageUpgradeConfig, masteredAmbientConfig } from '../constants/particles'
+import type { GardenPlot as GardenPlotData, GrowthStage, PlantAnimationKey } from '../types'
 
 interface GardenPlotProps {
   plot: GardenPlotData
@@ -12,11 +15,34 @@ interface GardenPlotProps {
   className?: string
 }
 
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T | undefined>(undefined)
+  useEffect(() => {
+    ref.current = value
+  })
+  return ref.current
+}
+
+const STAGE_ORDER: GrowthStage[] = ['seed', 'sprout', 'growing', 'blooming', 'mastered']
+
 export function GardenPlot({ plot, isActive, animation = 'idle', onClick, className }: GardenPlotProps) {
   const shouldReduceMotion = useReducedMotion()
   const { plant } = plot
   const colors = PLANT_COLOR_SCHEMES[plant.species]
   const progress = masteryProgress(plant.mastery, plant.stage)
+
+  const prevStage = usePrevious(plant.stage)
+  const [upgradeActive, setUpgradeActive] = useState(false)
+
+  useEffect(() => {
+    if (
+      prevStage !== undefined &&
+      prevStage !== plant.stage &&
+      STAGE_ORDER.indexOf(plant.stage) > STAGE_ORDER.indexOf(prevStage)
+    ) {
+      setUpgradeActive(true)
+    }
+  }, [plant.stage, prevStage])
 
   const healthColor =
     plant.health >= 75 ? 'var(--garden-health-full)' :
@@ -35,6 +61,18 @@ export function GardenPlot({ plot, isActive, animation = 'idle', onClick, classN
       whileTap={!shouldReduceMotion ? { scale: 0.98 } : undefined}
       transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
     >
+      {/* Stage upgrade particles */}
+      <ParticleEffect
+        config={stageUpgradeConfig}
+        active={upgradeActive}
+        onComplete={() => setUpgradeActive(false)}
+      />
+
+      {/* Mastered ambient particles — loop while mastered */}
+      {plant.stage === 'mastered' && (
+        <ParticleEffect config={masteredAmbientConfig} active={true} />
+      )}
+
       {/* Active ring */}
       {isActive && (
         <div
