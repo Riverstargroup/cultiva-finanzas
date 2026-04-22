@@ -20,6 +20,7 @@ import Escenario from "./pages/Escenario";
 import Perfil from "./pages/Perfil";
 import Logros from "./pages/Logros";
 import Calculadora from "./pages/Calculadora";
+import Jardin from "./pages/Jardin";
 import { TicketDashboard } from "./components/GotItTickets/TicketDashboard";
 
 const queryClient = new QueryClient();
@@ -52,7 +53,8 @@ const App = () => (
               <Route path="/perfil" element={<Perfil />} />
               <Route path="/logros" element={<Logros />} />
               <Route path="/calculadora" element={<Calculadora />} />
-              <Route path="/jardin" element={<TicketDashboard />} />
+              <Route path="/jardin" element={<Jardin />} />
+              <Route path="/gotit" element={<TicketDashboard />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -78,6 +78,48 @@
     --text-warm: #4a4f41;
     --leaf-muted: #889e81;
     --dashboard-bg: #faf9f6;
+
+    /* Mi Jardín — Domain color tokens */
+    --garden-margarita-primary: #F5C43A;
+    --garden-margarita-secondary: #E8A628;
+    --garden-margarita-light: #FFFFFF;
+    --garden-margarita-dark: #5B7A3A;
+    --garden-margarita-particle: #FFE89A;
+
+    --garden-lirio-primary: #C2185B;
+    --garden-lirio-secondary: #E91E63;
+    --garden-lirio-light: #F8BBD0;
+    --garden-lirio-dark: #2E5D34;
+    --garden-lirio-particle: #FFD1E1;
+
+    --garden-helecho-primary: #2E7D4F;
+    --garden-helecho-secondary: #4CAF50;
+    --garden-helecho-light: #A8D8B0;
+    --garden-helecho-dark: #1B3B26;
+    --garden-helecho-particle: #C8E6C9;
+
+    --garden-girasol-primary: #F59E0B;
+    --garden-girasol-secondary: #D97706;
+    --garden-girasol-light: #FCD34D;
+    --garden-girasol-dark: #78350F;
+    --garden-girasol-particle: #FEF3C7;
+
+    /* Mi Jardín — Plot surface tokens */
+    --garden-soil-rich: #6B4423;
+    --garden-soil-warm: #8B5E3C;
+    --garden-soil-dry: #C89B72;
+    --garden-soil-edge: #E8D5B7;
+    --garden-plot-surface: #FAF6EE;
+    --garden-plot-border: #E4D8C3;
+
+    /* Mi Jardín — State tokens */
+    --garden-health-full: #4CAF50;
+    --garden-health-mid: #F5C43A;
+    --garden-health-low: #E57C5A;
+    --garden-health-dying: #C62828;
+    --garden-coin-gold: #FFC107;
+    --garden-coin-shine: #FFEB82;
+    --garden-coin-shadow: #B8860B;
   }
 
   .dark {
@@ -206,5 +248,38 @@
   .vibrant-btn:hover {
     background: var(--terracotta-warm);
     transform: scale(1.05) rotate(-1deg);
+  }
+
+  /* Mi Jardín — Garden plot card */
+  .garden-plot-surface {
+    background:
+      radial-gradient(ellipse at 50% 110%, var(--garden-soil-warm) 0%, var(--garden-soil-rich) 60%, transparent 100%),
+      var(--garden-plot-surface);
+    border: 1.5px solid var(--garden-plot-border);
+    border-radius: 30px 60px 40px 50px / 50px 30px 60px 40px;
+    box-shadow:
+      0 4px 18px rgba(107, 68, 35, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .garden-plot-surface[data-stage="mastered"] {
+    box-shadow:
+      0 4px 18px rgba(107, 68, 35, 0.18),
+      0 0 24px rgba(255, 193, 7, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .garden-plot-surface,
+  [class*="animate-garden-"] {
+    animation: none !important;
+  }
+
+  .garden-plot-surface[data-stage="mastered"] {
+    box-shadow:
+      0 4px 18px rgba(107, 68, 35, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 }
