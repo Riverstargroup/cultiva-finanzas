@@ -6,6 +6,10 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import BotanicalPage from '@/components/layout/BotanicalPage';
 import { PresupuestoRapido } from '@/features/minigames/components/PresupuestoRapido';
 import { InflacionChallenge } from '@/features/minigames/components/InflacionChallenge';
+import {
+  PresupuestoRapidoIllustration,
+  InflacionChallengeIllustration,
+} from '@/features/minigames/assets';
 import type { GameId, GameCard } from '@/features/minigames/types';
 
 const GAME_CARDS: GameCard[] = [
@@ -13,7 +17,7 @@ const GAME_CARDS: GameCard[] = [
     id: 'presupuesto-rapido',
     title: 'Presupuesto Rápido',
     description: 'Clasifica 8 gastos como Necesidad, Deseo o Ahorro antes de que se acabe el tiempo.',
-    icon: '💸',
+    icon: <PresupuestoRapidoIllustration className="w-full h-full" />,
     duration: '60 seg',
     difficulty: 'Fácil',
   },
@@ -21,7 +25,7 @@ const GAME_CARDS: GameCard[] = [
     id: 'inflacion-challenge',
     title: 'Reto Inflación',
     description: 'Adivina el precio actual de productos mexicanos. ¿Sabes cuánto ha subido todo?',
-    icon: '📈',
+    icon: <InflacionChallengeIllustration className="w-full h-full" />,
     duration: '~3 min',
     difficulty: 'Medio',
   },
@@ -84,7 +88,12 @@ export default function Juegos() {
                   onClick={() => handlePlay(card.id)}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-3xl leading-none">{card.icon}</span>
+                    <div
+                      className="w-24 h-20 shrink-0 rounded-xl overflow-hidden"
+                      style={{ background: 'color-mix(in srgb, var(--clay-soft) 20%, transparent)' }}
+                    >
+                      {card.icon}
+                    </div>
                     <span
                       className="text-xs font-bold px-2 py-0.5 rounded-full"
                       style={{

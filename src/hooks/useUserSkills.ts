@@ -16,7 +16,10 @@ export function useUserSkills() {
         .select("*")
         .eq("user_id", user!.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("useUserSkills: failed to fetch user_skills", error);
+        return [];
+      }
       return (data as any[]) ?? [];
     },
   });

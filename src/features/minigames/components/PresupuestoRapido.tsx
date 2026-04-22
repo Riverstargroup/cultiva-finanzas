@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { PresupuestoRapidoIllustration } from '../assets';
 import type { Expense, ExpenseCategory, PresupuestoAnswer, PresupuestoResult } from '../types';
 
 const EXPENSES: Expense[] = [
@@ -105,6 +106,7 @@ export function PresupuestoRapido({ onRestart }: Props) {
         className="space-y-5"
       >
         <div className="text-center space-y-2">
+          <PresupuestoRapidoIllustration className="w-20 h-16 mx-auto" />
           <div
             className="organic-border h-16 w-16 mx-auto flex items-center justify-center text-2xl font-black"
             style={{ background: 'color-mix(in srgb, var(--leaf-bright) 15%, transparent)' }}
@@ -172,6 +174,9 @@ export function PresupuestoRapido({ onRestart }: Props) {
 
   return (
     <div className="space-y-5">
+      {/* Game illustration */}
+      <PresupuestoRapidoIllustration className="w-20 h-16 mx-auto" />
+
       {/* Timer + progress header */}
       <div className="flex items-center justify-between gap-4">
         <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
