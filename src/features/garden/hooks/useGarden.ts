@@ -13,7 +13,7 @@ export const gardenKeys = {
   coins: (userId: string) => [...gardenKeys.all, 'coins', userId] as const,
 }
 
-async function fetchGardenPlots(userId: string): Promise<GardenPlot[]> {
+export async function fetchGardenPlots(userId: string): Promise<GardenPlot[]> {
   const { data, error } = await supabase
     .from('user_garden_plots')
     .select('*, plant_species(*)')
@@ -41,7 +41,7 @@ async function fetchGardenPlots(userId: string): Promise<GardenPlot[]> {
   }))
 }
 
-async function fetchCoinBalance(userId: string): Promise<number> {
+export async function fetchCoinBalance(userId: string): Promise<number> {
   const { data, error } = await supabase
     .from('user_coin_balance')
     .select('coins')

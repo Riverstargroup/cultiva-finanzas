@@ -1,5 +1,8 @@
+import { useEffect, useRef, useState } from 'react'
 import { Coins, Flame, Star } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { ParticleEffect } from './ParticleEffect'
+import { coinEarnedConfig } from '../constants/particles'
 
 interface GardenStatsProps {
   coins: number
@@ -10,13 +13,34 @@ interface GardenStatsProps {
   className?: string
 }
 
+function usePrevious<T>(value: T): T | undefined {
+  const ref = useRef<T | undefined>(undefined)
+  useEffect(() => {
+    ref.current = value
+  })
+  return ref.current
+}
+
 export function GardenStats({ coins, totalMastery, streakDays, plantsMastered, compact, className }: GardenStatsProps) {
   const overallPct = Math.round((totalMastery / 4) * 100)
+  const prevCoins = usePrevious(coins)
+  const [coinActive, setCoinActive] = useState(false)
+
+  useEffect(() => {
+    if (prevCoins !== undefined && coins > prevCoins) {
+      setCoinActive(true)
+    }
+  }, [coins, prevCoins])
 
   if (compact) {
     return (
       <div className={`flex items-center gap-4 ${className ?? ''}`}>
-        <span className="flex items-center gap-1 text-sm font-bold" style={{ color: 'var(--garden-coin-gold)' }}>
+        <span className="relative flex items-center gap-1 text-sm font-bold" style={{ color: 'var(--garden-coin-gold)' }}>
+          <ParticleEffect
+            config={coinEarnedConfig}
+            active={coinActive}
+            onComplete={() => setCoinActive(false)}
+          />
           <Coins size={14} />
           {coins}
         </span>
@@ -39,6 +63,8 @@ export function GardenStats({ coins, totalMastery, streakDays, plantsMastered, c
         value={coins.toLocaleString()}
         label="Monedas"
         color="var(--garden-coin-gold)"
+        particleActive={coinActive}
+        onParticleComplete={() => setCoinActive(false)}
       />
       <StatCard
         icon={<Flame size={20} />}
@@ -62,13 +88,34 @@ export function GardenStats({ coins, totalMastery, streakDays, plantsMastered, c
   )
 }
 
-function StatCard({ icon, value, label, color }: { icon: React.ReactNode; value: string; label: string; color: string }) {
+function StatCard({
+  icon,
+  value,
+  label,
+  color,
+  particleActive,
+  onParticleComplete,
+}: {
+  icon: React.ReactNode
+  value: string
+  label: string
+  color: string
+  particleActive?: boolean
+  onParticleComplete?: () => void
+}) {
   return (
     <motion.div
-      className="organic-card flex flex-col items-center gap-1 p-3"
+      className="organic-card relative flex flex-col items-center gap-1 p-3"
       whileHover={{ y: -2 }}
       transition={{ duration: 0.2 }}
     >
+      {particleActive !== undefined && (
+        <ParticleEffect
+          config={coinEarnedConfig}
+          active={particleActive ?? false}
+          onComplete={onParticleComplete}
+        />
+      )}
       <div style={{ color }}>{icon}</div>
       <p className="text-lg font-bold" style={{ color }}>{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>

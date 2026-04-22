@@ -1,7 +1,8 @@
-import type { GrowthStage } from '../../types'
+import type { GrowthStage, HealthState } from '../../types'
 
 interface HelechoProps {
   stage: GrowthStage
+  healthState?: HealthState
   size?: number
   className?: string
 }
@@ -38,14 +39,19 @@ function Frond({ cx, cy, rotation, scale = 1 }: { cx: number; cy: number; rotati
   )
 }
 
-export function Helecho({ stage, size = 120, className }: HelechoProps) {
+export function Helecho({ stage, healthState, size = 120, className }: HelechoProps) {
   const h = size
   const w = size
   const cx = w / 2
   const groundY = h * 0.875
 
+  const healthFilter =
+    healthState === 'wilting' ? 'saturate(0.5) brightness(0.85)' :
+    healthState === 'dying' ? 'saturate(0.2) brightness(0.7)' :
+    undefined
+
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className={className} aria-hidden="true">
+    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} className={className} style={healthFilter ? { filter: healthFilter } : undefined} aria-hidden="true">
       {stage === 'seed' && (
         <g>
           <circle cx={cx} cy={groundY - 1} r={3} fill="#2E7D4F" opacity={0.7} />

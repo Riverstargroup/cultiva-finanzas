@@ -1,16 +1,22 @@
-import type { GrowthStage } from '../../types'
+import type { GrowthStage, HealthState } from '../../types'
 
 interface MargaritaProps {
   stage: GrowthStage
+  healthState?: HealthState
   size?: number
   className?: string
 }
 
-export function Margarita({ stage, size = 120, className }: MargaritaProps) {
+export function Margarita({ stage, healthState, size = 120, className }: MargaritaProps) {
   const h = size
   const w = size
   const cx = w / 2
   const groundY = h * 0.875
+
+  const healthFilter =
+    healthState === 'wilting' ? 'saturate(0.5) brightness(0.85)' :
+    healthState === 'dying' ? 'saturate(0.2) brightness(0.7)' :
+    undefined
 
   return (
     <svg
@@ -18,6 +24,7 @@ export function Margarita({ stage, size = 120, className }: MargaritaProps) {
       width={w}
       height={h}
       className={className}
+      style={healthFilter ? { filter: healthFilter } : undefined}
       aria-hidden="true"
     >
       {stage === 'seed' && (

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/sonner";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import logoSemilla from "@/assets/logo-semilla.png";
@@ -11,7 +12,22 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handle = async () => {
-      const code = new URLSearchParams(window.location.search).get("code");
+      // Check for error in query params or hash
+      const searchParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.slice(1));
+      const errorMsg =
+        searchParams.get("error_description") ||
+        hashParams.get("error_description") ||
+        searchParams.get("error") ||
+        hashParams.get("error");
+
+      if (errorMsg) {
+        toast.error(errorMsg);
+        navigate("/login", { replace: true });
+        return;
+      }
+
+      const code = searchParams.get("code");
 
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
