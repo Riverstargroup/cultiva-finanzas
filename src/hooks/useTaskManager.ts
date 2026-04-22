@@ -13,21 +13,9 @@ export function useTaskManager({ onTicketClosed }: UseTaskManagerProps = {}) {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        // Intento de Fetch a Supabase (Mock)
-        const response = await fetch('https://tubase.supabase.co/rest/v1/tickets?select=*', {
-          method: 'GET',
-          headers: {
-            'apikey': 'SUPABASE_CLIENT_API_KEY',
-            'Authorization': 'Bearer SUPABASE_CLIENT_API_KEY'
-          }
-        });
-        
-        if (!response.ok) throw new Error('Supabase fetch failed');
-        
-        const data = await response.json();
-        setTasks(data);
-      } catch (error) {
-        console.log('Fallback a localStorage:', (error as Error).message);
+        // TODO: conectar con supabase.from('tickets') cuando la tabla exista
+        throw new Error('Supabase tickets not yet configured');
+      } catch {
         const storedTasks = localStorage.getItem('gotit_tickets');
         if (storedTasks) {
           try {
@@ -53,12 +41,7 @@ export function useTaskManager({ onTicketClosed }: UseTaskManagerProps = {}) {
 
     // Pipeline para el futuro
     if (syncWithCloud) {
-      try {
-        console.log('Sincronizando con nube...');
-        // await fetch(...) para el upsert en Supabase
-      } catch (err) {
-        console.error('Cloud Sync failed', err);
-      }
+      // TODO: upsert en Supabase cuando la tabla tickets exista
     }
   };
 

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,17 +15,30 @@ import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppLayout from "./components/AppLayout";
-import Dashboard from "./pages/Dashboard";
-import Cursos from "./pages/Cursos";
-import CursoDetalle from "./pages/CursoDetalle";
-import Escenario from "./pages/Escenario";
-import Perfil from "./pages/Perfil";
-import Logros from "./pages/Logros";
-import Calculadora from "./pages/Calculadora";
-import Jardin from "./pages/Jardin";
-import { TicketDashboard } from "./components/GotItTickets/TicketDashboard";
+import PageSkeleton from "./components/PageSkeleton";
 
-const queryClient = new QueryClient();
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Cursos = lazy(() => import("./pages/Cursos"));
+const CursoDetalle = lazy(() => import("./pages/CursoDetalle"));
+const Escenario = lazy(() => import("./pages/Escenario"));
+const Perfil = lazy(() => import("./pages/Perfil"));
+const Logros = lazy(() => import("./pages/Logros"));
+const Calculadora = lazy(() => import("./pages/Calculadora"));
+const Jardin = lazy(() => import("./pages/Jardin"));
+const TicketDashboard = lazy(() =>
+  import("./components/GotItTickets/TicketDashboard").then((m) => ({ default: m.TicketDashboard }))
+);
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30_000,
+    },
+  },
+});
+
+const sk = <PageSkeleton />;
 
 function AppRoutes() {
   const location = useLocation();
@@ -45,15 +59,15 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/cursos" element={<Cursos />} />
-          <Route path="/cursos/:id" element={<CursoDetalle />} />
-          <Route path="/cursos/:courseId/escenario/:scenarioId" element={<Escenario />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/logros" element={<Logros />} />
-          <Route path="/calculadora" element={<Calculadora />} />
-          <Route path="/jardin" element={<Jardin />} />
-          <Route path="/gotit" element={<TicketDashboard />} />
+          <Route path="/dashboard" element={<Suspense fallback={sk}><Dashboard /></Suspense>} />
+          <Route path="/cursos" element={<Suspense fallback={sk}><Cursos /></Suspense>} />
+          <Route path="/cursos/:id" element={<Suspense fallback={sk}><CursoDetalle /></Suspense>} />
+          <Route path="/cursos/:courseId/escenario/:scenarioId" element={<Suspense fallback={sk}><Escenario /></Suspense>} />
+          <Route path="/perfil" element={<Suspense fallback={sk}><Perfil /></Suspense>} />
+          <Route path="/logros" element={<Suspense fallback={sk}><Logros /></Suspense>} />
+          <Route path="/calculadora" element={<Suspense fallback={sk}><Calculadora /></Suspense>} />
+          <Route path="/jardin" element={<Suspense fallback={sk}><Jardin /></Suspense>} />
+          <Route path="/gotit" element={<Suspense fallback={sk}><TicketDashboard /></Suspense>} />
         </Route>
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

@@ -15,6 +15,7 @@ export function useProgress(courseId: string | undefined) {
   const query = useQuery({
     queryKey: ["progress", courseId, user?.id],
     enabled: !!courseId && !!user,
+    staleTime: 60_000,
     queryFn: async (): Promise<ProgressData> => {
       if (!courseId || !user) return { courseProgress: null, scenarioStates: [] };
 

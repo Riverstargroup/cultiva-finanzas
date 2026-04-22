@@ -49,6 +49,7 @@ export default function Dashboard() {
   const { data: momentum } = useQuery({
     queryKey: ["momentum", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);

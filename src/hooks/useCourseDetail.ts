@@ -10,6 +10,7 @@ export function useCourseDetail(courseId: string | undefined) {
   return useQuery({
     queryKey: ["course-detail", courseId],
     enabled: !!courseId,
+    staleTime: 300_000,
     queryFn: async (): Promise<CourseDetail | null> => {
       if (!courseId) return null;
 
