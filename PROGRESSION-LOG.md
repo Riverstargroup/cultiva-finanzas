@@ -40,6 +40,23 @@ Branch base : main
 
 ## ✅ COMPLETADAS
 
+### [DONE-010] Mi Jardín — Phase 1 Foundation
+- **Fecha:** 2026-04-22
+- **Agente/Dev:** Claude (Agent-1 / intelligent-babbage-a24cdc)
+- **Commit:** `1b389eb` — feat: Mi Jardín Phase 1 — garden gamification foundation
+- **Branch:** `claude/intelligent-babbage-a24cdc` (PR abierto, pendiente merge)
+- **Linear:** DLV-63 ✅ Done
+- **Archivos:** `src/features/garden/` (20 archivos), `src/pages/Jardin.tsx`, `supabase/migrations/20260422000000_garden_gamification.sql`
+- **Entregables:**
+  - Componentes: `GardenGrid.tsx`, `GardenPlot.tsx`, `GardenStats.tsx`, `PlantSprite.tsx`
+  - Sprites: `Girasol.tsx`, `Helecho.tsx`, `Lirio.tsx`, `Margarita.tsx`
+  - Hooks: `useGarden.ts`, `useGardenEvents.ts`, `usePlantStage.ts`
+  - Lib: `stage.ts`, `types.ts`
+  - Constantes: `motion.ts` (variantes Framer Motion), `particles.ts` (configs partículas)
+  - Migración: tablas `garden_plots`, `plant_growth_events`, RPCs `grow_plant`, `award_coins`
+  - Ruta `/jardin` en `App.tsx`
+- **Notas:** Partículas y animaciones stage-up definidas pero NO conectadas — pendiente Agent-2.
+
 ### [DONE-001] Auth System completo
 - **Fecha:** 2026-02-25
 - **Agente/Dev:** Humano
@@ -102,14 +119,60 @@ Branch base : main
 
 ## 🚀 EN PROGRESO
 
-### [WIP-001] Mi Jardín — Diseño
-- **Agente:** Human + Claude
-- **Inicio:** 2026-04-21T00:00:00Z
-- **ETA:** 2026-04-21T23:59:00Z
-- **% completado:** 40%
-- **Estado:** Diseño UX aprobado, implementación pendiente
-- **Bloqueado por:** Nada — listo para implementar
-- **Archivos target:** `src/pages/Jardin.tsx` (nuevo), `src/components/garden/` (nuevo)
+### [WIP-001] Mi Jardín — Phase 2 Polish (Agent-2)
+- **Agente:** agent-2-garden-polish
+- **Inicio:** 2026-04-22T00:00:00Z
+- **ETA:** TBD
+- **% completado:** 0% (agent definido, no ejecutado)
+- **Linear:** DLV-54 — In Review (pendiente ejecución del agente)
+- **Estado:** Phase 1 foundation done. Agent-2 debe crear `ParticleEffect.tsx`, conectar stage-up confetti, coins burst, mastered glow, health filters en sprites.
+- **Bloqueado por:** Nada — Phase 1 merged.
+
+### [WIP-002] Drag & Drop Exercises (Agent-3)
+- **Agente:** agent-3-dragdrop
+- **Inicio:** TBD
+- **% completado:** 0% (agent definido, no ejecutado)
+- **Linear:** DLV-55 — In Review (pendiente ejecución)
+- **Estado:** Definido. Instalar @dnd-kit, crear `src/features/dragdrop/`, página `Ejercicios.tsx`.
+
+### [WIP-003] Flashcards SM-2 UI (Agent-4)
+- **Agente:** agent-4-flashcards
+- **% completado:** 0% (agent definido, no ejecutado)
+- **Linear:** DLV-56 — In Review (pendiente ejecución)
+- **Estado:** Definido. UI de flip card 3D + RatingButtons 1-5. Lógica SM-2 ya en Postgres.
+
+### [WIP-004] Simuladores + Predicciones (Agent-5)
+- **Agente:** agent-5-simuladores
+- **% completado:** 0% (agent definido, no ejecutado)
+- **Linear:** DLV-57 — In Review (pendiente ejecución)
+- **Estado:** Definido. PredictionModal + OutcomeReveal en Escenario.tsx. Migration `user_predictions` en main.
+
+### [WIP-005] Mini-Juegos (Agent-6)
+- **Agente:** agent-6-minigames
+- **% completado:** 0% (agent definido, no ejecutado)
+- **Linear:** DLV-58 — In Review (pendiente ejecución)
+- **Estado:** Definido. Presupuesto Rápido (60s drag) + Inflación Challenge (slider).
+
+### [WIP-006] Retos de Cosecha (Agent-7)
+- **Agente:** agent-7-retos-cosecha
+- **% completado:** 0% (agent definido, no ejecutado)
+- **Linear:** DLV-59 — In Review (pendiente ejecución)
+
+### [WIP-007] Polinización Cruzada (Agent-8)
+- **Agente:** agent-8-polinizacion
+- **% completado:** 0% (agent definido, no ejecutado)
+- **Linear:** DLV-60 — In Review (pendiente ejecución)
+
+### [WIP-008] Auth Bug Fixes (Agent-9)
+- **Agente:** agent-9-auth-bugfix
+- **% completado:** 0% (agent definido, no ejecutado)
+- **Linear:** DLV-61 — In Review (pendiente ejecución)
+
+### [WIP-009] Vulnerabilidades de seguridad — Dependabot (Agent nuevo)
+- **Agente:** agent-security-vulns (por crear)
+- **% completado:** 0%
+- **Linear:** Issue pendiente crear
+- **Estado:** 24 vulnerabilidades en main (10 high, 11 moderate, 3 low). Detectadas por GitHub Dependabot.
 
 ---
 
@@ -230,7 +293,22 @@ Branch base : main
 
 > Actualizar en cada checkpoint del sprint.
 
-### Estado del codebase (2026-04-21T00:00:00Z — baseline)
+### Estado del codebase (2026-04-22T00:00:00Z — post Phase 1)
+
+```
+Páginas          : 15 (+1: Jardin.tsx)
+Componentes      : ~50 (+5: GardenGrid, GardenPlot, GardenStats, PlantSprite, 4 sprites)
+Hooks            : 18 (+3: useGarden, useGardenEvents, usePlantStage)
+Migraciones DB   : 4 (+1: garden_gamification)
+Tablas Supabase  : 13 (+2: garden_plots, plant_growth_events)
+Skills (content) : 15
+Badges           : 8
+Tests            : 1 (solo example.test.ts) ← CRÍTICO: cobertura ~0%
+Líneas de código : ~4,200 (estimado)
+Vulnerabilidades : 24 (10 high, 11 moderate, 3 low) ← PENDIENTE RESOLVER
+```
+
+### Estado baseline (2026-04-21T00:00:00Z)
 
 ```
 Páginas          : 14
@@ -394,5 +472,5 @@ MÉTRICAS:
 ---
 
 *Log creado: 2026-04-21T00:00:00Z*
-*Última actualización: 2026-04-21T00:00:00Z*
-*Próxima actualización: Al inicio del sprint nocturno*
+*Última actualización: 2026-04-22T00:00:00Z*
+*Próxima actualización: Al merge de PR claude/intelligent-babbage-a24cdc*

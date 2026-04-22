@@ -160,6 +160,7 @@ export default function Jardin() {
               </div>
             </div>
           )}
+        </div>
       </div>
     </PageTransition>
   )
