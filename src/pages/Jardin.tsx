@@ -6,6 +6,7 @@ import GardenErrorBoundary from '@/features/garden/GardenErrorBoundary'
 import { useGarden, useInitGarden } from '@/features/garden/hooks/useGarden'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import PageTransition from '@/components/PageTransition'
+import { WeeklyRetos } from '@/features/retos/components/WeeklyRetos'
 import { Leaf, Loader2 } from 'lucide-react'
 
 export default function Jardin() {
@@ -141,6 +142,9 @@ export default function Jardin() {
             </GardenErrorBoundary>
           )}
 
+          {/* Weekly harvest challenges */}
+          {!isNewUser && <WeeklyRetos />}
+
           {/* Coming soon */}
           {!isNewUser && (
             <div className="organic-card p-4 space-y-2 opacity-60">
@@ -148,7 +152,7 @@ export default function Jardin() {
                 Próximamente
               </p>
               <div className="flex flex-wrap gap-2">
-                {['Flashcards', 'Drag & Drop', 'Simuladores', 'Mini-Juegos', 'Cosecha Semanal', 'Pronósticos', 'Polinización'].map((item) => (
+                {['Flashcards', 'Drag & Drop', 'Simuladores', 'Mini-Juegos', 'Pronósticos', 'Polinización'].map((item) => (
                   <span key={item} className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
                     {item}
                   </span>
@@ -156,7 +160,6 @@ export default function Jardin() {
               </div>
             </div>
           )}
-        </div>
       </div>
     </PageTransition>
   )

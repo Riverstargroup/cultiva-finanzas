@@ -19,6 +19,9 @@ import FeedbackStep from "@/components/scenario/FeedbackStep";
 import RecallStep from "@/components/scenario/RecallStep";
 import BotanicalPage from "@/components/layout/BotanicalPage";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePrediction } from "@/features/simulators/hooks/usePrediction";
+import { PredictionModal } from "@/features/simulators/components/PredictionModal";
+import { OutcomeReveal } from "@/features/simulators/components/OutcomeReveal";
 import type { ScenarioOption } from "@/types/learning";
 
 function ScenarioSkeleton() {
@@ -54,6 +57,11 @@ export default function Escenario() {
   const { data: progress, invalidate: invalidateProgress } = useProgress(courseId);
   const { data: streak } = useStreak();
   const { data: missionData } = useUserMission(scenarioId);
+
+  const { prediction, isLoading: predLoading, savePrediction, revealOutcome } = usePrediction(scenarioId ?? '');
+  const [predictionReady, setPredictionReady] = useState(false);
+  const [showReveal, setShowReveal] = useState(false);
+  const [revealResult, setRevealResult] = useState<{ isCorrect: boolean; coinsEarned: number } | null>(null);
 
   const [step, setStep] = useState<Step>("decision");
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
@@ -182,12 +190,27 @@ export default function Escenario() {
       queryClient.invalidateQueries({ queryKey: ["review-queue"] });
       queryClient.invalidateQueries({ queryKey: ["user-skills"] });
       queryClient.invalidateQueries({ queryKey: ["user-mission"] });
+
+      // Reveal prediction outcome
+      if (prediction?.id && prediction.actualValue === null) {
+        try {
+          const res = await revealOutcome.mutateAsync({
+            predictionId: prediction.id,
+            predictedValue: prediction.predictedValue,
+            actualValue: Math.round(score * 100),
+          });
+          setRevealResult(res);
+          setShowReveal(true);
+        } catch {
+          // non-critical
+        }
+      }
     } catch (err) {
       console.error("Error saving progress:", err);
     } finally {
       setSaving(false);
     }
-  }, [user, courseId, scenarioId, saving, scenarios, scenario, streak, invalidateProgress, queryClient]);
+  }, [user, courseId, scenarioId, saving, scenarios, scenario, streak, invalidateProgress, queryClient, prediction, revealOutcome]);
 
   if (scenarioLoading) {
     return <ScenarioSkeleton />;
@@ -234,11 +257,35 @@ export default function Escenario() {
     }
   };
 
+  const showPredictionModal =
+    step === "decision" && !predLoading && !prediction && !predictionReady;
+
   return (
     <BotanicalPage
       title={scenario.title}
       subtitle={`Semilla ${scenarioIndex + 1} de ${scenarios.length}`}
     >
+      {/* Prediction modal — shown before decision step if no prediction exists */}
+      <PredictionModal
+        open={showPredictionModal}
+        onConfirm={async (value) => {
+          await savePrediction.mutateAsync(value);
+          setPredictionReady(true);
+        }}
+        onSkip={() => setPredictionReady(true)}
+      />
+
+      {/* Outcome reveal — shown when scenario completes */}
+      {revealResult && (
+        <OutcomeReveal
+          open={showReveal}
+          isCorrect={revealResult.isCorrect}
+          predictedValue={prediction?.predictedValue ?? 0}
+          actualValue={Math.round(finalScore * 100)}
+          onClose={() => setShowReveal(false)}
+        />
+      )}
+
       <button
         onClick={() => navigate(`/cursos/${courseId}`)}
         className="flex items-center gap-2 text-sm font-semibold min-h-[44px] transition-colors"
