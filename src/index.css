@@ -283,3 +283,14 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 }
+
+/* Global focus-visible — botanical outline for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--leaf-bright);
+  outline-offset: 2px;
+}
+
+/* Bottom safe area for mobile CTAs */
+.safe-area-bottom {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}

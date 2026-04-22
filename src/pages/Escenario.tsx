@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Trophy } from "lucide-react";
+import { ArrowLeft, ArrowRight, Trophy, Loader2 } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useScenario } from "@/hooks/useScenario";
@@ -18,7 +18,27 @@ import DecisionStep from "@/components/scenario/DecisionStep";
 import FeedbackStep from "@/components/scenario/FeedbackStep";
 import RecallStep from "@/components/scenario/RecallStep";
 import BotanicalPage from "@/components/layout/BotanicalPage";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { ScenarioOption } from "@/types/learning";
+
+function ScenarioSkeleton() {
+  return (
+    <BotanicalPage title="Cargando escenario..." subtitle="">
+      <div className="organic-card p-5 md:p-6 space-y-5">
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-full" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+          <Skeleton className="h-4 w-5/6" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+          <Skeleton className="h-4 w-4/6" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+        </div>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-[52px] w-full" style={{ borderRadius: "20px 40px 28px 32px / 32px 20px 40px 28px", background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+          ))}
+        </div>
+      </div>
+    </BotanicalPage>
+  );
+}
 
 type Step = "decision" | "feedback" | "recall" | "done";
 
@@ -170,13 +190,7 @@ export default function Escenario() {
   }, [user, courseId, scenarioId, saving, scenarios, scenario, streak, invalidateProgress, queryClient]);
 
   if (scenarioLoading) {
-    return (
-      <BotanicalPage title="Cargando..." subtitle="">
-        <div className="organic-card p-8 text-center">
-          <p style={{ color: "var(--leaf-muted)" }}>Cargando escenario...</p>
-        </div>
-      </BotanicalPage>
-    );
+    return <ScenarioSkeleton />;
   }
 
   if (!scenario || !courseDetail) {
@@ -272,9 +286,20 @@ export default function Escenario() {
             <p className="text-sm" style={{ color: "var(--leaf-muted)" }}>
               Puntaje: {Math.round(finalScore * 100)}%
             </p>
-            <button onClick={handleNext} className="vibrant-btn w-full justify-center min-h-[44px] font-bold">
-              {isLast ? "Finalizar curso" : "Siguiente semilla"}
-              <ArrowRight className="ml-2 h-5 w-5" />
+            <button
+              onClick={handleNext}
+              disabled={saving}
+              className="vibrant-btn w-full justify-center min-h-[44px] font-bold disabled:opacity-60"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
+                </>
+              ) : isLast ? (
+                <>Finalizar curso <ArrowRight className="ml-2 h-5 w-5" /></>
+              ) : (
+                <>Siguiente semilla <ArrowRight className="ml-2 h-5 w-5" /></>
+              )}
             </button>
           </motion.div>
         )}

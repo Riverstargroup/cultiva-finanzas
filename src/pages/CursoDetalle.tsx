@@ -3,8 +3,34 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import ScenarioCard, { type ScenarioStatus } from "@/components/ScenarioCard";
 import BotanicalPage from "@/components/layout/BotanicalPage";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCourseDetail } from "@/hooks/useCourseDetail";
 import { useProgress } from "@/hooks/useProgress";
+
+function CourseDetailSkeleton() {
+  return (
+    <BotanicalPage title="Cargando curso..." subtitle="">
+      <div className="organic-card p-5 space-y-4">
+        <Skeleton className="h-5 w-20 rounded-full" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+        <Skeleton className="h-4 w-full" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+        <Skeleton className="h-4 w-4/5" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+        <Skeleton className="h-2 w-full rounded-full" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+      </div>
+      <div className="space-y-3">
+        <Skeleton className="h-6 w-24" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="organic-card p-4 flex items-center gap-3">
+            <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-3/4" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+              <Skeleton className="h-3 w-full" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </BotanicalPage>
+  );
+}
 
 export default function CursoDetalle() {
   const { id } = useParams<{ id: string }>();
@@ -14,13 +40,7 @@ export default function CursoDetalle() {
   const { data: progress } = useProgress(id);
 
   if (isLoading) {
-    return (
-      <BotanicalPage title="Cargando..." subtitle="">
-        <div className="organic-card p-8 text-center">
-          <p style={{ color: "var(--leaf-muted)" }}>Cargando curso...</p>
-        </div>
-      </BotanicalPage>
-    );
+    return <CourseDetailSkeleton />;
   }
 
   if (!course) {

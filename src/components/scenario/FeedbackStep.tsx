@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MessageCircle, Target, Check, SkipForward } from "lucide-react";
+import { MessageCircle, Target, Check, SkipForward, Loader2 } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { supabase } from "@/integrations/supabase/client";
 import type { ScenarioOption } from "@/types/learning";
@@ -117,25 +117,35 @@ export default function FeedbackStep({ coaching, selectedOption, mission, scenar
                       <button
                         onClick={() => handleMission("done")}
                         disabled={saving}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors min-h-[40px]"
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] disabled:opacity-60"
                         style={{
                           background: "color-mix(in srgb, var(--leaf-fresh) 15%, transparent)",
                           border: "1.5px solid var(--leaf-bright)",
                           color: "var(--leaf-bright)",
                         }}
                       >
-                        <Check className="h-3.5 w-3.5" /> Marcar como hecha
+                        {saving ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5" />
+                        )}
+                        {saving ? "Guardando..." : "Marcar como hecha"}
                       </button>
                       <button
                         onClick={() => handleMission("skipped")}
                         disabled={saving}
-                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-colors min-h-[40px]"
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all min-h-[40px] disabled:opacity-60"
                         style={{
                           border: "1.5px solid var(--clay-soft)",
                           color: "var(--leaf-muted)",
                         }}
                       >
-                        <SkipForward className="h-3.5 w-3.5" /> Omitir
+                        {saving ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <SkipForward className="h-3.5 w-3.5" />
+                        )}
+                        Omitir
                       </button>
                     </div>
                   )}
