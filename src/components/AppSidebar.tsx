@@ -6,6 +6,10 @@ import {
   User,
   LogOut,
   Sprout,
+  Layers,
+  Dumbbell,
+  Gamepad2,
+  Flower2,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +30,10 @@ import {
 const navItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Cursos", url: "/cursos", icon: BookOpen },
+  { title: "Flashcards", url: "/flashcards", icon: Layers },
+  { title: "Ejercicios", url: "/ejercicios", icon: Dumbbell },
+  { title: "Juegos", url: "/juegos", icon: Gamepad2 },
+  { title: "Polinizar", url: "/polinizacion", icon: Flower2 },
   { title: "Calculadora", url: "/calculadora", icon: Calculator },
   { title: "Logros", url: "/logros", icon: Trophy },
   { title: "Perfil", url: "/perfil", icon: User },
