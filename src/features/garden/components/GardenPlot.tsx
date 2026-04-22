@@ -26,10 +26,10 @@ export function GardenPlot({ plot, isActive, animation = 'idle', onClick, classN
 
   return (
     <motion.button
-      className={`garden-plot-surface relative flex flex-col items-center justify-end p-4 cursor-pointer w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${className ?? ''}`}
-      style={{ minHeight: 180, focusRingColor: colors.primary } as React.CSSProperties}
+      className={`garden-plot-surface relative flex flex-col items-center justify-end p-4 cursor-pointer w-full focus:outline-none ${className ?? ''}`}
+      style={{ minHeight: 160 } as React.CSSProperties}
       data-stage={plant.stage}
-      aria-label={`${DOMAIN_LABELS[plant.domain]} — ${SPECIES_EMOJI[plant.species]} ${plant.stage}`}
+      aria-label={`${DOMAIN_LABELS[plant.domain]}: ${SPECIES_EMOJI[plant.species]} ${plant.stage}, maestría ${Math.round(plant.mastery * 100)}%`}
       onClick={() => onClick?.(plot.id)}
       whileHover={!shouldReduceMotion ? { y: -4, scale: 1.02 } : undefined}
       whileTap={!shouldReduceMotion ? { scale: 0.98 } : undefined}
