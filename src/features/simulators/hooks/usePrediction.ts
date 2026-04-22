@@ -1,91 +1,89 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { supabase } from '@/integrations/supabase/client'
-import { useAuth } from '@/contexts/AuthContext'
-import { gardenKeys } from '@/features/garden/hooks/useGarden'
-import type { Prediction } from '../types'
+import { PREDICTION_CORRECT_THRESHOLD, PREDICTION_CORRECT_COINS } from '../types'
 
-export const predictionKeys = {
-  all: ['predictions'] as const,
-  byScenario: (scenarioId: string) => ['predictions', scenarioId] as const,
+interface UsePredictionOptions {
+  userId: string | undefined
+  scenarioId: string | undefined
 }
 
-export function usePrediction(scenarioId: string) {
-  const { user } = useAuth()
-  const queryClient = useQueryClient()
+interface UsePredictionReturn {
+  /** prediction id returned after saving — needed to update with actual result */
+  predictionId: string | null
+  /** predicted value set by user (0-100) */
+  predictedValue: number | null
+  /** save prediction before starting scenario */
+  savePrediction: (predicted: number) => Promise<void>
+  /** call after scenario completes with actual score (0-100) */
+  resolvePrediction: (actual: number) => Promise<{ wasCorrect: boolean; coinsEarned: number }>
+  saving: boolean
+  error: string | null
+}
 
-  const { data: prediction = null, isLoading } = useQuery({
-    queryKey: predictionKeys.byScenario(scenarioId),
-    queryFn: async (): Promise<Prediction | null> => {
-      if (!user?.id || !scenarioId) return null
-      const { data, error } = await supabase
+export function usePrediction({ userId, scenarioId }: UsePredictionOptions): UsePredictionReturn {
+  const [predictionId, setPredictionId] = useState<string | null>(null)
+  const [predictedValue, setPredictedValue] = useState<number | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const savePrediction = async (predicted: number): Promise<void> => {
+    if (!userId || !scenarioId) return
+    setSaving(true)
+    setError(null)
+    try {
+      const { data, error: dbError } = await supabase
         .from('user_predictions' as any)
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('scenario_id', scenarioId)
-        .maybeSingle()
-      if (error) throw error
-      if (!data) return null
-      const d = data as any
-      return {
-        id: d.id,
-        userId: d.user_id,
-        scenarioId: d.scenario_id,
-        predictedValue: Number(d.predicted_value),
-        actualValue: d.actual_value !== null ? Number(d.actual_value) : null,
-        wasCorrect: d.was_correct,
-        coinsEarned: d.coins_earned ?? 0,
-        createdAt: d.created_at,
-      }
-    },
-    enabled: !!user?.id && !!scenarioId,
-    staleTime: 60_000,
-  })
+        .insert({
+          user_id: userId,
+          scenario_id: scenarioId,
+          predicted_value: predicted,
+        } as any)
+        .select('id')
+        .single()
 
-  const savePrediction = useMutation({
-    mutationFn: async (predictedValue: number) => {
-      if (!user?.id) throw new Error('Not authenticated')
-      const { error } = await supabase
-        .from('user_predictions' as any)
-        .insert({ user_id: user.id, scenario_id: scenarioId, predicted_value: predictedValue } as any)
-      if (error) throw error
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: predictionKeys.byScenario(scenarioId) }),
-  })
+      if (dbError) throw dbError
+      setPredictionId((data as any).id)
+      setPredictedValue(predicted)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error guardando predicción')
+    } finally {
+      setSaving(false)
+    }
+  }
 
-  const revealOutcome = useMutation({
-    mutationFn: async ({
-      predictionId,
-      predictedValue,
-      actualValue,
-    }: {
-      predictionId: string
-      predictedValue: number
-      actualValue: number
-    }) => {
-      if (!user?.id) throw new Error('Not authenticated')
+  const resolvePrediction = async (
+    actual: number
+  ): Promise<{ wasCorrect: boolean; coinsEarned: number }> => {
+    if (!userId || !predictionId || predictedValue === null) {
+      return { wasCorrect: false, coinsEarned: 0 }
+    }
+
+    const wasCorrect = Math.abs(predictedValue - actual) <= PREDICTION_CORRECT_THRESHOLD
+    const coinsEarned = wasCorrect ? PREDICTION_CORRECT_COINS : 0
+
+    try {
       await supabase
         .from('user_predictions' as any)
-        .update({ actual_value: actualValue } as any)
+        .update({
+          actual_value: actual,
+          was_correct: wasCorrect,
+          coins_earned: coinsEarned,
+        } as any)
         .eq('id', predictionId)
 
-      const isCorrect =
-        actualValue !== 0 && Math.abs(predictedValue - actualValue) / Math.abs(actualValue) <= 0.10
-
-      if (isCorrect) {
+      if (wasCorrect) {
         await supabase.rpc('award_coins' as any, {
-          p_user_id: user.id,
-          p_delta: 50,
+          p_user_id: userId,
+          p_amount: PREDICTION_CORRECT_COINS,
           p_reason: 'prediction_correct',
         })
       }
+    } catch {
+      // Non-critical: prediction resolve failure shouldn't block scenario completion
+    }
 
-      return { isCorrect, coinsEarned: isCorrect ? 50 : 0 }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: predictionKeys.byScenario(scenarioId) })
-      queryClient.invalidateQueries({ queryKey: gardenKeys.all })
-    },
-  })
+    return { wasCorrect, coinsEarned }
+  }
 
-  return { prediction, isLoading, savePrediction, revealOutcome }
+  return { predictionId, predictedValue, savePrediction, resolvePrediction, saving, error }
 }

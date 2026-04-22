@@ -1,79 +1,117 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { CONFIDENCE_OPTIONS } from '../types'
+import type { ConfidenceOption } from '../types'
 
 interface PredictionModalProps {
-  open: boolean
-  onConfirm: (value: number) => void
-  onSkip: () => void
+  scenarioTitle: string
+  onConfirm: (predictedValue: number) => void
+  isLoading?: boolean
 }
 
-export function PredictionModal({ open, onConfirm, onSkip }: PredictionModalProps) {
-  const [value, setValue] = useState('')
+export function PredictionModal({ scenarioTitle, onConfirm, isLoading }: PredictionModalProps) {
+  const [selected, setSelected] = useState<ConfidenceOption | null>(null)
+  const reduced = useReducedMotion()
 
-  const parsed = parseFloat(value.replace(',', '.'))
-  const isValid = !isNaN(parsed) && parsed >= 0
+  const handleConfirm = () => {
+    if (!selected) return
+    onConfirm(selected.value)
+  }
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.45)' }}
+    <motion.div
+      initial={reduced ? undefined : { opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-5"
+    >
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <span className="text-3xl" role="img" aria-label="crystal ball">🔮</span>
+        <h2
+          className="font-heading font-bold text-xl"
+          style={{ color: 'var(--forest-deep)' }}
         >
-          <motion.div
-            initial={{ scale: 0.92, opacity: 0, y: 8 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.92, opacity: 0, y: 8 }}
-            transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-            className="organic-card w-full max-w-sm p-6 space-y-4"
-          >
-            <div className="text-center space-y-1">
-              <span className="text-4xl block">🔮</span>
-              <h3
-                className="font-heading font-bold text-lg"
-                style={{ color: 'var(--forest-deep)' }}
-              >
-                Haz tu predicción
-              </h3>
-              <p className="text-sm" style={{ color: 'var(--leaf-muted)' }}>
-                ¿Cuánto crees que crecerá tu ahorro? (%)
-              </p>
-            </div>
+          Antes de comenzar
+        </h2>
+        <p className="text-sm" style={{ color: 'var(--leaf-muted)' }}>
+          ¿Cómo crees que te irá en <strong>"{scenarioTitle}"</strong>?
+        </p>
+        <p className="text-xs" style={{ color: 'var(--leaf-muted)', opacity: 0.7 }}>
+          Si tu predicción es correcta, ganas +50 monedas bonus 🪙
+        </p>
+      </div>
 
-            <input
-              type="number"
-              min="0"
-              step="0.1"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder="Ej: 15.5"
-              className="w-full rounded-xl border-2 px-4 py-3 text-center text-xl font-bold outline-none focus:border-[var(--leaf-bright)] bg-transparent"
-              style={{ borderColor: 'var(--clay-soft)', color: 'var(--forest-deep)' }}
-              autoFocus
-            />
+      {/* Options */}
+      <div className="space-y-2.5" role="radiogroup" aria-label="Nivel de confianza">
+        <AnimatePresence>
+          {CONFIDENCE_OPTIONS.map((opt, i) => {
+            const isSelected = selected?.value === opt.value
+            return (
+              <motion.button
+                key={opt.value}
+                initial={reduced ? undefined : { opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: reduced ? 0 : i * 0.05, duration: 0.2 }}
+                role="radio"
+                aria-checked={isSelected}
+                onClick={() => setSelected(opt)}
+                className="w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-150"
+                style={{
+                  background: isSelected
+                    ? 'color-mix(in srgb, var(--leaf-bright) 12%, transparent)'
+                    : 'rgba(255,255,255,0.7)',
+                  border: `2px solid ${isSelected ? 'var(--leaf-bright)' : 'var(--clay-soft, #d4c5b0)'}`,
+                  boxShadow: isSelected ? '0 0 0 3px color-mix(in srgb, var(--leaf-bright) 20%, transparent)' : 'none',
+                }}
+              >
+                <span className="text-2xl flex-shrink-0" aria-hidden="true">
+                  {opt.emoji}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="font-semibold text-sm"
+                    style={{ color: isSelected ? 'var(--forest-deep)' : 'var(--leaf-dark)' }}
+                  >
+                    {opt.label}
+                  </p>
+                  <p
+                    className="text-xs mt-0.5"
+                    style={{ color: 'var(--leaf-muted)', opacity: 0.8 }}
+                  >
+                    {opt.description}
+                  </p>
+                </div>
+                {isSelected && (
+                  <motion.span
+                    initial={reduced ? undefined : { scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="text-lg flex-shrink-0"
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </motion.span>
+                )}
+              </motion.button>
+            )
+          })}
+        </AnimatePresence>
+      </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={onSkip}
-                className="flex-1 rounded-xl py-2.5 text-sm font-semibold transition-opacity hover:opacity-80"
-                style={{ background: 'var(--clay-light)', color: 'var(--leaf-muted)' }}
-              >
-                Saltar
-              </button>
-              <button
-                onClick={() => isValid && onConfirm(parsed)}
-                disabled={!isValid}
-                className="vibrant-btn flex-1 justify-center disabled:opacity-40"
-              >
-                Confirmar
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+      {/* CTA */}
+      <button
+        onClick={handleConfirm}
+        disabled={!selected || isLoading}
+        className="w-full py-3 rounded-xl font-bold text-sm text-white transition-all duration-150 min-h-[44px]"
+        style={{
+          backgroundColor: selected ? 'var(--leaf-bright)' : 'var(--clay-soft, #d4c5b0)',
+          opacity: !selected || isLoading ? 0.6 : 1,
+          cursor: !selected || isLoading ? 'not-allowed' : 'pointer',
+        }}
+      >
+        {isLoading ? 'Guardando...' : selected ? 'Empezar escenario →' : 'Selecciona tu predicción'}
+      </button>
+    </motion.div>
   )
 }
