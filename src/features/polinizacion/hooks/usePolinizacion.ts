@@ -1,158 +1,113 @@
-import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
-import { gardenKeys } from '@/features/garden/hooks/useGarden'
+import type { PollinationSession, SkillDomain } from '../types'
 
-const SKILL_DOMAIN_MAP: Record<string, string> = {
-  control_basics: 'control',
-  budget_3_buckets: 'control',
-  spending_leaks: 'control',
-  debt_plan_30d: 'control',
-  credit_basics: 'credito',
-  credit_score: 'credito',
-  min_payment_trap: 'credito',
-  snowball_avalanche: 'credito',
-  rate_compare: 'credito',
-  fraud_basics: 'proteccion',
-  identity_protection: 'proteccion',
-  auto_saving: 'crecimiento',
-  emergency_fund: 'crecimiento',
+// ---- Query keys ------------------------------------------------
+
+export const polinizacionKeys = {
+  all: ['polinizacion'] as const,
+  todaySession: (userId: string) => [...polinizacionKeys.all, 'today', userId] as const,
+  allSessions: (userId: string) => [...polinizacionKeys.all, 'sessions', userId] as const,
 }
 
-function getDomain(skillId: string): string {
-  return SKILL_DOMAIN_MAP[skillId] ?? 'control'
+// ---- Helpers ---------------------------------------------------
+
+function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0]
 }
 
-export interface PolCard {
-  id: string
-  skillId: string
-  front: string
-  back: string
-  difficulty: number
-  domain: string
-}
+// ---- Hooks -----------------------------------------------------
 
-export function usePolinizacion() {
-  const { user } = useAuth()
-  const queryClient = useQueryClient()
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [domainsTouched, setDomainsTouched] = useState<Set<string>>(new Set())
-  const [sessionComplete, setSessionComplete] = useState(false)
-  const [sessionCoins, setSessionCoins] = useState(0)
+export function useTodaySession(userId: string) {
+  const today = getTodayDateString()
 
-  const { data: cards = [], isLoading: cardsLoading } = useQuery({
-    queryKey: ['pollination-cards', user?.id],
-    queryFn: async (): Promise<PolCard[]> => {
-      if (!user?.id) return []
+  return useQuery({
+    queryKey: polinizacionKeys.todaySession(userId),
+    queryFn: async (): Promise<PollinationSession | null> => {
+      const { data, error } = await (supabase as any)
+        .from('user_pollination_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('session_date', today)
+        .maybeSingle()
 
-      const { data: flashcards, error } = await supabase
-        .from('flashcards' as any)
-        .select('id, skill_id, front, back, difficulty')
-        .eq('is_published', true)
-        .limit(12)
-
-      if (error || !flashcards?.length) return []
-
-      const cardIds = (flashcards as any[]).map((c) => c.id)
-      const { data: reviews } = await supabase
-        .from('user_flashcard_reviews' as any)
-        .select('flashcard_id, repetitions')
-        .eq('user_id', user.id)
-        .in('flashcard_id', cardIds)
-
-      const reviewMap = new Map(
-        ((reviews as any[]) ?? []).map((r) => [r.flashcard_id, r.repetitions as number])
-      )
-
-      const sorted = ([...(flashcards as any[])] as any[]).sort(
-        (a, b) => (reviewMap.get(a.id) ?? 0) - (reviewMap.get(b.id) ?? 0)
-      )
-
-      return sorted.slice(0, 6).map((c) => ({
-        id: c.id,
-        skillId: c.skill_id,
-        front: c.front,
-        back: c.back,
-        difficulty: c.difficulty,
-        domain: getDomain(c.skill_id),
-      }))
-    },
-    enabled: !!user?.id,
-    staleTime: 0,
-  })
-
-  const rateCard = useMutation({
-    mutationFn: async ({ cardId, quality }: { cardId: string; quality: number }) => {
-      if (!user?.id) throw new Error('Not authenticated')
-      const { data, error } = await supabase.rpc('apply_flashcard_review' as any, {
-        p_user_id: user.id,
-        p_flashcard_id: cardId,
-        p_quality: quality,
-      })
       if (error) throw error
-      return data
+      return (data ?? null) as PollinationSession | null
     },
-    onSuccess: (_, { cardId }) => {
-      const card = cards.find((c) => c.id === cardId)
-      if (card) {
-        setDomainsTouched((prev) => new Set([...prev, card.domain]))
-      }
-      setCurrentIndex((prev) => prev + 1)
-    },
+    enabled: !!userId,
+    staleTime: 60_000,
   })
+}
 
-  const completeSession = useMutation({
-    mutationFn: async () => {
+export function useSessionCount(userId: string) {
+  return useQuery({
+    queryKey: polinizacionKeys.allSessions(userId),
+    queryFn: async (): Promise<number> => {
+      const { data, error } = await (supabase as any)
+        .from('user_pollination_sessions')
+        .select('id')
+        .eq('user_id', userId)
+
+      if (error) throw error
+      return (data ?? []).length
+    },
+    enabled: !!userId,
+    staleTime: 60_000,
+  })
+}
+
+export function useSubmitInsight() {
+  const queryClient = useQueryClient()
+  const { user } = useAuth()
+
+  return useMutation({
+    mutationFn: async ({
+      domainLearned,
+      insight,
+    }: {
+      domainLearned: SkillDomain
+      insight: string
+    }): Promise<PollinationSession> => {
       if (!user?.id) throw new Error('Not authenticated')
-      const cardsReviewed = currentIndex
-      const domains = Array.from(domainsTouched)
 
-      for (const domain of domains) {
-        await supabase.rpc('grow_plant' as any, {
-          p_user_id: user.id,
-          p_domain: domain,
-          p_mastery_delta: 0.06,
-        })
-      }
+      const today = getTodayDateString()
 
-      const coinsEarned = 15 * cardsReviewed
-      if (coinsEarned > 0) {
-        await supabase.rpc('award_coins' as any, {
-          p_user_id: user.id,
-          p_delta: coinsEarned,
-          p_reason: 'pollination_session',
-        })
-      }
-
-      await supabase
-        .from('user_pollination_sessions' as any)
+      // Insert session
+      const { data, error } = await (supabase as any)
+        .from('user_pollination_sessions')
         .insert({
           user_id: user.id,
-          completed_at: new Date().toISOString(),
-          cards_reviewed: cardsReviewed,
-          domains_touched: domains,
-          coins_earned: coinsEarned,
-        } as any)
+          session_date: today,
+          domain_learned: domainLearned,
+          insight,
+          coins_earned: 20,
+        })
+        .select()
+        .single()
 
-      return { coinsEarned, domains }
+      if (error) throw error
+
+      // Award coins
+      const { error: coinError } = await supabase.rpc('award_coins', {
+        p_user_id: user.id,
+        p_amount: 20,
+        p_reason: 'Polinización cruzada completada',
+      })
+      if (coinError) throw coinError
+
+      // Grow plant in the learned domain
+      const { error: growError } = await supabase.rpc('grow_plant', {
+        p_user_id: user.id,
+        p_domain: domainLearned,
+        p_mastery_delta: 0.02,
+      })
+      if (growError) throw growError
+
+      return data as PollinationSession
     },
-    onSuccess: (res) => {
-      setSessionCoins(res.coinsEarned)
-      setSessionComplete(true)
-      queryClient.invalidateQueries({ queryKey: gardenKeys.all })
-      queryClient.invalidateQueries({ queryKey: ['pollination-lock'] })
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: polinizacionKeys.all })
     },
   })
-
-  return {
-    cards,
-    currentIndex,
-    cardsLoading,
-    sessionComplete,
-    sessionCoins,
-    domainsTouched,
-    rateCard,
-    completeSession,
-  }
 }

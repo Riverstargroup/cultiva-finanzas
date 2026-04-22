@@ -1,23 +1,13 @@
-CREATE TABLE IF NOT EXISTS public.user_pollination_sessions (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid REFERENCES auth.users NOT NULL,
-  started_at timestamptz NOT NULL DEFAULT now(),
-  completed_at timestamptz,
-  cards_reviewed integer NOT NULL DEFAULT 0,
-  domains_touched text[] NOT NULL DEFAULT '{}',
-  coins_earned integer NOT NULL DEFAULT 0
+create table if not exists user_pollination_sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  session_date date not null default current_date,
+  domain_learned text not null check (domain_learned in ('control','credito','proteccion','crecimiento')),
+  insight text not null,
+  coins_earned int not null default 20,
+  created_at timestamptz default now(),
+  unique(user_id, session_date)
 );
 
-ALTER TABLE public.user_pollination_sessions ENABLE ROW LEVEL SECURITY;
-
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies
-    WHERE tablename = 'user_pollination_sessions' AND policyname = 'users own pollination sessions'
-  ) THEN
-    CREATE POLICY "users own pollination sessions"
-      ON public.user_pollination_sessions FOR ALL
-      USING (auth.uid() = user_id);
-  END IF;
-END $$;
+alter table user_pollination_sessions enable row level security;
+create policy "users own pollination sessions" on user_pollination_sessions for all using (auth.uid() = user_id);

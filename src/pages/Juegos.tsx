@@ -1,89 +1,179 @@
-import { useState } from 'react'
-import { Gamepad2 } from 'lucide-react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { GameCard } from '@/features/minigames/components/GameCard'
-import { PresupuestoRapido } from '@/features/minigames/games/PresupuestoRapido'
-import { InflacionChallenge } from '@/features/minigames/games/InflacionChallenge'
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Gamepad2, Clock, BarChart2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+import BotanicalPage from '@/components/layout/BotanicalPage';
+import { PresupuestoRapido } from '@/features/minigames/components/PresupuestoRapido';
+import { InflacionChallenge } from '@/features/minigames/components/InflacionChallenge';
+import type { GameId, GameCard } from '@/features/minigames/types';
 
-type ActiveGame = 'presupuesto' | 'inflacion' | null
+const GAME_CARDS: GameCard[] = [
+  {
+    id: 'presupuesto-rapido',
+    title: 'Presupuesto Rápido',
+    description: 'Clasifica 8 gastos como Necesidad, Deseo o Ahorro antes de que se acabe el tiempo.',
+    icon: '💸',
+    duration: '60 seg',
+    difficulty: 'Fácil',
+  },
+  {
+    id: 'inflacion-challenge',
+    title: 'Reto Inflación',
+    description: 'Adivina el precio actual de productos mexicanos. ¿Sabes cuánto ha subido todo?',
+    icon: '📈',
+    duration: '~3 min',
+    difficulty: 'Medio',
+  },
+];
+
+const DIFFICULTY_COLOR: Record<string, string> = {
+  Fácil: 'var(--leaf-bright)',
+  Medio: 'var(--clay-soft)',
+  Difícil: '#ef4444',
+};
+
+type View = 'lobby' | GameId;
 
 export default function Juegos() {
-  const [activeGame, setActiveGame] = useState<ActiveGame>(null)
+  const navigate = useNavigate();
+  const reduced = useReducedMotion();
+  const [activeView, setActiveView] = useState<View>('lobby');
+  const [gameKey, setGameKey] = useState(0);
+
+  const handlePlay = (id: GameId) => setActiveView(id);
+
+  const handleRestart = () => {
+    setGameKey((k) => k + 1);
+  };
+
+  const handleBackToLobby = () => {
+    setActiveView('lobby');
+    setGameKey((k) => k + 1);
+  };
+
+  const activeGame = GAME_CARDS.find((g) => g.id === activeView);
 
   return (
-    <div className="dashboard-skin botanical-bg min-h-screen">
-      <div className="max-w-lg mx-auto px-4 py-6 space-y-6">
-        <AnimatePresence mode="wait">
-          {activeGame ? (
-            <motion.div
-              key={activeGame}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className="space-y-4"
+    <BotanicalPage title="Mini-Juegos" subtitle="Aprende jugando">
+      <AnimatePresence mode="wait">
+        {activeView === 'lobby' ? (
+          <motion.div
+            key="lobby"
+            initial={reduced ? undefined : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduced ? undefined : { opacity: 0, y: -8 }}
+            transition={{ duration: 0.22 }}
+            className="space-y-4"
+          >
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="flex items-center gap-2 text-sm font-semibold min-h-[44px] transition-colors"
+              style={{ color: 'var(--leaf-muted)' }}
             >
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setActiveGame(null)}
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+              <ArrowLeft className="h-4 w-4" />
+              Dashboard
+            </button>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {GAME_CARDS.map((card) => (
+                <motion.div
+                  key={card.id}
+                  whileHover={reduced ? undefined : { scale: 1.01 }}
+                  className="organic-card p-5 space-y-3 cursor-pointer"
+                  onClick={() => handlePlay(card.id)}
                 >
-                  ← Volver
-                </button>
-                <h2 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
-                  {activeGame === 'presupuesto' ? 'Presupuesto Rápido 💸' : 'Inflación Challenge 📈'}
-                </h2>
-              </div>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-3xl leading-none">{card.icon}</span>
+                    <span
+                      className="text-xs font-bold px-2 py-0.5 rounded-full"
+                      style={{
+                        color: DIFFICULTY_COLOR[card.difficulty],
+                        background: `color-mix(in srgb, ${DIFFICULTY_COLOR[card.difficulty]} 15%, transparent)`,
+                      }}
+                    >
+                      {card.difficulty}
+                    </span>
+                  </div>
 
-              {activeGame === 'presupuesto' && (
-                <PresupuestoRapido onBack={() => setActiveGame(null)} />
-              )}
-              {activeGame === 'inflacion' && (
-                <InflacionChallenge onBack={() => setActiveGame(null)} />
-              )}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="list"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="space-y-6"
+                  <div>
+                    <h3
+                      className="font-heading font-bold text-lg leading-tight"
+                      style={{ color: 'var(--forest-deep)' }}
+                    >
+                      {card.title}
+                    </h3>
+                    <p className="text-sm mt-1" style={{ color: 'var(--leaf-muted)' }}>
+                      {card.description}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--leaf-muted)' }}>
+                      <Clock className="h-3.5 w-3.5" />
+                      {card.duration}
+                    </div>
+                    <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--leaf-muted)' }}>
+                      <BarChart2 className="h-3.5 w-3.5" />
+                      {card.difficulty}
+                    </div>
+                  </div>
+
+                  <button
+                    className="vibrant-btn w-full justify-center min-h-[44px] font-bold"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePlay(card.id);
+                    }}
+                  >
+                    <Gamepad2 className="mr-2 h-4 w-4" />
+                    Jugar
+                  </button>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key={`game-${activeView}`}
+            initial={reduced ? undefined : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduced ? undefined : { opacity: 0, y: -8 }}
+            transition={{ duration: 0.22 }}
+            className="space-y-4"
+          >
+            <button
+              onClick={handleBackToLobby}
+              className="flex items-center gap-2 text-sm font-semibold min-h-[44px] transition-colors"
+              style={{ color: 'var(--leaf-muted)' }}
             >
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="font-heading text-2xl font-bold" style={{ color: 'var(--forest-deep)' }}>
-                    Mini-Juegos 🎮
-                  </h1>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    Aprende finanzas jugando
-                  </p>
-                </div>
-                <Gamepad2 className="text-leaf-bright" size={28} />
-              </div>
+              <ArrowLeft className="h-4 w-4" />
+              {activeGame?.title ?? 'Juegos'}
+            </button>
 
-              {/* Game cards */}
-              <div className="space-y-4">
-                <GameCard
-                  title="Presupuesto Rápido"
-                  description="Clasifica 6 gastos en Necesidades, Deseos y Ahorro antes de que el tiempo se acabe."
-                  emoji="💸"
-                  difficulty={1}
-                  onPlay={() => setActiveGame('presupuesto')}
-                />
-                <GameCard
-                  title="Inflación Challenge"
-                  description="Adivina el precio actual de 5 productos usando un slider. ¡Gana monedas si aciertas!"
-                  emoji="📈"
-                  difficulty={2}
-                  onPlay={() => setActiveGame('inflacion')}
-                />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  )
+            <div className="organic-card p-5 md:p-6">
+              {activeView === 'presupuesto-rapido' && (
+                <PresupuestoRapido key={gameKey} onRestart={handleRestart} />
+              )}
+              {activeView === 'inflacion-challenge' && (
+                <InflacionChallenge key={gameKey} onRestart={handleRestart} />
+              )}
+            </div>
+
+            <button
+              onClick={handleBackToLobby}
+              className="flex items-center gap-2 text-sm font-medium min-h-[44px] w-full justify-center transition-colors rounded-xl"
+              style={{
+                color: 'var(--leaf-muted)',
+                background: 'color-mix(in srgb, var(--forest-deep) 5%, transparent)',
+              }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Elegir otro juego
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </BotanicalPage>
+  );
 }
