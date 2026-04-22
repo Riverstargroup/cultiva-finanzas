@@ -9,6 +9,7 @@ export function useUserSkills() {
   return useQuery({
     queryKey: ["user-skills", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async (): Promise<UserSkill[]> => {
       const { data, error } = await supabase
         .from("user_skills" as any)

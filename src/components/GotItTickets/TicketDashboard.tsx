@@ -8,8 +8,8 @@ import PageTransition from "@/components/PageTransition";
 
 export const TicketDashboard: React.FC = () => {
   const { tasks, isLoading, createTask, updateTask, deleteTask } = useTaskManager({
-    onTicketClosed: (task) => {
-      console.log(`🌱 [Gamificación] ¡Ticket Cerrado! Otorgando +10 XP al usuario. Obligación mitigada: "${task.title}".`);
+    onTicketClosed: (_task) => {
+      // TODO: disparar grow_plant RPC cuando el jardín esté conectado
     }
   });
 

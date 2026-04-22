@@ -9,6 +9,7 @@ export function useUserMission(scenarioId: string | undefined) {
   return useQuery({
     queryKey: ["user-mission", user?.id, scenarioId],
     enabled: !!user && !!scenarioId,
+    staleTime: 60_000,
     queryFn: async (): Promise<UserMission | null> => {
       const { data, error } = await supabase
         .from("user_missions" as any)

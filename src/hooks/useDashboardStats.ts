@@ -28,6 +28,7 @@ export function useDashboardStats() {
   return useQuery({
     queryKey: ["dashboard-stats", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async (): Promise<DashboardStats> => {
       if (!user)
         return {

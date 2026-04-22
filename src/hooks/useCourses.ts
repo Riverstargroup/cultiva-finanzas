@@ -5,6 +5,7 @@ import type { Course } from "@/types/learning";
 export function useCourses() {
   return useQuery({
     queryKey: ["courses"],
+    staleTime: 300_000,
     queryFn: async (): Promise<Course[]> => {
       const { data, error } = await supabase
         .from("courses" as any)

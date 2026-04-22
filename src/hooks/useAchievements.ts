@@ -11,6 +11,7 @@ export function useAchievements() {
   const query = useQuery({
     queryKey: ["achievements", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async (): Promise<UserAchievement[]> => {
       if (!user) return [];
       const { data, error } = await supabase

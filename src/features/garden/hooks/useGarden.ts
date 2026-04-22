@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
 import { masteryToStage, healthToState } from '../lib/stage'
 import { DOMAIN_TO_SPECIES } from '../types'
 import type { GardenState, GardenPlot, Plant, SkillDomain } from '../types'
@@ -88,6 +89,7 @@ export function useGarden(): GardenState {
 export function useGrowPlant() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async ({ domain, masteryDelta }: { domain: SkillDomain; masteryDelta: number }) => {
@@ -103,12 +105,20 @@ export function useGrowPlant() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: gardenKeys.all })
     },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: 'No pudimos hacer crecer tu planta',
+        description: 'Intenta de nuevo en unos momentos.',
+      })
+    },
   })
 }
 
 export function useInitGarden() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async () => {
@@ -117,6 +127,13 @@ export function useInitGarden() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: gardenKeys.all })
+    },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: 'No pudimos inicializar tu jardín',
+        description: 'Recarga la página para intentarlo de nuevo.',
+      })
     },
   })
 }

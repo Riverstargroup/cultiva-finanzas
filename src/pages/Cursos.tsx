@@ -45,6 +45,7 @@ export default function Cursos() {
   const { data: progressData } = useQuery({
     queryKey: ["all-progress", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async () => {
       const { data } = await supabase
         .from("user_course_progress" as any)
@@ -69,6 +70,7 @@ export default function Cursos() {
   // We need scenario counts per course - let's fetch them
   const { data: scenarioCounts } = useQuery({
     queryKey: ["scenario-counts"],
+    staleTime: 300_000,
     queryFn: async () => {
       const { data } = await supabase
         .from("scenarios" as any)

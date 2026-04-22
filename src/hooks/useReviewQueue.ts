@@ -9,6 +9,7 @@ export function useReviewQueue(courseId?: string) {
   return useQuery({
     queryKey: ["review-queue", user?.id, courseId],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async (): Promise<UserScenarioState[]> => {
       if (!user) return [];
       let query = supabase

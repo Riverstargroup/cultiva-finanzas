@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { GardenGrid } from '@/features/garden/components/GardenGrid'
 import { GardenStats } from '@/features/garden/components/GardenStats'
+import GardenErrorBoundary from '@/features/garden/GardenErrorBoundary'
 import { useGarden, useInitGarden } from '@/features/garden/hooks/useGarden'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import PageTransition from '@/components/PageTransition'
@@ -51,12 +52,14 @@ export default function Jardin() {
 
           {/* Stats — only when there are plots */}
           {!isNewUser && (
-            <GardenStats
-              coins={garden.coins}
-              totalMastery={garden.totalMastery}
-              streakDays={garden.streakDays}
-              plantsMastered={plantsMastered}
-            />
+            <GardenErrorBoundary>
+              <GardenStats
+                coins={garden.coins}
+                totalMastery={garden.totalMastery}
+                streakDays={garden.streakDays}
+                plantsMastered={plantsMastered}
+              />
+            </GardenErrorBoundary>
           )}
 
           {/* Garden grid / skeleton / welcome */}
@@ -133,7 +136,9 @@ export default function Jardin() {
               )}
             </motion.div>
           ) : (
-            <GardenGrid plots={garden.plots} />
+            <GardenErrorBoundary>
+              <GardenGrid plots={garden.plots} />
+            </GardenErrorBoundary>
           )}
 
           {/* Coming soon */}

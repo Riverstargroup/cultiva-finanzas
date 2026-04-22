@@ -8,6 +8,7 @@ export function useStreak() {
   return useQuery({
     queryKey: ["streak", user?.id],
     enabled: !!user,
+    staleTime: 60_000,
     queryFn: async (): Promise<number> => {
       if (!user) return 0;
 
