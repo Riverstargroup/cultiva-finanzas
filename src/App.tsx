@@ -26,6 +26,9 @@ const Logros = lazy(() => import("./pages/Logros"));
 const Calculadora = lazy(() => import("./pages/Calculadora"));
 const Jardin = lazy(() => import("./pages/Jardin"));
 const Polinizacion = lazy(() => import("./pages/Polinizacion"));
+const Flashcards = lazy(() => import("./pages/Flashcards"));
+const Ejercicios = lazy(() => import("./pages/Ejercicios"));
+const Juegos = lazy(() => import("./pages/Juegos"));
 const TicketDashboard = lazy(() =>
   import("./components/GotItTickets/TicketDashboard").then((m) => ({ default: m.TicketDashboard }))
 );
@@ -69,6 +72,9 @@ function AppRoutes() {
           <Route path="/calculadora" element={<Suspense fallback={sk}><Calculadora /></Suspense>} />
           <Route path="/jardin" element={<Suspense fallback={sk}><Jardin /></Suspense>} />
           <Route path="/polinizacion" element={<Suspense fallback={sk}><Polinizacion /></Suspense>} />
+          <Route path="/flashcards" element={<Suspense fallback={sk}><Flashcards /></Suspense>} />
+          <Route path="/ejercicios" element={<Suspense fallback={sk}><Ejercicios /></Suspense>} />
+          <Route path="/juegos" element={<Suspense fallback={sk}><Juegos /></Suspense>} />
           <Route path="/gotit" element={<Suspense fallback={sk}><TicketDashboard /></Suspense>} />
         </Route>
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
