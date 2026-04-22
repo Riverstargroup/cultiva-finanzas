@@ -5,7 +5,9 @@
       "PowerShell(cmdkey /list)",
       "PowerShell($cred = \\(cmdkey /list | Select-String \"github\" -Context 0,5\\); $cred)",
       "PowerShell(winget install --id GitHub.cli --silent 2>&1)",
-      "PowerShell(Tail -5)"
+      "PowerShell(Tail -5)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); cd \"D:\\\\Github\\\\cultiva-finanzas\\\\.claude\\\\worktrees\\\\intelligent-babbage-a24cdc\"; gh --version)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); cd \"D:\\\\Github\\\\cultiva-finanzas\\\\.claude\\\\worktrees\\\\intelligent-babbage-a24cdc\"; gh auth status 2>&1)"
     ]
   }
 }

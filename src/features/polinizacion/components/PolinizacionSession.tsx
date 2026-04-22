@@ -1,174 +1,173 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Timer } from 'lucide-react'
-import { usePolinizacion } from '../hooks/usePolinizacion'
-import { SimpleFlipCard } from './SimpleFlipCard'
-import { RatingButtons } from './RatingButtons'
-import { BeeProgress } from './BeeProgress'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
+import type { SkillDomain } from '../types'
 
-const SESSION_SECONDS = 180
+// ---- Domain tips (hardcoded) -----------------------------------
 
-export default function PolinizacionSession() {
-  const reduced = useReducedMotion()
-  const { cards, currentIndex, cardsLoading, sessionComplete, sessionCoins, rateCard, completeSession } =
-    usePolinizacion()
+const DOMAIN_TIPS: Record<SkillDomain, string[]> = {
+  control: [
+    '¿Sabías que el 63% de mexicanos no tiene presupuesto? (ENIF 2021)',
+    'La regla de las 24 horas: espera un día antes de cualquier compra de +$500',
+    'Los gastos hormiga pueden sumar hasta $3,000 al mes sin que te des cuenta',
+  ],
+  credito: [
+    'Tu score en Buró se calcula con: pago puntual (35%), saldo usado (30%), antigüedad (15%)',
+    'Pagar solo el mínimo en tarjeta puede triplicar tu deuda en 3 años',
+    'Tener más de una tarjeta activa con buen historial mejora tu score',
+  ],
+  proteccion: [
+    'El IMSS solo cubre gastos médicos si cotizas activamente',
+    'Un fondo de emergencia de 3 meses protege del 89% de crisis personales',
+    'El seguro de gastos médicos mayores puede salvarte de perder todo tu patrimonio',
+  ],
+  crecimiento: [
+    'Los CETES al 10.1% superan la inflación actual del 4.5%',
+    'Invertir $1,000/mes por 20 años a 8% = $589,000 (vs $240,000 guardado)',
+    'La diversificación reduce el riesgo sin sacrificar rendimiento a largo plazo',
+  ],
+}
 
-  const [isFlipped, setIsFlipped] = useState(false)
-  const [secondsLeft, setSecondsLeft] = useState(SESSION_SECONDS)
-  const [timerStarted, setTimerStarted] = useState(false)
+const DOMAIN_EMOJI: Record<SkillDomain, string> = {
+  control: '💰',
+  credito: '💳',
+  proteccion: '🛡️',
+  crecimiento: '🌱',
+}
 
-  const currentCard = cards[currentIndex] ?? null
-  const isTimerRed = secondsLeft <= 30
+const DOMAIN_LABEL: Record<SkillDomain, string> = {
+  control: 'Control',
+  credito: 'Crédito',
+  proteccion: 'Protección',
+  crecimiento: 'Crecimiento',
+}
 
-  // Start timer when cards load
-  useEffect(() => {
-    if (!cardsLoading && cards.length > 0 && !timerStarted) {
-      setTimerStarted(true)
-    }
-  }, [cardsLoading, cards.length, timerStarted])
+const DOMAIN_COLOR: Record<SkillDomain, string> = {
+  control: 'var(--leaf-bright)',
+  credito: '#C2185B',
+  proteccion: 'var(--forest-deep)',
+  crecimiento: 'var(--leaf-dark)',
+}
 
-  // Countdown
-  useEffect(() => {
-    if (!timerStarted || sessionComplete) return
-    if (secondsLeft <= 0) {
-      handleComplete()
-      return
-    }
-    const t = setTimeout(() => setSecondsLeft((s) => s - 1), 1000)
-    return () => clearTimeout(t)
-  })
+const ALL_DOMAINS: SkillDomain[] = ['control', 'credito', 'proteccion', 'crecimiento']
 
-  const handleComplete = useCallback(() => {
-    if (!completeSession.isPending && !sessionComplete) {
-      completeSession.mutate()
-    }
-  }, [completeSession, sessionComplete])
+// Pick a deterministic tip index based on today's date
+function getTipForDomain(domain: SkillDomain): string {
+  const dayOfYear = Math.floor(Date.now() / (1000 * 60 * 60 * 24))
+  const tips = DOMAIN_TIPS[domain]
+  return tips[dayOfYear % tips.length]
+}
 
-  // Auto-complete when all cards rated
-  useEffect(() => {
-    if (timerStarted && cards.length > 0 && currentIndex >= cards.length && !sessionComplete) {
-      handleComplete()
-    }
-  }, [currentIndex, cards.length, timerStarted, sessionComplete, handleComplete])
+// ---- Component -------------------------------------------------
 
-  const handleFlip = () => setIsFlipped(true)
+interface PolinizacionSessionProps {
+  onSubmit: (domain: SkillDomain, insight: string) => void
+  isPending?: boolean
+}
 
-  const handleRate = (quality: number) => {
-    if (!currentCard || rateCard.isPending) return
-    setIsFlipped(false)
-    rateCard.mutate({ cardId: currentCard.id, quality })
-  }
+export function PolinizacionSession({ onSubmit, isPending }: PolinizacionSessionProps) {
+  const shouldReduceMotion = useReducedMotion()
+  const [selectedDomain, setSelectedDomain] = useState<SkillDomain | null>(null)
+  const [insight, setInsight] = useState('')
 
-  const mins = Math.floor(secondsLeft / 60)
-  const secs = secondsLeft % 60
-  const timerLabel = `${mins}:${secs.toString().padStart(2, '0')}`
+  const isInsightValid = insight.trim().length >= 20
 
-  if (cardsLoading) {
-    return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-8 rounded-xl bg-muted opacity-50" />
-        <div className="h-40 rounded-xl bg-muted opacity-50" />
-      </div>
-    )
-  }
-
-  if (cards.length === 0) {
-    return (
-      <div className="organic-card p-8 text-center">
-        <p className="text-sm" style={{ color: 'var(--leaf-muted)' }}>
-          No hay tarjetas disponibles aún. Completa algunos cursos primero.
-        </p>
-      </div>
-    )
-  }
-
-  if (sessionComplete) {
-    return (
-      <motion.div
-        initial={reduced ? undefined : { opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="organic-card p-8 text-center space-y-4"
-      >
-        <span className="text-5xl block">🌸</span>
-        <h3 className="font-heading font-bold text-xl" style={{ color: 'var(--forest-deep)' }}>
-          ¡Polinización completa!
-        </h3>
-        {sessionCoins > 0 && (
-          <p className="font-bold text-2xl" style={{ color: 'var(--leaf-bright)' }}>
-            +{sessionCoins} 🪙
-          </p>
-        )}
-        <p className="text-sm" style={{ color: 'var(--leaf-muted)' }}>
-          Tus plantas han crecido 🌱
-        </p>
-      </motion.div>
-    )
+  function handleSubmit() {
+    if (!selectedDomain || !isInsightValid) return
+    onSubmit(selectedDomain, insight.trim())
   }
 
   return (
-    <div className="space-y-5">
-      {/* Timer + progress */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Timer
-            className="h-4 w-4"
-            style={{ color: isTimerRed ? '#dc2626' : 'var(--leaf-muted)' }}
-          />
-          <span
-            className="font-mono font-bold text-sm tabular-nums"
-            style={{ color: isTimerRed ? '#dc2626' : 'var(--forest-deep)' }}
-          >
-            {timerLabel}
-          </span>
-        </div>
-        <span className="text-xs font-semibold" style={{ color: 'var(--leaf-muted)' }}>
-          {currentIndex + 1} / {cards.length}
-        </span>
+    <div className="space-y-6">
+      {/* Concept header */}
+      <div className="organic-card p-4 space-y-1">
+        <p className="text-sm font-bold" style={{ color: 'var(--forest-deep)' }}>
+          🐝 Hoy aprende algo de un área diferente a la tuya
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Elige un dominio, lee el dato del día, y escribe una reflexión breve
+        </p>
       </div>
 
-      {/* Bee progress */}
-      <BeeProgress currentDomain={currentCard?.domain ?? null} />
+      {/* Domain cards */}
+      <div className="grid grid-cols-2 gap-3">
+        {ALL_DOMAINS.map((domain) => {
+          const isSelected = selectedDomain === domain
+          const tip = getTipForDomain(domain)
 
-      {/* Card */}
-      <AnimatePresence mode="wait">
-        {currentCard && (
+          return (
+            <motion.button
+              key={domain}
+              className="text-left p-3 rounded-2xl border-2 transition-colors space-y-2"
+              style={{
+                borderColor: isSelected ? DOMAIN_COLOR[domain] : 'var(--garden-plot-border)',
+                backgroundColor: isSelected ? DOMAIN_COLOR[domain] + '11' : 'var(--garden-plot-surface)',
+              }}
+              onClick={() => setSelectedDomain(domain)}
+              whileHover={shouldReduceMotion ? undefined : { scale: 1.02 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="text-lg">{DOMAIN_EMOJI[domain]}</span>
+                <span
+                  className="text-xs font-bold"
+                  style={{ color: isSelected ? DOMAIN_COLOR[domain] : 'var(--forest-deep)' }}
+                >
+                  {DOMAIN_LABEL[domain]}
+                </span>
+              </div>
+              <p className="text-xs leading-snug" style={{ color: 'var(--leaf-muted)' }}>
+                {tip}
+              </p>
+            </motion.button>
+          )
+        })}
+      </div>
+
+      {/* Reflection input */}
+      <AnimatePresence>
+        {selectedDomain && (
           <motion.div
-            key={currentCard.id}
-            initial={reduced ? undefined : { opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={reduced ? undefined : { opacity: 0, x: -20 }}
+            key="reflection"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
             transition={{ duration: 0.2 }}
+            className="space-y-3"
           >
-            <SimpleFlipCard
-              front={currentCard.front}
-              back={currentCard.back}
-              isFlipped={isFlipped}
-              onFlip={handleFlip}
+            <label className="block text-sm font-semibold" style={{ color: 'var(--forest-deep)' }}>
+              Tu reflexión sobre {DOMAIN_EMOJI[selectedDomain]} {DOMAIN_LABEL[selectedDomain]}
+            </label>
+            <textarea
+              className="w-full rounded-xl border p-3 text-sm resize-none focus:outline-none focus:ring-2 min-h-[100px]"
+              style={{
+                borderColor: 'var(--garden-plot-border)',
+                backgroundColor: 'var(--garden-plot-surface)',
+                color: 'var(--forest-deep)',
+              }}
+              placeholder="¿Qué aprendiste? ¿Cómo aplicarías esto en tu vida? (mín. 20 caracteres)"
+              value={insight}
+              onChange={(e) => setInsight(e.target.value)}
+              maxLength={500}
             />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{insight.trim().length}/500 caracteres</span>
+              {insight.trim().length < 20 && insight.length > 0 && (
+                <span className="text-orange-500">Mínimo 20 caracteres</span>
+              )}
+            </div>
+
+            <button
+              className="vibrant-btn w-full min-h-[44px] text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleSubmit}
+              disabled={!isInsightValid || isPending}
+            >
+              {isPending ? 'Guardando...' : 'Completar polinización 🐝'}
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {!isFlipped ? (
-        <button
-          onClick={handleFlip}
-          className="vibrant-btn w-full justify-center text-sm"
-        >
-          Ver respuesta
-        </button>
-      ) : (
-        <RatingButtons onRate={handleRate} disabled={rateCard.isPending} />
-      )}
-
-      <button
-        onClick={handleComplete}
-        disabled={completeSession.isPending}
-        className="w-full text-xs py-2 rounded-xl font-semibold transition-opacity hover:opacity-70 disabled:opacity-40"
-        style={{ color: 'var(--leaf-muted)', background: 'transparent' }}
-      >
-        Terminar sesión
-      </button>
     </div>
   )
 }
