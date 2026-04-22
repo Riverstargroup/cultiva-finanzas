@@ -18,7 +18,10 @@ export function useUserMission(scenarioId: string | undefined) {
         .eq("scenario_id", scenarioId!)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error("useUserMission: failed to fetch user_missions", error);
+        return null;
+      }
       return (data as any) ?? null;
     },
   });

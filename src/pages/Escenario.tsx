@@ -14,6 +14,7 @@ import { updateSkillsOnCompletion } from "@/lib/skillUpdater";
 import { useStreak } from "@/hooks/useStreak";
 import { useUserMission } from "@/hooks/useUserMission";
 import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import DecisionStep from "@/components/scenario/DecisionStep";
 import FeedbackStep from "@/components/scenario/FeedbackStep";
 import RecallStep from "@/components/scenario/RecallStep";
@@ -51,6 +52,7 @@ export default function Escenario() {
   const reduced = useReducedMotion();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   const { data: scenario, isLoading: scenarioLoading } = useScenario(scenarioId);
   const { data: courseDetail } = useCourseDetail(courseId);
@@ -178,9 +180,13 @@ export default function Escenario() {
         streak: (streak ?? 0) + (existingDay ? 0 : 1),
       });
 
-      // Update skills based on tags
+      // Update skills based on tags (non-critical — swallow errors)
       if (isFirstCompletion && scenario?.tags) {
-        await updateSkillsOnCompletion(user.id, scenario.tags, score, true);
+        try {
+          await updateSkillsOnCompletion(user.id, scenario.tags, score, true);
+        } catch (skillErr) {
+          console.error("updateSkillsOnCompletion failed (non-critical):", skillErr);
+        }
       }
 
       invalidateProgress();
@@ -207,10 +213,15 @@ export default function Escenario() {
       }
     } catch (err) {
       console.error("Error saving progress:", err);
+      toast({
+        title: "Error guardando progreso",
+        description: "No se pudo guardar tu avance. Por favor intenta de nuevo.",
+        variant: "destructive",
+      });
     } finally {
       setSaving(false);
     }
-  }, [user, courseId, scenarioId, saving, scenarios, scenario, streak, invalidateProgress, queryClient, prediction, revealOutcome]);
+  }, [user, courseId, scenarioId, saving, scenarios, scenario, streak, invalidateProgress, queryClient, prediction, revealOutcome, toast]);
 
   if (scenarioLoading) {
     return <ScenarioSkeleton />;

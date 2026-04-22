@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+
 export type GameId = 'presupuesto-rapido' | 'inflacion-challenge';
 
 export type GameState = 'idle' | 'playing' | 'finished';
@@ -52,7 +54,8 @@ export interface GameCard {
   id: GameId;
   title: string;
   description: string;
-  icon: string;
+  /** React node — use an SVG illustration component rather than an emoji string. */
+  icon: ReactNode;
   duration: string;
   difficulty: 'Fácil' | 'Medio' | 'Difícil';
 }

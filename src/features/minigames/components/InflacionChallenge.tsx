@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
+import { InflacionChallengeIllustration } from '../assets';
 import type { InflacionProduct, InflacionAnswer, InflacionResult } from '../types';
 
 const PRODUCTS: InflacionProduct[] = [
@@ -107,6 +108,7 @@ export function InflacionChallenge({ onRestart }: Props) {
         className="space-y-5"
       >
         <div className="text-center space-y-2">
+          <InflacionChallengeIllustration className="w-20 h-16 mx-auto" />
           <div
             className="organic-border h-16 w-16 mx-auto flex items-center justify-center text-2xl font-black"
             style={{ background: 'color-mix(in srgb, var(--leaf-bright) 15%, transparent)' }}
@@ -193,6 +195,9 @@ export function InflacionChallenge({ onRestart }: Props) {
 
   return (
     <div className="space-y-5">
+      {/* Game illustration */}
+      <InflacionChallengeIllustration className="w-20 h-16 mx-auto" />
+
       {/* Progress */}
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
