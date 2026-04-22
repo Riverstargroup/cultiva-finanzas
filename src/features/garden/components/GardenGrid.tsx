@@ -19,7 +19,7 @@ export function GardenGrid({ plots, activePlotId, pendingAnimation = {}, onPlotS
   }
 
   return (
-    <div className={`grid grid-cols-2 gap-4 ${className ?? ''}`}>
+    <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${className ?? ''}`}>
       {plots.map((plot) => (
         <GardenPlot
           key={plot.id}
@@ -27,6 +27,7 @@ export function GardenGrid({ plots, activePlotId, pendingAnimation = {}, onPlotS
           isActive={selected === plot.id}
           animation={pendingAnimation[plot.id] ?? 'idle'}
           onClick={handleSelect}
+          className="min-h-[160px] sm:min-h-[180px]"
         />
       ))}
     </div>

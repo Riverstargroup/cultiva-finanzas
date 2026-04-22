@@ -3,11 +3,32 @@ import { motion } from "framer-motion";
 import CourseCard from "@/components/CourseCard";
 import EmptyState from "@/components/EmptyState";
 import BotanicalPage from "@/components/layout/BotanicalPage";
+import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen } from "lucide-react";
 import { useCourses } from "@/hooks/useCourses";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
+function CourseSkeletonGrid() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="organic-card overflow-hidden">
+          <div className="p-5 space-y-3">
+            <Skeleton className="h-4 w-16 rounded-full" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+            <Skeleton className="h-5 w-3/4" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+            <Skeleton className="h-4 w-full" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+            <Skeleton className="h-4 w-2/3" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+            <div className="pt-2">
+              <Skeleton className="h-2 w-full rounded-full" style={{ background: "color-mix(in srgb, var(--clay-soft) 80%, transparent)" }} />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const TABS = [
   { key: "todos", label: "Todos" },
@@ -99,14 +120,13 @@ export default function Cursos() {
       </div>
 
       {isLoading ? (
-        <div className="organic-card p-8 text-center">
-          <p style={{ color: "var(--leaf-muted)" }}>Cargando cursos...</p>
-        </div>
+        <CourseSkeletonGrid />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={BookOpen}
-          title={tab === "todos" ? "Sin cursos disponibles" : tab === "progreso" ? "Ningún curso en progreso" : "Ningún curso completado"}
-          description={tab === "todos" ? "Pronto habrá nuevos cursos para ti." : "Inicia un curso para verlo aquí."}
+          emoji={tab === "todos" ? "📚" : tab === "progreso" ? "🌱" : "🏆"}
+          title={tab === "todos" ? "Sin cursos disponibles" : tab === "progreso" ? "Aún sin cursos en progreso" : "Ningún curso completado aún"}
+          description={tab === "todos" ? "Pronto habrá nuevas semillas de conocimiento para ti." : tab === "progreso" ? "Inicia un curso y aparecerá aquí mientras avanzas." : "Completa todos los escenarios de un curso para verlo aquí."}
         />
       ) : (
         <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
