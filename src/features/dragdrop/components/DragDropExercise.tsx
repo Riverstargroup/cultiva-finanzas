@@ -1,150 +1,200 @@
 import {
   DndContext,
-  DragOverlay,
   MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
-  type DragStartEvent,
 } from '@dnd-kit/core'
-import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { DraggableItem } from './DraggableItem'
 import { DropZone } from './DropZone'
 import { useDragDropSession } from '../hooks/useDragDropSession'
-import type { DragDropExercise as DragDropExerciseType, DragItem } from '../types'
+import type { DragDropExercise as DragDropExerciseType } from '../types'
 
 interface DragDropExerciseProps {
   exercise: DragDropExerciseType
+  onNext?: () => void
 }
 
-export function DragDropExercise({ exercise }: DragDropExerciseProps) {
-  const session = useDragDropSession(exercise)
-  const [activeItem, setActiveItem] = useState<DragItem | null>(null)
+export function DragDropExercise({ exercise, onNext }: DragDropExerciseProps) {
+  const { session, placeItem, removeItem, submit, reset, allPlaced } =
+    useDragDropSession(exercise)
 
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 5 } })
-  )
-
-  const unplacedItems = exercise.items.filter(item => session.placement[item.id] === undefined)
-
-  const itemsInZone = (zoneId: string) =>
-    exercise.items.filter(item => session.placement[item.id] === zoneId)
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const item = exercise.items.find(i => i.id === event.active.id)
-    setActiveItem(item ?? null)
-  }
+  const mouseSensor = useSensor(MouseSensor, {
+    activationConstraint: { distance: 4 },
+  })
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: { delay: 100, tolerance: 8 },
+  })
+  const sensors = useSensors(mouseSensor, touchSensor)
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveItem(null)
     const { active, over } = event
-    if (!over) return
-    const itemId = active.id as string
-    const zoneId = over.id as string
-    const isZone = exercise.zones.some(z => z.id === zoneId)
-    if (!isZone) return
-
-    const isCorrect = exercise.correctMapping[itemId] === zoneId
-    if (!isCorrect && session.verifyResult === null) {
-      setTimeout(() => session.removeItem(itemId), 400)
+    if (!over) {
+      removeItem(String(active.id))
+      return
     }
-    session.moveItem(itemId, zoneId)
+    const itemId = String(active.id)
+    const zoneId = String(over.id)
+    placeItem(itemId, zoneId)
   }
 
-  if (session.isDone) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="organic-card p-8 text-center space-y-4"
-      >
-        <span className="text-5xl">🌱</span>
-        <h3 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
-          ¡Correcto!
-        </h3>
-        <p className="text-muted-foreground text-sm">Tu planta ha crecido un poco más.</p>
-        <button
-          onClick={session.reset}
-          className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
-        >
-          Intentar de nuevo
-        </button>
-      </motion.div>
-    )
-  }
+  const unplacedItems = exercise.items.filter(
+    (item) => !(item.id in session.currentMapping)
+  )
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="space-y-5">
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Prompt */}
-        <div className="organic-card p-4">
-          <p className="font-semibold text-sm" style={{ color: 'var(--forest-deep)' }}>
-            {exercise.prompt}
-          </p>
-        </div>
+        <p
+          style={{
+            fontSize: '1rem',
+            fontWeight: 600,
+            color: 'var(--leaf-dark, #1B3B26)',
+            lineHeight: 1.5,
+          }}
+        >
+          {exercise.prompt}
+        </p>
 
-        {/* Unplaced items bank */}
-        <div className="flex flex-wrap gap-2 min-h-[48px] p-2 rounded-xl border border-dashed border-muted-foreground/30">
-          {unplacedItems.length === 0 ? (
-            <span className="text-xs text-muted-foreground self-center w-full text-center">
-              Todos los elementos han sido colocados
-            </span>
-          ) : (
-            unplacedItems.map(item => (
-              <DraggableItem key={item.id} item={item} disabled={session.verifyResult !== null} />
-            ))
-          )}
+        {/* Item bank */}
+        <div
+          style={{
+            background: 'rgba(244,236,225,0.4)',
+            borderRadius: '16px',
+            padding: '14px',
+            border: '1px solid var(--clay-soft, #d4c5b0)',
+          }}
+        >
+          <span
+            style={{
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              color: 'var(--leaf-muted, #5B7A3A)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              display: 'block',
+              marginBottom: '10px',
+            }}
+          >
+            Arrastra los elementos
+          </span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', minHeight: '40px' }}>
+            {unplacedItems.map((item) => (
+              <DraggableItem
+                key={item.id}
+                item={item}
+                submitted={session.submitted}
+              />
+            ))}
+            {unplacedItems.length === 0 && !session.submitted && (
+              <span style={{ fontSize: '0.85rem', color: 'var(--leaf-muted)', opacity: 0.6 }}>
+                Todos los elementos están colocados ✓
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Drop zones */}
-        <div className="grid grid-cols-1 gap-3">
-          {exercise.zones.map(zone => (
-            <DropZone
-              key={zone.id}
-              zone={zone}
-              items={itemsInZone(zone.id)}
-              verifyResult={session.verifyResult}
-              correctMapping={exercise.correctMapping}
-              onRemoveItem={session.verifyResult === null ? session.removeItem : undefined}
-            />
-          ))}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {exercise.zones.map((zone) => {
+            const zoneItems = exercise.items.filter(
+              (item) => session.currentMapping[item.id] === zone.id
+            )
+            return (
+              <DropZone
+                key={zone.id}
+                id={zone.id}
+                label={zone.label}
+                items={zoneItems}
+                submitted={session.submitted}
+                correctMapping={exercise.correctMapping}
+                currentMapping={session.currentMapping}
+              />
+            )
+          })}
         </div>
 
         {/* Feedback */}
-        {session.verifyResult === 'incorrect' && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-sm text-red-600 font-medium"
+        {session.submitted && session.correct !== null && (
+          <div
+            style={{
+              borderRadius: '12px',
+              padding: '14px 16px',
+              background: session.correct
+                ? 'rgba(34,197,94,0.1)'
+                : 'rgba(239,68,68,0.08)',
+              border: `1px solid ${session.correct ? '#22c55e' : '#ef4444'}`,
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              color: session.correct ? '#15803d' : '#b91c1c',
+            }}
           >
-            Algunos elementos no están en el lugar correcto. ¡Inténtalo de nuevo!
-          </motion.p>
+            {session.correct
+              ? `¡Excelente! Respuesta correcta 🌱 +${(session.masteryEarned * 100).toFixed(0)} dominio ganado`
+              : 'Casi — revisa los elementos en rojo e intenta de nuevo'}
+          </div>
         )}
 
-        {/* Action buttons */}
-        <div className="flex gap-3">
-          <button
-            onClick={session.reset}
-            className="flex-1 py-2 rounded-xl border border-border text-sm font-medium hover:bg-muted transition-colors"
-          >
-            Reiniciar
-          </button>
-          <button
-            onClick={session.verify}
-            disabled={!session.allPlaced || session.verifyResult === 'correct'}
-            className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Verificar
-          </button>
+        {/* Actions */}
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          {!session.submitted ? (
+            <button
+              onClick={submit}
+              disabled={!allPlaced}
+              style={{
+                padding: '10px 24px',
+                borderRadius: '20px',
+                border: 'none',
+                background: allPlaced ? 'var(--leaf-bright, #4CAF50)' : 'var(--clay-soft, #d4c5b0)',
+                color: allPlaced ? '#fff' : 'var(--leaf-muted)',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                cursor: allPlaced ? 'pointer' : 'not-allowed',
+                transition: 'background 0.2s',
+              }}
+            >
+              Verificar respuestas
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={reset}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '20px',
+                  border: '2px solid var(--clay-soft)',
+                  background: 'transparent',
+                  color: 'var(--leaf-dark)',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Reintentar
+              </button>
+              {onNext && (
+                <button
+                  onClick={onNext}
+                  style={{
+                    padding: '10px 24px',
+                    borderRadius: '20px',
+                    border: 'none',
+                    background: 'var(--leaf-bright, #4CAF50)',
+                    color: '#fff',
+                    fontWeight: 700,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Siguiente ejercicio →
+                </button>
+              )}
+            </>
+          )}
         </div>
       </div>
-
-      <DragOverlay>
-        {activeItem && <DraggableItem item={activeItem} />}
-      </DragOverlay>
     </DndContext>
   )
 }

@@ -1,14 +1,11 @@
 import type { SkillDomain } from '@/features/garden/types'
 
+export type DropZoneId = string
+
 export interface DragItem {
   id: string
   label: string
   emoji?: string
-}
-
-export interface DropZone {
-  id: string
-  label: string
 }
 
 export interface DragDropExercise {
@@ -16,10 +13,14 @@ export interface DragDropExercise {
   domain: SkillDomain
   prompt: string
   items: DragItem[]
-  zones: DropZone[]
-  correctMapping: Record<string, string>
+  zones: { id: DropZoneId; label: string }[]
+  correctMapping: Record<string, DropZoneId>
 }
 
-export type Placement = Record<string, string>
-
-export type VerifyResult = 'correct' | 'incorrect' | null
+export interface DragDropSession {
+  exercise: DragDropExercise
+  currentMapping: Record<string, DropZoneId>
+  submitted: boolean
+  correct: boolean | null
+  masteryEarned: number
+}
