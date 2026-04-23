@@ -20,13 +20,13 @@ export function useHarvest() {
       if (!user?.id) throw new Error('Not authenticated')
 
       await supabase
-        .from('user_weekly_challenges' as any)
-        .update({ harvested: true } as any)
+        .from('user_weekly_challenges')
+        .update({ harvested: true })
         .eq('id', challengeId)
         .eq('user_id', user.id)
 
       if (rewardCoins > 0) {
-        await supabase.rpc('award_coins' as any, {
+        await supabase.rpc('award_coins', {
           p_user_id: user.id,
           p_delta: rewardCoins,
           p_reason: 'challenge_harvest',

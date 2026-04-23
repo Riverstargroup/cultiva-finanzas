@@ -53,7 +53,7 @@ export function useDragDropSession(exercise: DragDropExercise): {
       growPlant.mutate({ domain: exercise.domain, masteryDelta: MASTERY_DELTA }, { onError: () => {} })
       if (user) {
         supabase
-          .rpc('award_coins' as any, { p_user_id: user.id, p_amount: 15, p_reason: 'dragdrop_complete' })
+          .rpc('award_coins', { p_user_id: user.id, p_delta: 15, p_reason: 'dragdrop_complete' })
           .then()
       }
     }

@@ -5,7 +5,7 @@ import type { ShopItem, SpecialPower } from '../types'
 
 async function fetchShopItems(): Promise<ShopItem[]> {
   const { data, error } = await supabase
-    .from('plant_shop_items' as any)
+    .from('plant_shop_items')
     .select('*')
     .eq('is_available', true)
     .order('sort_order')
@@ -13,7 +13,7 @@ async function fetchShopItems(): Promise<ShopItem[]> {
   if (error) throw error
   if (!data) return []
 
-  return (data as any[]).map((row): ShopItem => ({
+  return data.map((row): ShopItem => ({
     id: row.id,
     slug: row.slug,
     name: row.name,

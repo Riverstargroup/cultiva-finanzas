@@ -1,14 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { gardenKeys } from './useGarden'
+import type { Tables } from '@/integrations/supabase/types'
 import type { InventoryItem, ShopItem, SpecialPower } from '../types'
+
+type InventoryRowWithItem = Tables<'user_plant_inventory'> & {
+  shop_item: Tables<'plant_shop_items'>
+}
 
 async function fetchInventory(userId: string): Promise<InventoryItem[]> {
   const { data, error } = await supabase
-    .from('user_plant_inventory' as any)
+    .from('user_plant_inventory')
     .select('*, shop_item:shop_item_id(*)')
     .eq('user_id', userId)
     .order('purchased_at', { ascending: false })
@@ -16,8 +20,8 @@ async function fetchInventory(userId: string): Promise<InventoryItem[]> {
   if (error) throw error
   if (!data) return []
 
-  return (data as any[]).map((row): InventoryItem => {
-    const s = row.shop_item as any
+  return (data as InventoryRowWithItem[]).map((row): InventoryItem => {
+    const s = row.shop_item
     const shopItem: ShopItem = {
       id: s.id,
       slug: s.slug,
@@ -62,12 +66,12 @@ export function usePurchaseItem() {
   return useMutation({
     mutationFn: async (shopItemId: string) => {
       if (!user?.id) throw new Error('Not authenticated')
-      const { data, error } = await supabase.rpc('buy_shop_item' as any, {
+      const { data, error } = await supabase.rpc('buy_shop_item', {
         p_user_id: user.id,
         p_shop_item_id: shopItemId,
       })
       if (error) throw error
-      const result = data as any
+      const result = data as { error?: string } | null
       if (result?.error) throw new Error(result.error)
       return result
     },
@@ -92,7 +96,7 @@ export function usePlaceItem() {
   return useMutation({
     mutationFn: async ({ inventoryId, posX, posY }: { inventoryId: string; posX: number; posY: number }) => {
       if (!user?.id) throw new Error('Not authenticated')
-      const { data, error } = await supabase.rpc('place_inventory_item' as any, {
+      const { data, error } = await supabase.rpc('place_inventory_item', {
         p_user_id: user.id,
         p_inventory_id: inventoryId,
         p_pos_x: posX,
@@ -118,12 +122,12 @@ export function useActivatePower() {
   return useMutation({
     mutationFn: async (inventoryId: string) => {
       if (!user?.id) throw new Error('Not authenticated')
-      const { data, error } = await supabase.rpc('activate_special_power' as any, {
+      const { data, error } = await supabase.rpc('activate_special_power', {
         p_user_id: user.id,
         p_inventory_id: inventoryId,
       })
       if (error) throw error
-      const result = data as any
+      const result = data as { error?: string; power?: string; active_until?: string } | null
       if (result?.error) throw new Error(result.error)
       return result as { power: string; active_until: string }
     },

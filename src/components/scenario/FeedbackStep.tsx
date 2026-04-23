@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { MessageCircle, Target, Check, SkipForward, Loader2, TrendingUp, TrendingDown, Clock } from "lucide-react";
@@ -26,14 +25,14 @@ export default function FeedbackStep({ coaching, selectedOption, mission, scenar
     setSaving(true);
     try {
       await supabase
-        .from("user_missions" as any)
+        .from("user_missions")
         .upsert(
           {
             user_id: userId,
             scenario_id: scenarioId,
             status,
             done_at: status === "done" ? new Date().toISOString() : null,
-          } as any,
+          },
           { onConflict: "user_id,scenario_id" }
         );
       setMissionStatus(status);

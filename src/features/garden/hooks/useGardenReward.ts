@@ -24,7 +24,7 @@ export function useGardenReward() {
     (amount: number, reason: string) => {
       if (!user) return
       supabase
-        .rpc('award_coins' as any, { p_user_id: user.id, p_amount: amount, p_reason: reason })
+        .rpc('award_coins', { p_user_id: user.id, p_delta: amount, p_reason: reason })
         .then()
     },
     [user]
