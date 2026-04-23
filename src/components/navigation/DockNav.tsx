@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { LayoutDashboard, BookOpen, Calculator, Trophy, User, Gamepad2 } from "lucide-react";
+import { Sprout, BookOpen, Calculator, Trophy, User, Gamepad2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { SECTION_ORDER } from "@/hooks/useSectionNavigation";
@@ -12,7 +12,7 @@ interface DockItem {
 }
 
 const DOCK_ITEMS: DockItem[] = [
-  { path: SECTION_ORDER[0], label: "Inicio", icon: LayoutDashboard },
+  { path: SECTION_ORDER[0], label: "Inicio", icon: Sprout },
   { path: SECTION_ORDER[1], label: "Cursos", icon: BookOpen },
   { path: SECTION_ORDER[2], label: "Calculadora", icon: Calculator },
   { path: SECTION_ORDER[3], label: "Logros", icon: Trophy },
@@ -44,7 +44,10 @@ export default function DockNav() {
         }}
       >
         {DOCK_ITEMS.map((item) => {
-          const isActive = pathname === item.path || pathname.startsWith(item.path + "/");
+          const isActive =
+            item.path === "/"
+              ? pathname === "/"
+              : pathname === item.path || pathname.startsWith(item.path + "/");
           const Icon = item.icon;
 
           return (

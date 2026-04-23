@@ -10,7 +10,17 @@ import type { GardenState, GardenPlot, Plant, SkillDomain } from '../types'
 // NOTE: use a separate const so closures never reference `gardenKeys` during
 // its own initialization (avoids TDZ in minified bundles).
 const GARDEN_KEY_BASE = ['garden'] as const
-export const gardenKeys = {
+
+type QueryKeyFn = (userId: string) => readonly unknown[]
+interface GardenQueryKeys {
+  all: readonly unknown[]
+  plots: QueryKeyFn
+  coins: QueryKeyFn
+  economy: QueryKeyFn
+  inventory: QueryKeyFn
+}
+
+export const gardenKeys: GardenQueryKeys = {
   all: GARDEN_KEY_BASE,
   plots: (userId: string) => [...GARDEN_KEY_BASE, 'plots', userId] as const,
   coins: (userId: string) => [...GARDEN_KEY_BASE, 'coins', userId] as const,

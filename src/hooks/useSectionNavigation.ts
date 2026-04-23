@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export const SECTION_ORDER = [
-  "/dashboard",
+  "/",
   "/cursos",
   "/calculadora",
   "/logros",
@@ -16,7 +16,9 @@ export function useSectionNavigation() {
   const navigate = useNavigate();
 
   const currentIndex = useMemo(() => {
-    const idx = SECTION_ORDER.findIndex((p) => pathname.startsWith(p));
+    const idx = SECTION_ORDER.findIndex((p) =>
+      p === '/' ? pathname === '/' : pathname.startsWith(p)
+    );
     return idx === -1 ? 0 : idx;
   }, [pathname]);
 

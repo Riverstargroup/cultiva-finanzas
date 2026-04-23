@@ -32,14 +32,14 @@ export default function AuthCallback() {
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!error) {
-          navigate("/dashboard", { replace: true });
+          navigate("/", { replace: true });
           return;
         }
       }
 
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate("/dashboard", { replace: true });
+        navigate("/", { replace: true });
         return;
       }
 
