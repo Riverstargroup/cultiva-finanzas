@@ -4,7 +4,7 @@ import { ArrowLeft, Gamepad2, Clock, BarChart2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import BotanicalPage from '@/components/layout/BotanicalPage';
-import { PresupuestoRapido } from '@/features/minigames/components/PresupuestoRapido';
+import { PresupuestoRapido } from '@/features/minigames/games/PresupuestoRapido';
 import { InflacionChallenge } from '@/features/minigames/components/InflacionChallenge';
 import {
   PresupuestoRapidoIllustration,
@@ -162,7 +162,7 @@ export default function Juegos() {
 
             <div className="organic-card p-5 md:p-6">
               {activeView === 'presupuesto-rapido' && (
-                <PresupuestoRapido key={gameKey} onRestart={handleRestart} />
+                <PresupuestoRapido key={gameKey} onBack={handleBackToLobby} />
               )}
               {activeView === 'inflacion-challenge' && (
                 <InflacionChallenge key={gameKey} onRestart={handleRestart} />
