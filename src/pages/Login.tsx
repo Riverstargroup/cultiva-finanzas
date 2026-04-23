@@ -17,7 +17,11 @@ const Login = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/";
+  const rawRedirect = searchParams.get("redirect") || "/";
+  // Prevent open-redirect: only allow relative paths (starts with / but not //)
+  const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+    ? rawRedirect
+    : "/";
 
   // Manejo del envio del formulario de inicio de sesion
   const handleSubmit = async (e: React.FormEvent) => {
