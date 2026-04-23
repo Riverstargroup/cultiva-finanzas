@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { useToast } from '@/hooks/use-toast'
 import { gardenKeys } from '@/features/garden/hooks/useGarden'
 import { flashcardKeys } from './useDueCards'
 import type { Flashcard, FlashcardRating } from '../types'
@@ -30,6 +31,7 @@ export interface FlashcardSessionActions {
 export function useFlashcardSession(cards: Flashcard[]): FlashcardSessionState & FlashcardSessionActions {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { toast } = useToast()
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
@@ -59,8 +61,8 @@ export function useFlashcardSession(cards: Flashcard[]): FlashcardSessionState &
     try {
       const { error } = await supabase.rpc('apply_flashcard_review', {
         p_user_id: user.id,
-        p_card_id: card.id,
-        p_rating: rating,
+        p_flashcard_id: card.id,
+        p_quality: rating,
       })
 
       if (error) throw error
@@ -84,12 +86,16 @@ export function useFlashcardSession(cards: Flashcard[]): FlashcardSessionState &
         setFlipped(false)
       }
     } catch (err) {
-      // Log error to a proper error reporting service in production
       console.error('Error applying flashcard review:', err)
+      toast({
+        variant: 'destructive',
+        title: 'No se pudo guardar tu respuesta',
+        description: 'Intenta de nuevo en unos momentos.',
+      })
     } finally {
       setIsRating(false)
     }
-  }, [user?.id, isRating, cards, currentIndex, stats.reviewed, queryClient])
+  }, [user?.id, isRating, cards, currentIndex, stats.reviewed, queryClient, toast])
 
   return {
     cards,

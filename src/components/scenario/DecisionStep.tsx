@@ -11,6 +11,14 @@ interface DecisionStepProps {
 export default function DecisionStep({ prompt, options, onSelect }: DecisionStepProps) {
   const reduced = useReducedMotion();
 
+  if (!options?.length) {
+    return (
+      <p className="text-sm text-center py-6" style={{ color: "var(--leaf-muted)" }}>
+        Este escenario no tiene opciones disponibles.
+      </p>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <p className="text-base leading-relaxed" style={{ color: "var(--text-warm)" }}>
