@@ -224,7 +224,12 @@ export function GardenScene({
   weather = 'clear',
   showLabels = false,
 }: GardenSceneProps): JSX.Element {
-  const effectiveTimeOfDay: TimeOfDay = timeOfDay ?? getTimeOfDay()
+  // Memoized so getTimeOfDay() (new Date()) runs once, not on every render.
+  // Value re-derives only when the timeOfDay prop changes (manual override).
+  const effectiveTimeOfDay: TimeOfDay = useMemo(
+    () => timeOfDay ?? getTimeOfDay(),
+    [timeOfDay] // eslint-disable-line react-hooks/exhaustive-deps
+  )
 
   const [speechFor, setSpeechFor] = useState<SkillDomain | null>(null)
   const [wateringMode, setWateringMode] = useState(false)

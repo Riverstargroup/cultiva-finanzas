@@ -3,12 +3,13 @@ import type { GardenPlot, InventoryItem, GardenEconomy } from '../types'
 
 interface BackyardViewProps {
   plots: readonly GardenPlot[]
-  inventory: InventoryItem[]
-  placing: InventoryItem | null
-  onPlaced: (inventoryId: string, posX: number, posY: number) => void
-  onCancelPlace: () => void
-  economy: GardenEconomy | null
   coins?: number
+  // Reserved for future GardenScene integration:
+  inventory?: InventoryItem[]
+  placing?: InventoryItem | null
+  onPlaced?: (inventoryId: string, posX: number, posY: number) => void
+  onCancelPlace?: () => void
+  economy?: GardenEconomy | null
 }
 
 // Derive total coins from inventory + economy context is handled upstream.

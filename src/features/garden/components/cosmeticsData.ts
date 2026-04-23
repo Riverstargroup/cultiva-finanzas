@@ -34,7 +34,8 @@ function safeParse<T>(raw: string | null, fallback: T): T {
 
 export function loadOwnedCosmetics(): ReadonlyArray<CosmeticId> {
   if (typeof window === 'undefined') return []
-  return safeParse<CosmeticId[]>(window.localStorage.getItem(OWNED_KEY), [])
+  try { return safeParse<CosmeticId[]>(window.localStorage.getItem(OWNED_KEY), []) }
+  catch { return [] }
 }
 
 export function saveOwnedCosmetics(owned: ReadonlyArray<CosmeticId>): void {
@@ -50,7 +51,8 @@ export type EquippedMap = Readonly<Record<string, CosmeticId | undefined>>
 
 export function loadEquippedCosmetics(): EquippedMap {
   if (typeof window === 'undefined') return {}
-  return safeParse<EquippedMap>(window.localStorage.getItem(EQUIPPED_KEY), {})
+  try { return safeParse<EquippedMap>(window.localStorage.getItem(EQUIPPED_KEY), {}) }
+  catch { return {} }
 }
 
 export function saveEquippedCosmetics(equipped: EquippedMap): void {
@@ -64,10 +66,12 @@ export function saveEquippedCosmetics(equipped: EquippedMap): void {
 
 export function loadLocalCoinsOverride(): number | null {
   if (typeof window === 'undefined') return null
-  const raw = window.localStorage.getItem(COINS_KEY)
-  if (raw === null) return null
-  const n = Number(raw)
-  return Number.isFinite(n) ? n : null
+  try {
+    const raw = window.localStorage.getItem(COINS_KEY)
+    if (raw === null) return null
+    const n = Number(raw)
+    return Number.isFinite(n) ? n : null
+  } catch { return null }
 }
 
 export function saveLocalCoinsOverride(coins: number): void {
