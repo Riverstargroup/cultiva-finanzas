@@ -203,3 +203,59 @@ export interface ParticleConfig {
   readonly stagger?: number
   readonly blur?: number
 }
+
+// ============================================================
+// Backyard economy extensions (Phase 2)
+// ============================================================
+
+export type SpecialPower = 'fire' | 'gold' | 'ice'
+
+export interface ShopItem {
+  readonly id: string
+  readonly slug: string
+  readonly name: string
+  readonly description: string
+  readonly price: number
+  readonly species: string
+  readonly emoji: string
+  readonly specialPower: SpecialPower | null
+  readonly powerDescription: string | null
+  readonly isCosmetic: boolean
+  readonly sortOrder: number
+}
+
+export interface InventoryItem {
+  readonly id: string
+  readonly shopItem: ShopItem
+  readonly isPlaced: boolean
+  readonly posX: number | null
+  readonly posY: number | null
+  readonly purchasedAt: string
+}
+
+export interface GardenEconomy {
+  readonly rentDueAt: string
+  readonly rentAmount: number
+  readonly fireActiveUntil: string | null
+  readonly goldActiveUntil: string | null
+  readonly iceActiveUntil: string | null
+  readonly lastPassiveCoinsAt: string | null
+}
+
+export const SPECIAL_POWER_COLORS: Readonly<Record<SpecialPower, { aura: string; glow: string; accent: string }>> = {
+  fire: { aura: 'rgba(255,94,58,0.35)',  glow: 'rgba(255,160,60,0.5)',  accent: '#FF5E3A' },
+  gold: { aura: 'rgba(245,196,58,0.35)', glow: 'rgba(255,215,0,0.5)',   accent: '#F5C842' },
+  ice:  { aura: 'rgba(137,196,244,0.35)',glow: 'rgba(180,220,255,0.5)', accent: '#89C4F4' },
+} as const
+
+export const SPECIAL_POWER_LABELS: Readonly<Record<SpecialPower, string>> = {
+  fire: 'Escudo de racha',
+  gold: 'Ingreso pasivo',
+  ice:  'Renta congelada',
+} as const
+
+export const SPECIAL_POWER_EMOJIS: Readonly<Record<SpecialPower, string>> = {
+  fire: '🔥',
+  gold: '🥇',
+  ice:  '🧊',
+} as const

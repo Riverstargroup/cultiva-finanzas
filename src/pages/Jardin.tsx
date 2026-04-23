@@ -1,167 +1,118 @@
-import { useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { GardenGrid } from '@/features/garden/components/GardenGrid'
-import { GardenStats } from '@/features/garden/components/GardenStats'
-import GardenErrorBoundary from '@/features/garden/GardenErrorBoundary'
-import { useGarden, useInitGarden } from '@/features/garden/hooks/useGarden'
-import { useReducedMotion } from '@/hooks/useReducedMotion'
+import { useEffect, useState } from 'react'
 import PageTransition from '@/components/PageTransition'
 import { WeeklyRetos } from '@/features/retos/components/WeeklyRetos'
-import { Leaf, Loader2 } from 'lucide-react'
+import { useGarden, useInitGarden } from '@/features/garden/hooks/useGarden'
+import { useGardenEconomy, useGardenTick } from '@/features/garden/hooks/useGardenEconomy'
+import { useInventory, usePlaceItem } from '@/features/garden/hooks/useInventory'
+import { useStreak } from '@/hooks/useStreak'
+import GardenErrorBoundary from '@/features/garden/GardenErrorBoundary'
+import { BackyardSkyHeader } from '@/features/garden/components/BackyardSkyHeader'
+import { GardenEconomyBanner } from '@/features/garden/components/GardenEconomyBanner'
+import { BackyardView } from '@/features/garden/components/BackyardView'
+import { GardenToolbar } from '@/features/garden/components/GardenToolbar'
+import { PlantShopDrawer } from '@/features/garden/components/PlantShopDrawer'
+import { InventoryDrawer } from '@/features/garden/components/InventoryDrawer'
+import { JardinSkeleton } from '@/features/garden/components/JardinSkeleton'
+import { JardinWelcome } from '@/features/garden/components/JardinWelcome'
+import type { InventoryItem } from '@/features/garden/types'
 
 export default function Jardin() {
   const garden = useGarden()
+  const economy = useGardenEconomy()
+  const { data: inventory = [] } = useInventory()
+  const { data: streakDays = 0 } = useStreak()
   const initGarden = useInitGarden()
-  const reduced = useReducedMotion()
+  const tick = useGardenTick()
+  const placeItem = usePlaceItem()
 
-  // Auto-init only after loading confirmed no plots and initGarden hasn't been called
-  useEffect(() => {
-    if (!garden.isLoading && garden.plots.length === 0 && initGarden.isIdle) {
-      // Do NOT auto-init — let user trigger via welcome screen
-    }
-  }, [garden.isLoading, garden.plots.length, initGarden.isIdle])
+  const [shopOpen, setShopOpen] = useState(false)
+  const [invOpen, setInvOpen] = useState(false)
+  const [placing, setPlacing] = useState<InventoryItem | null>(null)
 
-  const plantsMastered = garden.plots.filter((p) => p.plant.stage === 'mastered').length
   const isNewUser = !garden.isLoading && garden.plots.length === 0
+  const unplacedCount = inventory.filter((i) => !i.isPlaced).length
 
-  const item = {
-    hidden: { opacity: 0, y: 12 },
-    show: { opacity: 1, y: 0 },
+  // Tick economy once per garden visit (idempotent server-side)
+  useEffect(() => {
+    if (!garden.isLoading && garden.plots.length > 0) {
+      tick.mutate()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [garden.isLoading, garden.plots.length])
+
+  const handlePlaced = (inventoryId: string, posX: number, posY: number) => {
+    placeItem.mutate({ inventoryId, posX, posY })
+    setPlacing(null)
   }
-  const stagger = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.1 } },
+
+  if (garden.isLoading) return <JardinSkeleton />
+
+  if (isNewUser) {
+    return (
+      <PageTransition>
+        <div className="dashboard-skin botanical-bg -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-28 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
+          <div className="mx-auto max-w-2xl">
+            <JardinWelcome
+              isPending={initGarden.isPending}
+              isError={initGarden.isError}
+              onStart={() => initGarden.mutate()}
+            />
+          </div>
+        </div>
+      </PageTransition>
+    )
   }
 
   return (
     <PageTransition>
       <div className="dashboard-skin botanical-bg -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-28 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
-        <div className="mx-auto max-w-2xl space-y-6">
+        <div className="mx-auto max-w-2xl space-y-4">
 
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="font-heading text-2xl font-bold md:text-3xl" style={{ color: 'var(--forest-deep)' }}>
-                Mi Jardín 🌱
-              </h1>
-              <p className="text-sm mt-0.5" style={{ color: 'var(--leaf-muted)' }}>
-                Tu progreso financiero, hecho visible
-              </p>
-            </div>
-            <Leaf className="h-7 w-7 flex-shrink-0" style={{ color: 'var(--leaf-bright)' }} />
-          </div>
+          <BackyardSkyHeader coins={garden.coins} streakDays={streakDays} />
 
-          {/* Stats — only when there are plots */}
-          {!isNewUser && (
-            <GardenErrorBoundary>
-              <GardenStats
-                coins={garden.coins}
-                totalMastery={garden.totalMastery}
-                streakDays={garden.streakDays}
-                plantsMastered={plantsMastered}
-              />
-            </GardenErrorBoundary>
-          )}
+          <GardenErrorBoundary>
+            <GardenEconomyBanner
+              economy={economy.data}
+              rentOverdue={economy.rentOverdue}
+              iceActive={economy.iceActive}
+              fireActive={economy.fireActive}
+              goldActive={economy.goldActive}
+            />
+          </GardenErrorBoundary>
 
-          {/* Garden grid / skeleton / welcome */}
-          {garden.isLoading ? (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="garden-plot-surface min-h-[160px] sm:min-h-[180px] animate-pulse opacity-50"
-                />
-              ))}
-            </div>
-          ) : isNewUser ? (
-            /* ── Onboarding welcome screen ── */
-            <motion.div
-              variants={stagger}
-              initial="hidden"
-              animate="show"
-              className="organic-card p-6 md:p-8 space-y-6"
-            >
-              <motion.div variants={reduced ? undefined : item} className="text-center space-y-2">
-                <span className="text-6xl block" role="img" aria-label="Planta">🌱</span>
-                <h2 className="font-heading text-xl font-bold md:text-2xl" style={{ color: 'var(--forest-deep)' }}>
-                  ¡Bienvenido a tu jardín financiero!
-                </h2>
-                <p className="text-sm leading-relaxed max-w-sm mx-auto" style={{ color: 'var(--text-warm)' }}>
-                  Cada hábito financiero que practicas hace crecer una planta. Así funciona:
-                </p>
-              </motion.div>
+          <GardenErrorBoundary>
+            <BackyardView
+              plots={garden.plots}
+              inventory={inventory}
+              placing={placing}
+              onPlaced={handlePlaced}
+              onCancelPlace={() => setPlacing(null)}
+              economy={economy.data}
+            />
+          </GardenErrorBoundary>
 
-              <motion.ul
-                variants={reduced ? undefined : item}
-                className="space-y-3"
-              >
-                {[
-                  { emoji: '🌿', label: 'Planta = dominio', desc: 'Cada área (ahorro, crédito…) tiene su propia planta' },
-                  { emoji: '📈', label: 'Maestría = prácticas', desc: 'Completa escenarios para que tu planta crezca' },
-                  { emoji: '🪙', label: 'Monedas = recompensas', desc: 'Gana monedas por cada logro alcanzado' },
-                ].map(({ emoji, label, desc }) => (
-                  <li key={label} className="flex items-start gap-3">
-                    <span className="text-2xl flex-shrink-0" role="img" aria-hidden="true">{emoji}</span>
-                    <div>
-                      <p className="text-sm font-bold" style={{ color: 'var(--forest-deep)' }}>{label}</p>
-                      <p className="text-xs leading-relaxed" style={{ color: 'var(--text-warm)' }}>{desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </motion.ul>
+          <GardenToolbar
+            onOpenShop={() => setShopOpen(true)}
+            onOpenInventory={() => setInvOpen(true)}
+            inventoryCount={unplacedCount}
+          />
 
-              <motion.div variants={reduced ? undefined : item} className="flex justify-center">
-                <button
-                  onClick={() => initGarden.mutate()}
-                  disabled={initGarden.isPending}
-                  className="vibrant-btn min-h-[48px] px-8 font-bold text-base disabled:opacity-60"
-                >
-                  {initGarden.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" /> Plantando semillas...
-                    </>
-                  ) : (
-                    <>🌱 Plantar mis semillas</>
-                  )}
-                </button>
-              </motion.div>
-
-              {initGarden.isError && (
-                <motion.p
-                  variants={reduced ? undefined : item}
-                  className="text-xs text-center"
-                  style={{ color: 'var(--terracotta-vivid)' }}
-                >
-                  🌧️ Algo salió mal. Por favor intenta de nuevo.
-                </motion.p>
-              )}
-            </motion.div>
-          ) : (
-            <GardenErrorBoundary>
-              <GardenGrid plots={garden.plots} />
-            </GardenErrorBoundary>
-          )}
-
-          {/* Weekly harvest challenges */}
-          {!isNewUser && <WeeklyRetos />}
-
-          {/* Coming soon */}
-          {!isNewUser && (
-            <div className="organic-card p-4 space-y-2 opacity-60">
-              <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
-                Próximamente
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {['Flashcards', 'Drag & Drop', 'Simuladores', 'Mini-Juegos', 'Pronósticos', 'Polinización'].map((item) => (
-                  <span key={item} className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+          <WeeklyRetos />
         </div>
       </div>
+
+      <PlantShopDrawer
+        open={shopOpen}
+        onOpenChange={setShopOpen}
+        coins={garden.coins}
+      />
+
+      <InventoryDrawer
+        open={invOpen}
+        onOpenChange={setInvOpen}
+        inventory={inventory}
+        onPlace={(item) => setPlacing(item)}
+      />
     </PageTransition>
   )
 }
