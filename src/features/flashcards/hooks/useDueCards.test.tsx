@@ -8,14 +8,12 @@ import { useDueCards } from './useDueCards'
 // Mocks
 // ---------------------------------------------------------------------------
 
-// Mock Supabase client before imports resolve
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(),
   },
 }))
 
-// Mock AuthContext so we control the user
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
@@ -62,16 +60,57 @@ function mockNoAuthUser() {
   })
 }
 
-// Helper to mock the full Supabase query builder chain
-function mockSupabaseQuery(resolvedData: unknown[] | null, error: unknown = null) {
-  const chain = {
+type FlashcardRow = { id: string; front: string; back: string; domain: string }
+type ReviewRow = { flashcard_id: string; ease_factor: number; interval_days: number; due_at: string }
+
+/**
+ * Mock the two-query pattern used by fetchDueCards:
+ *  1. supabase.from('flashcards')   → chain that resolves with flashcardRows
+ *  2. supabase.from('user_flashcard_reviews') → chain that resolves with reviewRows
+ */
+function mockTwoQueries(
+  flashcardRows: FlashcardRow[] | null,
+  reviewRows: ReviewRow[] | null = [],
+) {
+  const flashcardsChain = {
     select: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
-    lte: vi.fn().mockReturnThis(),
-    order: vi.fn().mockResolvedValue({ data: resolvedData, error }),
+    in: vi.fn().mockResolvedValue({ data: flashcardRows, error: null }),
   }
-  ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue(chain)
-  return chain
+
+  const reviewsChain = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    in: vi.fn().mockResolvedValue({ data: reviewRows, error: null }),
+  }
+
+  // flashcardsChain resolves when .eq() is called last (is_published or domain)
+  // We need await on the chain itself — override eq to resolve on last call
+  // Simpler: override the whole chain so the last .eq() resolves the promise.
+  // The flashcards query ends with `await query` where query = chain after optional .eq(domain).
+  // We make the chain thenable so `await chain` resolves.
+  const makeThenable = (data: FlashcardRow[] | null) => {
+    const chain: Record<string, unknown> = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      then: (resolve: (v: { data: typeof data; error: null }) => void) =>
+        resolve({ data, error: null }),
+    }
+    // Ensure eq returns the same thenable object
+    ;(chain.eq as ReturnType<typeof vi.fn>).mockReturnValue(chain)
+    ;(chain.select as ReturnType<typeof vi.fn>).mockReturnValue(chain)
+    return chain
+  }
+
+  const flashcardsThen = makeThenable(flashcardRows)
+
+  ;(supabase.from as ReturnType<typeof vi.fn>).mockImplementation((table: string) => {
+    if (table === 'flashcards') return flashcardsThen
+    if (table === 'user_flashcard_reviews') return reviewsChain
+    return reviewsChain
+  })
+
+  return { flashcardsChain: flashcardsThen, reviewsChain }
 }
 
 // ---------------------------------------------------------------------------
@@ -90,7 +129,7 @@ describe('useDueCards', () => {
     // Act
     const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
 
-    // Assert — query is disabled when there is no userId, so cards stay empty
+    // Assert — query is disabled when userId is empty
     expect(result.current.cards).toEqual([])
     expect(result.current.count).toBe(0)
   })
@@ -98,14 +137,15 @@ describe('useDueCards', () => {
   it('loading is true initially when user is present', async () => {
     // Arrange
     mockAuthUser('user-123')
-    // Do not resolve the query immediately
-    const chain = {
+    // flashcards query never resolves
+    const neverResolves = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      lte: vi.fn().mockReturnThis(),
-      order: vi.fn().mockReturnValue(new Promise(() => {})), // never resolves
+      then: () => new Promise(() => {}),
     }
-    ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue(chain)
+    ;(neverResolves.select as ReturnType<typeof vi.fn>).mockReturnValue(neverResolves)
+    ;(neverResolves.eq as ReturnType<typeof vi.fn>).mockReturnValue(neverResolves)
+    ;(supabase.from as ReturnType<typeof vi.fn>).mockReturnValue(neverResolves)
 
     // Act
     const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
@@ -114,22 +154,13 @@ describe('useDueCards', () => {
     expect(result.current.isLoading).toBe(true)
   })
 
-  it('returns cards when due date is in the past', async () => {
+  it('returns cards that have never been reviewed (not in reviews set)', async () => {
     // Arrange
-    const pastDate = new Date(Date.now() - 86_400_000).toISOString() // yesterday
     mockAuthUser('user-123')
-    mockSupabaseQuery([
-      {
-        id: 'card-1',
-        domain: 'control',
-        front_text: 'Front',
-        back_text: 'Back',
-        ease_factor: 2.5,
-        interval_days: 1,
-        next_review_at: pastDate,
-        user_id: 'user-123',
-      },
-    ])
+    mockTwoQueries(
+      [{ id: 'card-1', domain: 'control', front: 'Front', back: 'Back' }],
+      [], // no reviews → card is new → always due
+    )
 
     // Act
     const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
@@ -141,10 +172,47 @@ describe('useDueCards', () => {
     expect(result.current.count).toBe(1)
   })
 
-  it('returns empty array when Supabase returns no rows', async () => {
+  it('returns cards when due_at is in the past', async () => {
+    // Arrange
+    const pastDate = new Date(Date.now() - 86_400_000).toISOString() // yesterday
+    mockAuthUser('user-123')
+    mockTwoQueries(
+      [{ id: 'card-1', domain: 'control', front: 'Front', back: 'Back' }],
+      [{ flashcard_id: 'card-1', ease_factor: 2.5, interval_days: 1, due_at: pastDate }],
+    )
+
+    // Act
+    const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
+
+    // Assert
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.cards).toHaveLength(1)
+    expect(result.current.cards[0].id).toBe('card-1')
+    expect(result.current.count).toBe(1)
+  })
+
+  it('excludes cards whose due_at is in the future', async () => {
+    // Arrange
+    const futureDate = new Date(Date.now() + 86_400_000).toISOString() // tomorrow
+    mockAuthUser('user-123')
+    mockTwoQueries(
+      [{ id: 'card-1', domain: 'control', front: 'Front', back: 'Back' }],
+      [{ flashcard_id: 'card-1', ease_factor: 2.5, interval_days: 1, due_at: futureDate }],
+    )
+
+    // Act
+    const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
+
+    // Assert — card is in reviews but not yet due
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+    expect(result.current.cards).toEqual([])
+    expect(result.current.count).toBe(0)
+  })
+
+  it('returns empty array when Supabase returns no flashcard rows', async () => {
     // Arrange
     mockAuthUser('user-456')
-    mockSupabaseQuery([])
+    mockTwoQueries([])
 
     // Act
     const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
@@ -155,10 +223,10 @@ describe('useDueCards', () => {
     expect(result.current.count).toBe(0)
   })
 
-  it('returns empty array when Supabase returns null data', async () => {
+  it('returns empty array when Supabase returns null flashcard data', async () => {
     // Arrange
     mockAuthUser('user-456')
-    mockSupabaseQuery(null)
+    mockTwoQueries(null)
 
     // Act
     const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
@@ -168,51 +236,75 @@ describe('useDueCards', () => {
     expect(result.current.cards).toEqual([])
   })
 
-  it('maps snake_case DB columns to camelCase Flashcard fields', async () => {
+  it('maps DB columns to camelCase Flashcard fields', async () => {
     // Arrange
-    const nextReview = new Date(Date.now() - 1000).toISOString()
+    const pastDate = new Date(Date.now() - 1000).toISOString()
     mockAuthUser('user-123')
-    mockSupabaseQuery([
-      {
-        id: 'card-42',
-        domain: 'credito',
-        front_text: 'Pregunta',
-        back_text: 'Respuesta',
-        ease_factor: 2.8,
-        interval_days: 7,
-        next_review_at: nextReview,
-        user_id: 'user-123',
-      },
-    ])
+    mockTwoQueries(
+      [{ id: 'card-42', domain: 'credito', front: 'Pregunta', back: 'Respuesta' }],
+      [{ flashcard_id: 'card-42', ease_factor: 2.8, interval_days: 7, due_at: pastDate }],
+    )
 
     // Act
     const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
-
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
     // Assert
     const card = result.current.cards[0]
+    expect(card.id).toBe('card-42')
+    expect(card.domain).toBe('credito')
     expect(card.frontText).toBe('Pregunta')
     expect(card.backText).toBe('Respuesta')
     expect(card.easeFactor).toBe(2.8)
     expect(card.intervalDays).toBe(7)
-    expect(card.nextReviewAt).toBe(nextReview)
+    expect(card.nextReviewAt).toBe(pastDate)
   })
 
-  it('does not apply a domain eq filter when no domain is provided', async () => {
-    // Arrange — no domain argument means domain eq is never called
+  it('uses default SM-2 values for never-reviewed cards', async () => {
+    // Arrange
     mockAuthUser('user-123')
-    const chain = mockSupabaseQuery([])
+    mockTwoQueries(
+      [{ id: 'card-1', domain: 'control', front: 'Front', back: 'Back' }],
+      [], // no reviews
+    )
 
     // Act
-    const { result } = renderHook(() => useDueCards(), {
-      wrapper: makeWrapper(),
-    })
-
+    const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
     await waitFor(() => expect(result.current.isLoading).toBe(false))
 
-    // Assert — eq was called only once (for user_id, not for domain)
-    const eqCalls = (chain.eq as ReturnType<typeof vi.fn>).mock.calls
+    // Assert — defaults: easeFactor=2.5, intervalDays=0
+    const card = result.current.cards[0]
+    expect(card.easeFactor).toBe(2.5)
+    expect(card.intervalDays).toBe(0)
+  })
+
+  it('applies domain filter when domain argument is provided', async () => {
+    // Arrange
+    mockAuthUser('user-123')
+    const { flashcardsChain } = mockTwoQueries([], [])
+
+    // Act
+    const { result } = renderHook(() => useDueCards('control'), { wrapper: makeWrapper() })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    // Assert — eq called with 'domain' on flashcards chain
+    const eqCalls = (flashcardsChain.eq as ReturnType<typeof vi.fn>).mock.calls
+    const domainCall = eqCalls.find(([col]: string[]) => col === 'domain')
+    expect(domainCall).toBeDefined()
+    expect(domainCall?.[1]).toBe('control')
+  })
+
+  it('does not apply domain eq filter when no domain is provided', async () => {
+    // Arrange
+    mockAuthUser('user-123')
+    const { flashcardsChain } = mockTwoQueries([], [])
+
+    // Act
+    const { result } = renderHook(() => useDueCards(), { wrapper: makeWrapper() })
+    await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+    // Assert — eq should only be called for 'is_published', not 'domain'
+    const eqCalls = (flashcardsChain.eq as ReturnType<typeof vi.fn>).mock.calls
     const domainCall = eqCalls.find(([col]: string[]) => col === 'domain')
     expect(domainCall).toBeUndefined()
   })
