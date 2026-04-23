@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { InflacionChallengeIllustration } from '../assets';
+import { useGardenReward } from '@/features/garden/hooks/useGardenReward';
 import type { InflacionProduct, InflacionAnswer, InflacionResult } from '../types';
 
 const PRODUCTS: InflacionProduct[] = [
@@ -64,6 +65,8 @@ interface Props {
 
 export function InflacionChallenge({ onRestart }: Props) {
   const reduced = useReducedMotion();
+  const { grantReward } = useGardenReward();
+  const rewardGranted = useRef(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<InflacionAnswer[]>([]);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
@@ -85,6 +88,19 @@ export function InflacionChallenge({ onRestart }: Props) {
       if (currentIndex + 1 >= PRODUCTS.length) {
         setAnswers(updatedAnswers);
         setGameOver(true);
+        if (!rewardGranted.current) {
+          rewardGranted.current = true;
+          const score = updatedAnswers.filter((a) => a.isCorrect).length;
+          const total = PRODUCTS.length;
+          if (score > 0) {
+            grantReward({
+              domain: 'crecimiento',
+              masteryDelta: Math.round((score / total) * 0.05 * 1000) / 1000,
+              coins: Math.round((score / total) * 20),
+              coinReason: 'inflacion_challenge',
+            });
+          }
+        }
       } else {
         setAnswers(updatedAnswers);
         setCurrentIndex((prev) => prev + 1);

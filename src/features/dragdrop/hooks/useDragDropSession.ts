@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useGrowPlant } from '@/features/garden/hooks/useGarden'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/integrations/supabase/client'
 import type { DragDropExercise, DragDropSession, DropZoneId } from '../types'
 
 const MASTERY_DELTA = 0.05
@@ -13,6 +15,7 @@ export function useDragDropSession(exercise: DragDropExercise): {
   allPlaced: boolean
 } {
   const growPlant = useGrowPlant()
+  const { user } = useAuth()
 
   const [currentMapping, setCurrentMapping] = useState<Record<string, DropZoneId>>({})
   const [submitted, setSubmitted] = useState(false)
@@ -48,8 +51,15 @@ export function useDragDropSession(exercise: DragDropExercise): {
     if (isCorrect) {
       setMasteryEarned(MASTERY_DELTA)
       growPlant.mutate({ domain: exercise.domain, masteryDelta: MASTERY_DELTA })
+      if (user?.id) {
+        supabase.rpc('award_coins' as any, {
+          p_user_id: user.id,
+          p_amount: 15,
+          p_reason: 'dragdrop_complete',
+        }).catch(() => { /* non-critical */ })
+      }
     }
-  }, [allPlaced, submitted, exercise, currentMapping, growPlant])
+  }, [allPlaced, submitted, exercise, currentMapping, growPlant, user])
 
   const reset = useCallback(() => {
     setCurrentMapping({})
