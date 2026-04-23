@@ -17,6 +17,10 @@ export interface ScenarioOption {
   text: string;
   feedback: string;
   is_best: boolean;
+  // Numerical consequences — optional, not all scenarios have them
+  short_term_result?: string;
+  long_term_result?: string;
+  consequence_months?: number;
 }
 
 export interface RecallChoice {
