@@ -13,7 +13,7 @@ import type { DragDropExercise as DragDropExerciseType } from '../types'
 
 interface DragDropExerciseProps {
   exercise: DragDropExerciseType
-  onNext?: () => void
+  onNext?: (wasCorrect: boolean) => void
 }
 
 export function DragDropExercise({ exercise, onNext }: DragDropExerciseProps) {
@@ -176,7 +176,7 @@ export function DragDropExercise({ exercise, onNext }: DragDropExerciseProps) {
               </button>
               {onNext && (
                 <button
-                  onClick={onNext}
+                  onClick={() => onNext(session.correct === true)}
                   style={{
                     padding: '10px 24px',
                     borderRadius: '20px',

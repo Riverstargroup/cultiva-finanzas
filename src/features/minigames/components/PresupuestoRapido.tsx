@@ -33,9 +33,10 @@ const CATEGORY_BG: Record<ExpenseCategory, string> = {
 
 interface Props {
   onRestart: () => void;
+  onGameComplete?: (score: number, total: number) => void;
 }
 
-export function PresupuestoRapido({ onRestart }: Props) {
+export function PresupuestoRapido({ onRestart, onGameComplete }: Props) {
   const reduced = useReducedMotion();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
@@ -47,7 +48,9 @@ export function PresupuestoRapido({ onRestart }: Props) {
   const finishGame = useCallback((finalAnswers: PresupuestoAnswer[]) => {
     setAnswers(finalAnswers);
     setGameOver(true);
-  }, []);
+    const score = finalAnswers.filter((a) => a.isCorrect).length;
+    onGameComplete?.(score, EXPENSES.length);
+  }, [onGameComplete]);
 
   useEffect(() => {
     if (gameOver || showFeedback) return;
