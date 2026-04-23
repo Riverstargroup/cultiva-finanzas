@@ -7,10 +7,13 @@ import { DOMAIN_TO_SPECIES } from '../types'
 import type { GardenState, GardenPlot, Plant, SkillDomain } from '../types'
 
 // Query key — single source of truth for cache invalidation
+// NOTE: use a separate const so closures never reference `gardenKeys` during
+// its own initialization (avoids TDZ in minified bundles).
+const GARDEN_KEY_BASE = ['garden'] as const
 export const gardenKeys = {
-  all: ['garden'] as const,
-  plots: (userId: string) => [...gardenKeys.all, 'plots', userId] as const,
-  coins: (userId: string) => [...gardenKeys.all, 'coins', userId] as const,
+  all: GARDEN_KEY_BASE,
+  plots: (userId: string) => [...GARDEN_KEY_BASE, 'plots', userId] as const,
+  coins: (userId: string) => [...GARDEN_KEY_BASE, 'coins', userId] as const,
 }
 
 export async function fetchGardenPlots(userId: string): Promise<GardenPlot[]> {
@@ -46,7 +49,7 @@ export async function fetchCoinBalance(userId: string): Promise<number> {
     .from('user_coin_balance')
     .select('coins')
     .eq('user_id', userId)
-    .single()
+    .maybeSingle()
 
   if (error) return 0
   return data?.coins ?? 0
