@@ -27,7 +27,7 @@ function simulateDebt(
 ): SimResult {
   if (debts.length === 0) return { months: 0, totalPaid: 0, totalInterest: 0 };
 
-  let balances = debts.map((d) => d.balance);
+  const balances = debts.map((d) => d.balance);
   const rates = debts.map((d) => d.annual_rate / 100 / 12);
   const mins = debts.map((d) => d.min_payment);
   let months = 0;
