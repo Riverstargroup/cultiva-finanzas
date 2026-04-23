@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react';
 
-export type GameId = 'presupuesto-rapido' | 'inflacion-challenge';
+export type GameId =
+  | 'presupuesto-rapido'
+  | 'inflacion-challenge'
+  | 'semillas-credito'
+  | 'memoria-mercado'
+  | 'ahorra-cosecha';
+
+export type GameCategory = 'Presupuesto' | 'Crédito' | 'Ahorro' | 'Inversión' | 'Inflación';
 
 export type GameState = 'idle' | 'playing' | 'finished';
 
@@ -58,4 +65,15 @@ export interface GameCard {
   icon: ReactNode;
   duration: string;
   difficulty: 'Fácil' | 'Medio' | 'Difícil';
+  category: GameCategory;
+  concept: string;
+  relatedCourseTag?: string;
+}
+
+/**
+ * Convert a GameId (kebab-case) into the snake_case activity_type
+ * stored in `user_activity_attempts.activity_type`.
+ */
+export function gameIdToActivityType(id: GameId): string {
+  return id.replace(/-/g, '_');
 }

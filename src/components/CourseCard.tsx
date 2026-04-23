@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { Clock } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useNavigate } from "react-router-dom";
+import DifficultyDots from "@/components/courses/DifficultyDots";
 
 interface CourseCardProps {
   id: string;
@@ -10,10 +12,11 @@ interface CourseCardProps {
   progress: number;
   scenarioCount: number;
   completedCount: number;
+  estimatedMinutes?: number;
 }
 
 export default function CourseCard({
-  id, title, description, difficulty, progress, scenarioCount, completedCount,
+  id, title, description, difficulty, progress, scenarioCount, completedCount, estimatedMinutes,
 }: CourseCardProps) {
   const reduced = useReducedMotion();
   const navigate = useNavigate();
@@ -36,18 +39,21 @@ export default function CourseCard({
           }}
         />
         <div className="p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span
-              className="text-xs capitalize font-semibold px-3 py-1 rounded-full border"
-              style={{
-                background: "var(--soil-warm)",
-                color: "var(--forest-deep)",
-                borderColor: "var(--clay-soft)",
-              }}
-            >
-              {difficulty}
-            </span>
-            <span className="text-xs" style={{ color: "var(--leaf-muted)" }}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span
+                className="text-xs capitalize font-semibold px-3 py-1 rounded-full border"
+                style={{
+                  background: "var(--soil-warm)",
+                  color: "var(--forest-deep)",
+                  borderColor: "var(--clay-soft)",
+                }}
+              >
+                {difficulty}
+              </span>
+              <DifficultyDots level={difficulty} />
+            </div>
+            <span className="text-xs whitespace-nowrap" style={{ color: "var(--leaf-muted)" }}>
               {completedCount}/{scenarioCount} escenarios
             </span>
           </div>
@@ -57,6 +63,14 @@ export default function CourseCard({
           <p className="text-sm leading-relaxed line-clamp-2" style={{ color: "var(--text-warm)" }}>
             {description}
           </p>
+          {typeof estimatedMinutes === "number" && estimatedMinutes > 0 && (
+            <span
+              className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full"
+              style={{ background: "var(--clay-soft)", color: "var(--leaf-muted)" }}
+            >
+              <Clock size={12} /> ~{estimatedMinutes} min
+            </span>
+          )}
           {progress > 0 && (
             <div
               className="h-2 rounded-full overflow-hidden"

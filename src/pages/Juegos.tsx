@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Gamepad2, Clock, BarChart2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +10,10 @@ import {
   PresupuestoRapidoIllustration,
   InflacionChallengeIllustration,
 } from '@/features/minigames/assets';
-import type { GameId, GameCard } from '@/features/minigames/types';
+import { CategoryChips } from '@/features/minigames/components/CategoryChips';
+import { GameStatRow } from '@/features/minigames/components/GameStatRow';
+import { useGameStats } from '@/features/minigames/hooks/useGameStats';
+import type { GameId, GameCard, GameCategory } from '@/features/minigames/types';
 
 const GAME_CARDS: GameCard[] = [
   {
@@ -20,6 +23,8 @@ const GAME_CARDS: GameCard[] = [
     icon: <PresupuestoRapidoIllustration className="w-full h-full" />,
     duration: '60 seg',
     difficulty: 'Fácil',
+    category: 'Presupuesto',
+    concept: 'Clasifica gastos en 4 categorías',
   },
   {
     id: 'inflacion-challenge',
@@ -28,8 +33,11 @@ const GAME_CARDS: GameCard[] = [
     icon: <InflacionChallengeIllustration className="w-full h-full" />,
     duration: '~3 min',
     difficulty: 'Medio',
+    category: 'Inflación',
+    concept: 'Estima el impacto de la inflación',
   },
 ];
+// GAME_REGISTRY_INSERTION_POINT — Wave 2 games append here
 
 const DIFFICULTY_COLOR: Record<string, string> = {
   Fácil: 'var(--leaf-bright)',
@@ -38,12 +46,26 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 };
 
 type View = 'lobby' | GameId;
+type CategoryFilter = GameCategory | 'Todos';
 
 export default function Juegos() {
   const navigate = useNavigate();
   const reduced = useReducedMotion();
   const [activeView, setActiveView] = useState<View>('lobby');
   const [gameKey, setGameKey] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('Todos');
+  const stats = useGameStats();
+
+  const availableCategories = useMemo<GameCategory[]>(() => {
+    const seen = new Set<GameCategory>();
+    for (const card of GAME_CARDS) seen.add(card.category);
+    return Array.from(seen);
+  }, []);
+
+  const visibleCards = useMemo(() => {
+    if (selectedCategory === 'Todos') return GAME_CARDS;
+    return GAME_CARDS.filter((card) => card.category === selectedCategory);
+  }, [selectedCategory]);
 
   const handlePlay = (id: GameId) => setActiveView(id);
 
@@ -79,8 +101,14 @@ export default function Juegos() {
               Mi Jardín
             </button>
 
+            <CategoryChips
+              categories={availableCategories}
+              selected={selectedCategory}
+              onChange={setSelectedCategory}
+            />
+
             <div className="grid gap-4 sm:grid-cols-2">
-              {GAME_CARDS.map((card) => (
+              {visibleCards.map((card) => (
                 <motion.div
                   key={card.id}
                   whileHover={reduced ? undefined : { scale: 1.01 }}
@@ -116,6 +144,8 @@ export default function Juegos() {
                       {card.description}
                     </p>
                   </div>
+
+                  <GameStatRow stat={stats[card.id]} />
 
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--leaf-muted)' }}>

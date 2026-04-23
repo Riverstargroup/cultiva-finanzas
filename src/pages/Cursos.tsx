@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import CourseCard from "@/components/CourseCard";
 import EmptyState from "@/components/EmptyState";
 import BotanicalPage from "@/components/layout/BotanicalPage";
+import ContinueBanner from "@/components/courses/ContinueBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookOpen } from "lucide-react";
 import { useCourses } from "@/hooks/useCourses";
@@ -40,6 +42,7 @@ export default function Cursos() {
   const [tab, setTab] = useState("todos");
   const { data: coursesRaw, isLoading } = useCourses();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   // Fetch all progress for this user
   const { data: progressData } = useQuery({
@@ -89,6 +92,10 @@ export default function Cursos() {
     return { ...c, scenarioCount, progress };
   });
 
+  const inProgressCourse = enriched
+    .filter((c) => c.progress > 0 && c.progress < 100)
+    .sort((a, b) => b.completedCount - a.completedCount)[0];
+
   const filtered =
     tab === "progreso"
       ? enriched.filter((c) => c.progress > 0 && c.progress < 100)
@@ -101,6 +108,14 @@ export default function Cursos() {
 
   return (
     <BotanicalPage title="Cursos" subtitle="Explora y avanza en tu jardín financiero.">
+      {inProgressCourse && (
+        <ContinueBanner
+          courseId={inProgressCourse.id}
+          courseTitle={inProgressCourse.title}
+          progressPct={inProgressCourse.progress}
+          onContinue={() => navigate(`/cursos/${inProgressCourse.id}`)}
+        />
+      )}
       {/* Organic chip tabs */}
       <div className="flex gap-2 flex-wrap">
         {TABS.map((t) => (
@@ -142,6 +157,7 @@ export default function Cursos() {
                 progress={c.progress}
                 scenarioCount={c.scenarioCount}
                 completedCount={c.completedCount}
+                estimatedMinutes={c.estimated_minutes}
               />
             </motion.div>
           ))}
