@@ -6,9 +6,15 @@ import { useReducedMotion } from '@/hooks/useReducedMotion';
 import BotanicalPage from '@/components/layout/BotanicalPage';
 import { PresupuestoRapido } from '@/features/minigames/games/PresupuestoRapido';
 import { InflacionChallenge } from '@/features/minigames/components/InflacionChallenge';
+import { SemillasCredito } from '@/features/minigames/games/SemillasCredito';
+import { MemoriaMercado } from '@/features/minigames/games/MemoriaMercado';
+import { AhorraCosecha } from '@/features/minigames/games/AhorraCosecha';
 import {
   PresupuestoRapidoIllustration,
   InflacionChallengeIllustration,
+  SemillasCreditoIllustration,
+  MemoriaMercadoIllustration,
+  AhorraCosechaIllustration,
 } from '@/features/minigames/assets';
 import { CategoryChips } from '@/features/minigames/components/CategoryChips';
 import { GameStatRow } from '@/features/minigames/components/GameStatRow';
@@ -36,8 +42,38 @@ const GAME_CARDS: GameCard[] = [
     category: 'Inflación',
     concept: 'Estima el impacto de la inflación',
   },
+  {
+    id: 'semillas-credito',
+    title: 'Semillas de Crédito',
+    description: 'Desliza acciones de crédito a la izquierda o derecha para construir o dañar tu historial.',
+    icon: <SemillasCreditoIllustration className="w-full h-full" />,
+    duration: '~2 min',
+    difficulty: 'Medio',
+    category: 'Crédito',
+    concept: 'Construye o daña tu historial crediticio',
+  },
+  {
+    id: 'memoria-mercado',
+    title: 'Memoria del Mercado',
+    description: 'Empareja instrumentos de inversión mexicanos. ¿Conoces los CETES, FIBRAS y la AFORE?',
+    icon: <MemoriaMercadoIllustration className="w-full h-full" />,
+    duration: '90 seg',
+    difficulty: 'Medio',
+    category: 'Inversión',
+    concept: 'Reconoce instrumentos de inversión',
+  },
+  {
+    id: 'ahorra-cosecha',
+    title: 'Ahorra la Cosecha',
+    description: 'Detén el péndulo en la zona de ahorro ideal. ¡Cada quincena cuenta!',
+    icon: <AhorraCosechaIllustration className="w-full h-full" />,
+    duration: '~2 min',
+    difficulty: 'Fácil',
+    category: 'Ahorro',
+    concept: 'Aprende a ahorrar consistentemente',
+  },
 ];
-// GAME_REGISTRY_INSERTION_POINT — Wave 2 games append here
+// GAME_REGISTRY_INSERTION_POINT — Wave 3 games append here
 
 const DIFFICULTY_COLOR: Record<string, string> = {
   Fácil: 'var(--leaf-bright)',
@@ -196,6 +232,15 @@ export default function Juegos() {
               )}
               {activeView === 'inflacion-challenge' && (
                 <InflacionChallenge key={gameKey} onRestart={handleRestart} />
+              )}
+              {activeView === 'semillas-credito' && (
+                <SemillasCredito key={gameKey} onBack={handleBackToLobby} />
+              )}
+              {activeView === 'memoria-mercado' && (
+                <MemoriaMercado key={gameKey} onBack={handleBackToLobby} />
+              )}
+              {activeView === 'ahorra-cosecha' && (
+                <AhorraCosecha key={gameKey} onBack={handleBackToLobby} />
               )}
             </div>
 
