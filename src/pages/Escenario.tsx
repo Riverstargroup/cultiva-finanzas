@@ -2,6 +2,9 @@ import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Trophy, Loader2 } from "lucide-react";
+import { BonusGamePrompt } from "@/features/minigames/components/BonusGamePrompt";
+import { EmbeddedGame } from "@/features/minigames/components/EmbeddedGame";
+import { getBonusGameForTags } from "@/features/minigames/scenarioGameMap";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useScenario } from "@/hooks/useScenario";
@@ -71,11 +74,13 @@ export default function Escenario() {
   const [finalScore, setFinalScore] = useState<number>(0);
   const [saving, setSaving] = useState(false);
   const [scenarioCoinsEarned, setScenarioCoinsEarned] = useState(0);
+  const [bonusState, setBonusState] = useState<'prompt' | 'playing' | 'dismissed'>('prompt');
 
   const scenarios = courseDetail?.scenarios ?? [];
   const scenarioIndex = scenarios.findIndex((s) => s.id === scenarioId);
   const isLast = scenarioIndex === scenarios.length - 1;
   const nextScenario = !isLast && scenarioIndex >= 0 ? scenarios[scenarioIndex + 1] : null;
+  const bonusGameId = getBonusGameForTags(scenario?.tags);
 
   const handleFinish = useCallback(async (choseBest: boolean, recallCorrect: number, recallTotal: number) => {
     if (!user || !courseId || !scenarioId || saving) return;
@@ -273,6 +278,7 @@ export default function Escenario() {
       setStep("decision");
       setSelectedOption(null);
       setFinalScore(0);
+      setBonusState('prompt');
       navigate(`/cursos/${courseId}/escenario/${nextScenario.id}`, { replace: true });
     } else {
       navigate(`/cursos/${courseId}`);
@@ -346,40 +352,61 @@ export default function Escenario() {
         )}
 
         {step === "done" && (
-          <motion.div
-            initial={reduced ? undefined : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4 text-center"
-          >
-            <div
-              className="organic-border h-16 w-16 mx-auto flex items-center justify-center"
-              style={{ background: "color-mix(in srgb, var(--leaf-fresh) 15%, transparent)" }}
+          <div className="space-y-4">
+            <motion.div
+              initial={reduced ? undefined : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-4 text-center"
             >
-              <Trophy className="h-8 w-8" style={{ color: "var(--leaf-bright)" }} />
-            </div>
-            <h2 className="font-heading font-bold text-xl" style={{ color: "var(--forest-deep)" }}>
-              ¡Semilla completada!
-            </h2>
-            <p className="text-sm" style={{ color: "var(--leaf-muted)" }}>
-              Puntaje: {Math.round(finalScore * 100)}%
-            </p>
-            <RewardToast coins={scenarioCoinsEarned} visible={scenarioCoinsEarned > 0} />
-            <button
-              onClick={handleNext}
-              disabled={saving}
-              className="vibrant-btn w-full justify-center min-h-[44px] font-bold disabled:opacity-60"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
-                </>
-              ) : isLast ? (
-                <>Finalizar curso <ArrowRight className="ml-2 h-5 w-5" /></>
-              ) : (
-                <>Siguiente semilla <ArrowRight className="ml-2 h-5 w-5" /></>
-              )}
-            </button>
-          </motion.div>
+              <div
+                className="organic-border h-16 w-16 mx-auto flex items-center justify-center"
+                style={{ background: "color-mix(in srgb, var(--leaf-fresh) 15%, transparent)" }}
+              >
+                <Trophy className="h-8 w-8" style={{ color: "var(--leaf-bright)" }} />
+              </div>
+              <h2 className="font-heading font-bold text-xl" style={{ color: "var(--forest-deep)" }}>
+                ¡Semilla completada!
+              </h2>
+              <p className="text-sm" style={{ color: "var(--leaf-muted)" }}>
+                Puntaje: {Math.round(finalScore * 100)}%
+              </p>
+              <RewardToast coins={scenarioCoinsEarned} visible={scenarioCoinsEarned > 0} />
+              <button
+                onClick={handleNext}
+                disabled={saving}
+                className="vibrant-btn w-full justify-center min-h-[44px] font-bold disabled:opacity-60"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...
+                  </>
+                ) : isLast ? (
+                  <>Finalizar curso <ArrowRight className="ml-2 h-5 w-5" /></>
+                ) : (
+                  <>Siguiente semilla <ArrowRight className="ml-2 h-5 w-5" /></>
+                )}
+              </button>
+            </motion.div>
+
+            {bonusState === 'prompt' && (
+              <div className="mt-4">
+                <BonusGamePrompt
+                  gameId={bonusGameId}
+                  onPlay={() => setBonusState('playing')}
+                  onDismiss={() => setBonusState('dismissed')}
+                />
+              </div>
+            )}
+
+            {bonusState === 'playing' && (
+              <div className="mt-4">
+                <EmbeddedGame
+                  gameId={bonusGameId}
+                  onDone={() => setBonusState('dismissed')}
+                />
+              </div>
+            )}
+          </div>
         )}
           </>
         )}
