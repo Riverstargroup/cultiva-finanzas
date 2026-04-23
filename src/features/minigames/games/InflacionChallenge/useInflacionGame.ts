@@ -45,8 +45,13 @@ export function useInflacionGame() {
       const anyCorrect = allResults.some(r => r.correct)
       setDone(true)
       if (anyCorrect && user?.id) {
+        const correctCount = allResults.filter(r => r.correct).length
+        const masteryDelta = Math.min(0.05, (correctCount / PRODUCTOS.length) * 0.05)
         supabase
-          .rpc('award_coins', { p_user_id: user.id, p_amount: 30, p_reason: 'inflation_guess' })
+          .rpc('award_coins', { p_user_id: user.id, p_delta: 30, p_reason: 'inflation_guess' })
+          .then(() => queryClient.invalidateQueries({ queryKey: gardenKeys.all }))
+        supabase
+          .rpc('grow_plant', { p_user_id: user.id, p_domain: 'crecimiento', p_mastery_delta: masteryDelta })
           .then(() => queryClient.invalidateQueries({ queryKey: gardenKeys.all }))
       }
     } else {

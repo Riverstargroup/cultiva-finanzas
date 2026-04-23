@@ -14,8 +14,7 @@ export function useDailyLock() {
         .from('user_pollination_sessions')
         .select('id')
         .eq('user_id', user.id)
-        .gte('completed_at', today + 'T00:00:00')
-        .not('completed_at', 'is', null)
+        .eq('session_date', today)
         .maybeSingle()
       return !!data
     },

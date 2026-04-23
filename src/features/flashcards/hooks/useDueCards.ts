@@ -11,31 +11,52 @@ export const flashcardKeys = {
 }
 
 async function fetchDueCards(userId: string, domain?: SkillDomain): Promise<Flashcard[]> {
-  let query = supabase
+  // Get all published flashcards (domain column added by seed migration)
+  let query = (supabase as any)
     .from('flashcards')
-    .select('*')
-    .eq('user_id', userId)
-    .lte('next_review_at', new Date().toISOString())
-    .order('next_review_at', { ascending: true })
+    .select('id, front, back, domain')
+    .eq('is_published', true)
 
   if (domain) {
     query = query.eq('domain', domain)
   }
 
-  const { data, error } = await query
-
+  const { data: allCards, error } = await query
   if (error) throw error
-  if (!data?.length) return []
+  if (!allCards?.length) return []
 
-  return data.map((row) => ({
-    id: row.id,
-    domain: row.domain as SkillDomain,
-    frontText: row.front_text,
-    backText: row.back_text,
-    easeFactor: row.ease_factor,
-    intervalDays: row.interval_days,
-    nextReviewAt: row.next_review_at,
-  }))
+  const cardIds = (allCards as { id: string }[]).map((c) => c.id)
+  const now = new Date().toISOString()
+
+  // Get user's SM-2 review state for these cards
+  const { data: reviews } = await (supabase as any)
+    .from('user_flashcard_reviews')
+    .select('flashcard_id, ease_factor, interval_days, due_at')
+    .eq('user_id', userId)
+    .in('flashcard_id', cardIds)
+
+  const reviewedIds = new Set<string>((reviews ?? []).map((r: any) => r.flashcard_id))
+  const dueMap = new Map<string, { ease_factor: number; interval_days: number; due_at: string }>(
+    (reviews ?? [])
+      .filter((r: any) => r.due_at <= now)
+      .map((r: any) => [r.flashcard_id, r])
+  )
+
+  // Cards are due if never reviewed OR their due_at has passed
+  return (allCards as { id: string; front: string; back: string; domain: string }[])
+    .filter((card) => !reviewedIds.has(card.id) || dueMap.has(card.id))
+    .map((card) => {
+      const review = dueMap.get(card.id) ?? null
+      return {
+        id: card.id,
+        domain: card.domain as SkillDomain,
+        frontText: card.front,
+        backText: card.back,
+        easeFactor: review?.ease_factor ?? 2.5,
+        intervalDays: review?.interval_days ?? 0,
+        nextReviewAt: review?.due_at ?? now,
+      }
+    })
 }
 
 export function useDueCards(domain?: SkillDomain): {
