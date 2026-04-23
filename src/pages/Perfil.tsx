@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { LogOut, BookOpen, Trophy, Award } from "lucide-react";
+import { LogOut, BookOpen, Trophy, Award, Calculator } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import BotanicalPage from "@/components/layout/BotanicalPage";
 import StatCard from "@/components/StatCard";
@@ -121,6 +121,31 @@ export default function Perfil() {
           <StatCard title="Logros" value={`${stats?.badgesUnlocked ?? 0}/${stats?.totalBadges ?? 8}`} icon={Trophy} />
         </motion.div>
       </motion.div>
+
+      {/* Herramientas */}
+      <div className="organic-card p-4 space-y-2">
+        <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--leaf-muted)" }}>
+          Herramientas
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => navigate("/calculadora")}
+            className="flex items-center gap-3 rounded-xl border p-4 text-sm font-semibold text-left transition-colors hover:bg-muted min-h-[56px]"
+            style={{ borderColor: "var(--clay-soft)", color: "var(--forest-deep)" }}
+          >
+            <Calculator className="h-5 w-5 shrink-0" style={{ color: "var(--leaf-bright)" }} />
+            Calculadora
+          </button>
+          <button
+            onClick={() => navigate("/logros")}
+            className="flex items-center gap-3 rounded-xl border p-4 text-sm font-semibold text-left transition-colors hover:bg-muted min-h-[56px]"
+            style={{ borderColor: "var(--clay-soft)", color: "var(--forest-deep)" }}
+          >
+            <Trophy className="h-5 w-5 shrink-0" style={{ color: "var(--leaf-bright)" }} />
+            Logros
+          </button>
+        </div>
+      </div>
 
       {/* Sign Out */}
       <button className="vibrant-btn w-full justify-center min-h-[44px] font-bold" onClick={handleSignOut}>
