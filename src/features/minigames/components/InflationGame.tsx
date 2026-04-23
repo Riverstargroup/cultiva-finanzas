@@ -24,7 +24,7 @@ const ERROR_THRESHOLD = 0.15
 function awardCoins(userId: string) {
   return supabase.rpc('award_coins', {
     p_user_id: userId,
-    p_amount: 30,
+    p_delta: 30,
     p_reason: 'inflation_guess',
   })
 }

@@ -1,40 +1,34 @@
-import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/integrations/supabase/client'
-import { useGrowPlant } from './useGarden'
 import { useQueryClient } from '@tanstack/react-query'
-import { gardenKeys } from './useGarden'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { gardenKeys, useGrowPlant } from './useGarden'
 import type { SkillDomain } from '../types'
 
-interface RewardOptions {
+interface GardenRewardOptions {
   domain: SkillDomain
   masteryDelta: number
   coins?: number
-  coinReason?: string
+  reason?: string
 }
 
 export function useGardenReward() {
-  const { user } = useAuth()
   const growPlant = useGrowPlant()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
 
-  const grantReward = async ({ domain, masteryDelta, coins, coinReason }: RewardOptions) => {
-    if (!user?.id) return
-
+  function reward({ domain, masteryDelta, coins, reason }: GardenRewardOptions) {
     growPlant.mutate({ domain, masteryDelta })
 
-    if (coins && coins > 0) {
-      try {
-        await supabase.rpc('award_coins' as any, {
+    if (coins && user?.id) {
+      supabase
+        .rpc('award_coins', {
           p_user_id: user.id,
-          p_amount: coins,
-          p_reason: coinReason ?? 'game_complete',
+          p_delta: coins,
+          p_reason: reason ?? 'activity_complete',
         })
-        queryClient.invalidateQueries({ queryKey: gardenKeys.coins(user.id) })
-      } catch {
-        // non-critical
-      }
+        .then(() => queryClient.invalidateQueries({ queryKey: gardenKeys.all }))
     }
   }
 
-  return { grantReward, isPending: growPlant.isPending }
+  return { reward, isLoading: growPlant.isPending }
 }
