@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { MessageCircle, Target, Check, SkipForward, Loader2, TrendingUp, TrendingDown, Clock } from "lucide-react";

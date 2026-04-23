@@ -58,7 +58,7 @@ export default function DockNav() {
               transition={spring}
               className="relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-center rounded-xl px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 md:px-3"
               style={{
-                // @ts-ignore
+                // @ts-expect-error CSS custom property
                 "--tw-ring-color": "var(--leaf-bright)",
               }}
             >
