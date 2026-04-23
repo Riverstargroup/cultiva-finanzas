@@ -59,6 +59,21 @@ export const masteredAmbientConfig: ParticleConfig = {
   blur: 1,
 }
 
+// More celebratory variant used exclusively when reaching the mastered stage
+export const masteredUpgradeConfig: ParticleConfig = {
+  count: 26,
+  duration: 2200,
+  origin: 'center',
+  pattern: 'burst-radial',
+  size: { min: 7, max: 15 },
+  color: ['#F5C43A', '#FFD700', '#FFE082', '#78A94B', '#4CAF50', '#E91E63', '#FF9800', '#9C27B0', '#00BCD4'],
+  shape: 'star4',
+  velocity: { min: 170, max: 320, angleDeg: { min: -180, max: 0 } },
+  gravity: 240,
+  opacity: { from: 1, to: 0, fadeStart: 0.4 },
+  rotation: { from: 0, to: 900, randomDir: true },
+}
+
 export const iceSparkleConfig: ParticleConfig = {
   count: 4,
   continuous: true,
