@@ -3,9 +3,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -44,18 +44,46 @@ const queryClient = new QueryClient({
 
 const sk = <PageSkeleton />;
 
+// Home route: authenticated users see the Garden (new home);
+// unauthenticated users see the public landing page (Index).
+function HomeRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Index />;
+  }
+
+  return (
+    <AppLayout>
+      <Suspense fallback={sk}>
+        <Jardin />
+      </Suspense>
+    </AppLayout>
+  );
+}
+
 function AppRoutes() {
   const location = useLocation();
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<Index />} />
+        <Route path="/" element={<HomeRoute />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        {/* Legacy redirect: /jardin -> / (garden is now home) */}
+        <Route path="/jardin" element={<Navigate to="/" replace />} />
         <Route
           element={
             <ProtectedRoute>
@@ -70,7 +98,6 @@ function AppRoutes() {
           <Route path="/perfil" element={<Suspense fallback={sk}><Perfil /></Suspense>} />
           <Route path="/logros" element={<Suspense fallback={sk}><Logros /></Suspense>} />
           <Route path="/calculadora" element={<Suspense fallback={sk}><Calculadora /></Suspense>} />
-          <Route path="/jardin" element={<Suspense fallback={sk}><Jardin /></Suspense>} />
           <Route path="/polinizacion" element={<Suspense fallback={sk}><Polinizacion /></Suspense>} />
           <Route path="/flashcards" element={<Suspense fallback={sk}><Flashcards /></Suspense>} />
           <Route path="/ejercicios" element={<Suspense fallback={sk}><Ejercicios /></Suspense>} />
