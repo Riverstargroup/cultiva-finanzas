@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { GardenPlot, SkillDomain } from '../types'
 import { GirasolChar } from './sprites/GirasolChar'
 import { HelechodChar } from './sprites/HelechodChar'
@@ -10,8 +10,17 @@ import { CosmeticsOverlay, type CosmeticId } from './CosmeticsOverlay'
 import { CosmeticsPicker } from './CosmeticsPicker'
 import { WaterDrop, WaterRipple } from './WaterParticles'
 import { SceneBackground } from './SceneBackground'
-import { GRASS_COLORS, GROUND_COLORS, QUIPS, SKY_COLORS } from './sceneHelpers'
+import { GRASS_COLORS, GROUND_COLORS, QUIPS, SKY_COLORS, getTimeOfDay } from './sceneHelpers'
 import type { TimeOfDay, Weather } from './sceneHelpers'
+import {
+  COSMETIC_ITEMS,
+  loadEquippedCosmetics,
+  loadLocalCoinsOverride,
+  loadOwnedCosmetics,
+  saveEquippedCosmetics,
+  saveLocalCoinsOverride,
+  saveOwnedCosmetics,
+} from './cosmeticsData'
 
 interface DomainPlantDef {
   readonly domain: SkillDomain
@@ -24,10 +33,10 @@ interface DomainPlantDef {
 }
 
 const DOMAIN_PLANTS: readonly DomainPlantDef[] = [
-  { domain: 'control', label: 'Control', Component: GirasolChar, leftPct: 19, topPct: 72, size: 78, z: 11 },
-  { domain: 'credito', label: 'Crédito', Component: HelechodChar, leftPct: 58, topPct: 70, size: 78, z: 10 },
-  { domain: 'proteccion', label: 'Protección', Component: LirioChar, leftPct: 35, topPct: 87, size: 88, z: 13 },
-  { domain: 'crecimiento', label: 'Crecimiento', Component: MargaritaChar, leftPct: 74, topPct: 86, size: 88, z: 12 },
+  { domain: 'control', label: 'Control', Component: GirasolChar, leftPct: 14, topPct: 74, size: 78, z: 11 },
+  { domain: 'credito', label: 'Crédito', Component: HelechodChar, leftPct: 62, topPct: 72, size: 78, z: 10 },
+  { domain: 'proteccion', label: 'Protección', Component: LirioChar, leftPct: 33, topPct: 92, size: 88, z: 13 },
+  { domain: 'crecimiento', label: 'Crecimiento', Component: MargaritaChar, leftPct: 80, topPct: 90, size: 88, z: 12 },
 ]
 
 interface ExtraSlotDef {
@@ -40,8 +49,8 @@ interface ExtraSlotDef {
 }
 
 const EXTRA_SLOTS: readonly ExtraSlotDef[] = [
-  { id: 'slot_a', label: 'Ahorro', leftPct: 55, topPct: 92, cost: 20, Component: TomateChar },
-  { id: 'slot_b', label: 'Emergencia', leftPct: 22, topPct: 90, cost: 40, Component: null },
+  { id: 'slot_a', label: 'Ahorro', leftPct: 52, topPct: 95, cost: 20, Component: TomateChar },
+  { id: 'slot_b', label: 'Emergencia', leftPct: 8, topPct: 94, cost: 40, Component: null },
 ]
 
 export interface GardenSceneProps {
@@ -211,28 +220,54 @@ const SCENE_KEYFRAMES = `
 export function GardenScene({
   plots,
   coins,
-  timeOfDay = 'day',
+  timeOfDay,
   weather = 'clear',
-  showLabels = true,
+  showLabels = false,
 }: GardenSceneProps): JSX.Element {
+  // Memoized so getTimeOfDay() (new Date()) runs once, not on every render.
+  // Value re-derives only when the timeOfDay prop changes (manual override).
+  const effectiveTimeOfDay: TimeOfDay = useMemo(
+    () => timeOfDay ?? getTimeOfDay(),
+    [timeOfDay] // eslint-disable-line react-hooks/exhaustive-deps
+  )
+
   const [speechFor, setSpeechFor] = useState<SkillDomain | null>(null)
   const [wateringMode, setWateringMode] = useState(false)
   const [happyPlants, setHappyPlants] = useState<Partial<Record<SkillDomain, boolean>>>({})
   const [drops, setDrops] = useState<DropState[]>([])
   const [ripples, setRipples] = useState<RippleState[]>([])
-  const [equippedCosmetics, setEquippedCosmetics] = useState<Partial<Record<SkillDomain, CosmeticId | null>>>({})
+  const [equippedCosmetics, setEquippedCosmetics] = useState<Partial<Record<SkillDomain, CosmeticId | null>>>(
+    () => loadEquippedCosmetics() as Partial<Record<SkillDomain, CosmeticId | null>>
+  )
+  const [ownedCosmetics, setOwnedCosmetics] = useState<ReadonlyArray<CosmeticId>>(
+    () => loadOwnedCosmetics()
+  )
   const [cosmeticsOpenFor, setCosmeticsOpenFor] = useState<SkillDomain | null>(null)
   const [extraSlots, setExtraSlots] = useState(0)
-  const [localCoins, setLocalCoins] = useState(coins)
+  const [localCoins, setLocalCoins] = useState<number>(() => {
+    const override = loadLocalCoinsOverride()
+    return override ?? coins
+  })
   const dropIdRef = useRef(0)
   const sceneRef = useRef<HTMLDivElement>(null)
 
-  const sky = SKY_COLORS[timeOfDay]
-  const [grassA] = GRASS_COLORS[timeOfDay]
-  const [groundA, groundB] = GROUND_COLORS[timeOfDay]
+  // Persist cosmetic coin/own/equip state across reloads.
+  useEffect(() => { saveLocalCoinsOverride(localCoins) }, [localCoins])
+  useEffect(() => { saveOwnedCosmetics(ownedCosmetics) }, [ownedCosmetics])
+  useEffect(() => {
+    const cleaned: Record<string, CosmeticId | undefined> = {}
+    for (const [k, v] of Object.entries(equippedCosmetics)) {
+      if (v) cleaned[k] = v
+    }
+    saveEquippedCosmetics(cleaned)
+  }, [equippedCosmetics])
+
+  const sky = SKY_COLORS[effectiveTimeOfDay]
+  const [grassA] = GRASS_COLORS[effectiveTimeOfDay]
+  const [groundA, groundB] = GROUND_COLORS[effectiveTimeOfDay]
 
   const raindrops = useRainDrops(weather)
-  const fireflies = useFireflies(timeOfDay)
+  const fireflies = useFireflies(effectiveTimeOfDay)
 
   // filter plots to only those matching the 4 main domains
   const plotByDomain = useMemo<Partial<Record<SkillDomain, GardenPlot>>>(() => {
@@ -285,6 +320,38 @@ export function GardenScene({
     setSpeechFor(null)
   }, [])
 
+  const equipCosmetic = useCallback((domain: SkillDomain, id: CosmeticId | null) => {
+    setEquippedCosmetics((prev) => {
+      const next: Partial<Record<SkillDomain, CosmeticId | null>> = { ...prev }
+      if (id === null) {
+        delete next[domain]
+      } else {
+        // one cosmetic per plant; if the same id is on another plant, it moves.
+        for (const k of Object.keys(next) as SkillDomain[]) {
+          if (next[k] === id && k !== domain) delete next[k]
+        }
+        next[domain] = id
+      }
+      return next
+    })
+  }, [])
+
+  const buyCosmetic = useCallback(
+    (domain: SkillDomain, id: CosmeticId) => {
+      const item = COSMETIC_ITEMS.find((c) => c.id === id)
+      if (!item) return
+      if (ownedCosmetics.includes(id)) {
+        equipCosmetic(domain, id)
+        return
+      }
+      if (localCoins < item.price) return
+      setLocalCoins((c) => c - item.price)
+      setOwnedCosmetics((prev) => (prev.includes(id) ? prev : [...prev, id]))
+      equipCosmetic(domain, id)
+    },
+    [localCoins, ownedCosmetics, equipCosmetic]
+  )
+
   const unlockSlot = useCallback(
     (idx: number, cost: number) => {
       if (localCoins >= cost) {
@@ -316,7 +383,7 @@ export function GardenScene({
         style={{
           position: 'relative',
           width: '100%',
-          aspectRatio: '4 / 3.05',
+          aspectRatio: '4 / 2.8',
           borderRadius: 8,
           overflow: 'hidden',
           background: sky,
@@ -325,7 +392,7 @@ export function GardenScene({
         }}
       >
         <SceneBackground
-          timeOfDay={timeOfDay}
+          timeOfDay={effectiveTimeOfDay}
           weather={weather}
           grassA={grassA}
           groundA={groundA}
@@ -475,11 +542,12 @@ export function GardenScene({
                     left: 0,
                     right: 0,
                     top: 0,
+                    bottom: 0,
                     pointerEvents: 'none',
                     zIndex: 5,
                   }}
                 >
-                  <CosmeticsOverlay id={cosmetic} size={p.size * 0.42} />
+                  <CosmeticsOverlay id={cosmetic} size={p.size} species={p.domain} />
                 </div>
               )}
 
@@ -514,9 +582,10 @@ export function GardenScene({
                     domain={p.domain}
                     label={p.label}
                     equipped={equippedCosmetics[p.domain] ?? null}
-                    onEquip={(id) =>
-                      setEquippedCosmetics((prev) => ({ ...prev, [p.domain]: id }))
-                    }
+                    ownedIds={ownedCosmetics}
+                    coins={localCoins}
+                    onEquip={(id) => equipCosmetic(p.domain, id)}
+                    onBuy={(id) => buyCosmetic(p.domain, id)}
                     onClose={() => setCosmeticsOpenFor(null)}
                   />
                 </div>
@@ -530,7 +599,7 @@ export function GardenScene({
         })}
 
         {/* Night vignette */}
-        {timeOfDay === 'night' && (
+        {effectiveTimeOfDay === 'night' && (
           <div
             style={{
               position: 'absolute',

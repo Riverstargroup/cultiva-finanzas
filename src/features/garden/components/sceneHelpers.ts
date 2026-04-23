@@ -38,3 +38,24 @@ export const QUIPS: Readonly<Record<string, string>> = {
   proteccion: 'Descansa. Yo cuido tu escudo',
   crecimiento: '+3% esta semana',
 }
+
+// Derive the time of day from the user's local clock.
+// Deterministic ranges; used as default when GardenScene is not given an override.
+export function getTimeOfDay(date: Date = new Date()): TimeOfDay {
+  const h = date.getHours()
+  if (h >= 5 && h < 8) return 'dawn'
+  if (h >= 8 && h < 18) return 'day'
+  if (h >= 18 && h < 20) return 'dusk'
+  return 'night'
+}
+
+// Per-species fraction of the rendered plant container where the "head" sits,
+// measured from the top. Used to anchor cosmetics to each plant's face.
+// Keys are SkillDomain strings (plus 'tomate' for the extra slot species).
+export const HEAD_TOP_FRACTION: Readonly<Record<string, number>> = {
+  control: 0.20, // Girasol
+  credito: 0.30, // Helecho
+  proteccion: 0.32, // Lirio
+  crecimiento: 0.22, // Margarita
+  tomate: 0.26,
+}
