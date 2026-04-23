@@ -1,0 +1,44 @@
+name: Sync Supabase Types
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync-types:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Supabase CLI
+        run: npm install -g supabase@latest
+
+      - name: Generate TypeScript types from Supabase schema
+        run: |
+          npx supabase gen types typescript \
+            --project-id wnvdjhwceywfbcwvkrla \
+            > src/integrations/supabase/types.ts
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Commit and push if types changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git diff --quiet src/integrations/supabase/types.ts && \
+            echo "No type changes — skipping commit." || \
+            (git add src/integrations/supabase/types.ts && \
+             git commit -m "chore: regenerate supabase types [skip ci]" && \
+             git push)

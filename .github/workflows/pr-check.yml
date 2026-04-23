@@ -1,0 +1,70 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Capture build output
+        id: build
+        run: |
+          set +e
+          OUTPUT=$(npm run build 2>&1)
+          EXIT_CODE=$?
+          {
+            echo 'output<<BUILDEOF'
+            echo "$OUTPUT" | tail -30
+            echo 'BUILDEOF'
+          } >> "$GITHUB_OUTPUT"
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          exit $EXIT_CODE
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+
+      - name: Comment success on PR
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '✅ Build passed — TypeScript check and Vite build succeeded. Ready to merge.'
+            });
+
+      - name: Comment failure on PR
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `${{ steps.build.outputs.output }}`;
+            const excerpt = output ? `\n\n<details><summary>Error excerpt</summary>\n\n\`\`\`\n${output}\n\`\`\`\n</details>` : '';
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ Build failed — [view full logs](${runUrl})${excerpt}`
+            });
