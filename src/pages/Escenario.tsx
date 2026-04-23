@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePrediction } from "@/features/simulators/hooks/usePrediction";
 import { PredictionModal } from "@/features/simulators/components/PredictionModal";
 import { OutcomeReveal } from "@/features/simulators/components/OutcomeReveal";
+import { RewardToast } from "@/components/RewardToast";
 import type { ScenarioOption } from "@/types/learning";
 
 function ScenarioSkeleton() {
@@ -69,6 +70,7 @@ export default function Escenario() {
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
   const [finalScore, setFinalScore] = useState<number>(0);
   const [saving, setSaving] = useState(false);
+  const [scenarioCoinsEarned, setScenarioCoinsEarned] = useState(0);
 
   const scenarios = courseDetail?.scenarios ?? [];
   const scenarioIndex = scenarios.findIndex((s) => s.id === scenarioId);
@@ -187,6 +189,19 @@ export default function Escenario() {
         } catch (skillErr) {
           console.error("updateSkillsOnCompletion failed (non-critical):", skillErr);
         }
+      }
+
+      // Award coins for scenario completion (score-based: 10 base + up to 40 bonus)
+      const coinsToAward = Math.round(10 + score * 40)
+      setScenarioCoinsEarned(coinsToAward)
+      try {
+        await supabase.rpc('award_coins' as any, {
+          p_user_id: user.id,
+          p_amount: coinsToAward,
+          p_reason: `Escenario completado: ${scenario?.title ?? scenarioId}`,
+        })
+      } catch {
+        // non-critical
       }
 
       invalidateProgress();
@@ -348,6 +363,7 @@ export default function Escenario() {
             <p className="text-sm" style={{ color: "var(--leaf-muted)" }}>
               Puntaje: {Math.round(finalScore * 100)}%
             </p>
+            <RewardToast coins={scenarioCoinsEarned} visible={scenarioCoinsEarned > 0} />
             <button
               onClick={handleNext}
               disabled={saving}
