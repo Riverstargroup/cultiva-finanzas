@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, CheckCircle, XCircle, RotateCcw } from 'lucide-react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import { PresupuestoRapidoIllustration } from '../assets';
+import { useGardenReward } from '@/features/garden/hooks/useGardenReward';
 import type { Expense, ExpenseCategory, PresupuestoAnswer, PresupuestoResult } from '../types';
 
 const EXPENSES: Expense[] = [
@@ -33,11 +34,12 @@ const CATEGORY_BG: Record<ExpenseCategory, string> = {
 
 interface Props {
   onRestart: () => void;
-  onGameComplete?: (score: number, total: number) => void;
 }
 
-export function PresupuestoRapido({ onRestart, onGameComplete }: Props) {
+export function PresupuestoRapido({ onRestart }: Props) {
   const reduced = useReducedMotion();
+  const { grantReward } = useGardenReward();
+  const rewardGranted = useRef(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [answers, setAnswers] = useState<PresupuestoAnswer[]>([]);
@@ -48,9 +50,20 @@ export function PresupuestoRapido({ onRestart, onGameComplete }: Props) {
   const finishGame = useCallback((finalAnswers: PresupuestoAnswer[]) => {
     setAnswers(finalAnswers);
     setGameOver(true);
-    const score = finalAnswers.filter((a) => a.isCorrect).length;
-    onGameComplete?.(score, EXPENSES.length);
-  }, [onGameComplete]);
+    if (!rewardGranted.current) {
+      rewardGranted.current = true;
+      const score = finalAnswers.filter((a) => a.isCorrect).length;
+      const total = EXPENSES.length;
+      if (score > 0) {
+        grantReward({
+          domain: 'control',
+          masteryDelta: Math.round((score / total) * 0.05 * 1000) / 1000,
+          coins: Math.round((score / total) * 20),
+          coinReason: 'presupuesto_rapido',
+        });
+      }
+    }
+  }, [grantReward]);
 
   useEffect(() => {
     if (gameOver || showFeedback) return;

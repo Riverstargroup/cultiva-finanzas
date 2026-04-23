@@ -14,6 +14,7 @@ export const gardenKeys = {
   all: GARDEN_KEY_BASE,
   plots: (userId: string) => [...GARDEN_KEY_BASE, 'plots', userId] as const,
   coins: (userId: string) => [...GARDEN_KEY_BASE, 'coins', userId] as const,
+  economy: (userId: string) => [...GARDEN_KEY_BASE, 'economy', userId] as const,
 }
 
 export async function fetchGardenPlots(userId: string): Promise<GardenPlot[]> {

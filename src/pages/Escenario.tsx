@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Trophy, Loader2 } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +15,6 @@ import { useStreak } from "@/hooks/useStreak";
 import { useUserMission } from "@/hooks/useUserMission";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { RewardToast, RewardToastContainer } from "@/components/RewardToast";
 import DecisionStep from "@/components/scenario/DecisionStep";
 import FeedbackStep from "@/components/scenario/FeedbackStep";
 import RecallStep from "@/components/scenario/RecallStep";
@@ -24,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePrediction } from "@/features/simulators/hooks/usePrediction";
 import { PredictionModal } from "@/features/simulators/components/PredictionModal";
 import { OutcomeReveal } from "@/features/simulators/components/OutcomeReveal";
+import { RewardToast } from "@/components/RewardToast";
 import type { ScenarioOption } from "@/types/learning";
 
 function ScenarioSkeleton() {
@@ -70,11 +70,7 @@ export default function Escenario() {
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
   const [finalScore, setFinalScore] = useState<number>(0);
   const [saving, setSaving] = useState(false);
-  const [rewardData, setRewardData] = useState<{
-    coins: number
-    streak: number
-    streakIncreased: boolean
-  } | null>(null);
+  const [scenarioCoinsEarned, setScenarioCoinsEarned] = useState(0);
 
   const scenarios = courseDetail?.scenarios ?? [];
   const scenarioIndex = scenarios.findIndex((s) => s.id === scenarioId);
@@ -195,6 +191,19 @@ export default function Escenario() {
         }
       }
 
+      // Award coins for scenario completion (score-based: 10 base + up to 40 bonus)
+      const coinsToAward = Math.round(10 + score * 40)
+      setScenarioCoinsEarned(coinsToAward)
+      try {
+        await supabase.rpc('award_coins' as any, {
+          p_user_id: user.id,
+          p_amount: coinsToAward,
+          p_reason: `Escenario completado: ${scenario?.title ?? scenarioId}`,
+        })
+      } catch {
+        // non-critical
+      }
+
       invalidateProgress();
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
@@ -202,27 +211,6 @@ export default function Escenario() {
       queryClient.invalidateQueries({ queryKey: ["review-queue"] });
       queryClient.invalidateQueries({ queryKey: ["user-skills"] });
       queryClient.invalidateQueries({ queryKey: ["user-mission"] });
-
-      // Award coins for completing scenario (fire-and-forget — non-critical)
-      const coinAmount = isFirstCompletion ? 50 : 10;
-      try {
-        await supabase.rpc('award_coins' as any, {
-          p_user_id: user.id,
-          p_amount: coinAmount,
-          p_reason: 'scenario_complete',
-        });
-        queryClient.invalidateQueries({ queryKey: ['garden'] });
-      } catch {
-        // non-critical
-      }
-
-      // Calculate streak for reward toast
-      const newStreak = (streak ?? 0) + (existingDay ? 0 : 1);
-      setRewardData({
-        coins: coinAmount,
-        streak: newStreak,
-        streakIncreased: !existingDay,
-      });
 
       // Reveal prediction outcome (non-critical, guard against double-call)
       if (predictionId && predictedValue !== null && !predResolved) {
@@ -375,6 +363,7 @@ export default function Escenario() {
             <p className="text-sm" style={{ color: "var(--leaf-muted)" }}>
               Puntaje: {Math.round(finalScore * 100)}%
             </p>
+            <RewardToast coins={scenarioCoinsEarned} visible={scenarioCoinsEarned > 0} />
             <button
               onClick={handleNext}
               disabled={saving}
@@ -395,19 +384,6 @@ export default function Escenario() {
           </>
         )}
       </div>
-
-      {/* Reward toast — shown after scenario completion */}
-      <RewardToastContainer>
-        {rewardData && step === 'done' && (
-          <RewardToast
-            key="scenario-reward"
-            coins={rewardData.coins}
-            streak={rewardData.streak}
-            streakIncreased={rewardData.streakIncreased}
-            onDismiss={() => setRewardData(null)}
-          />
-        )}
-      </RewardToastContainer>
     </BotanicalPage>
   );
 }

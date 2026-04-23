@@ -11,7 +11,9 @@ import { useCourses } from "@/hooks/useCourses";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserLevel } from "@/hooks/useUserLevel";
 import { LevelBadge } from "@/components/LevelBadge";
+import { LevelUpNotification } from "@/components/LevelUpNotification";
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -64,6 +66,8 @@ export default function Dashboard() {
     },
   });
 
+  const userLevel = useUserLevel();
+
   const name = loading ? "..." : profile?.full_name || "Jardinero";
   const greeting = `${getGreeting()}, ${name}`;
 
@@ -95,6 +99,7 @@ export default function Dashboard() {
 
   return (
     <PageTransition>
+      <LevelUpNotification level={userLevel.level} isLoading={userLevel.isLoading} />
       <div className="dashboard-skin botanical-bg -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-28 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
         <div className="mx-auto max-w-4xl space-y-6">
           {/* A) Header */}
@@ -108,9 +113,12 @@ export default function Dashboard() {
                   {greeting} 🌱
                 </h1>
               </div>
-              <p className="mt-1.5 text-xs font-medium uppercase tracking-widest" style={{ color: "var(--leaf-muted)" }}>
-                {getFormattedDate()}
-              </p>
+              <div className="mt-2 flex items-center gap-3">
+                <p className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--leaf-muted)" }}>
+                  {getFormattedDate()}
+                </p>
+                {!userLevel.isLoading && <LevelBadge level={userLevel.level} size="sm" />}
+              </div>
             </div>
             <div className="hidden items-center gap-3 md:flex">
               <button
@@ -216,9 +224,6 @@ export default function Dashboard() {
               </div>
             </div>
           )}
-
-          {/* Level badge */}
-          <LevelBadge showProgress className="mt-1" />
 
           {/* C) Stats Grid */}
           <motion.div variants={stagger} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
