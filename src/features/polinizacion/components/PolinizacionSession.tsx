@@ -22,7 +22,8 @@ const DOMAIN_TIPS: Record<SkillDomain, string[]> = {
     'El seguro de gastos médicos mayores puede salvarte de perder todo tu patrimonio',
   ],
   crecimiento: [
-    'Los CETES al 10.1% superan la inflación actual del 4.5%',
+    /* CONTENT_REVIEW — figura: CETES ~8.25 % / inflación ~3.9 % — fuente: Banxico subasta semanal; INEGI INPC — valid_until: verificar trimestralmente */
+    'Los CETES al ~8.25 % anual superan la inflación actual (~3.9 % INPC) — tu dinero crece en términos reales',
     'Invertir $1,000/mes por 20 años a 8% = $589,000 (vs $240,000 guardado)',
     'La diversificación reduce el riesgo sin sacrificar rendimiento a largo plazo',
   ],

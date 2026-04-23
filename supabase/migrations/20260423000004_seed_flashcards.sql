@@ -1,36 +1,57 @@
--- Seed 25 flashcards across skill domains with real Mexican financial data
+-- Add domain column to flashcards so hooks can filter without a join
+ALTER TABLE public.flashcards
+  ADD COLUMN IF NOT EXISTS domain text
+    CHECK (domain IN ('control','credito','proteccion','crecimiento'));
 
-INSERT INTO flashcards (id, skill_id, front, back, difficulty, is_published) VALUES
+-- Populate domain from skills for existing rows
+UPDATE public.flashcards fc
+SET domain = s.domain
+FROM public.skills s
+WHERE fc.skill_id = s.id AND fc.domain IS NULL;
 
--- CONTROL (presupuesto, ahorro, emergencia)
-(gen_random_uuid(), 'control_basics',    '¿Qué es la regla 50/30/20?',                    '50% para necesidades (renta, comida, transporte), 30% para deseos, 20% para ahorro o pago de deudas. Con $12,000/mes: $6,000 necesidades, $3,600 gustos, $2,400 ahorro.', 1, true),
-(gen_random_uuid(), 'budget_3_buckets',  '¿Qué son las "3 cubetas" del presupuesto?',     'Necesidades (fijas), Deseos (variables), Ahorro/Deuda. El truco: automatiza el depósito a ahorro el mismo día que recibes tu sueldo.', 1, true),
-(gen_random_uuid(), 'spending_leaks',    '¿Qué es un gasto hormiga?',                     'Pequeños gastos recurrentes que parecen insignificantes pero suman mucho. Ej: café diario $40 × 22 días = $880/mes = $10,560/año.', 1, true),
-(gen_random_uuid(), 'emergency_fund',    '¿Cuánto debe tener tu fondo de emergencia?',    '3 a 6 meses de gastos básicos. Si gastas $8,000/mes en lo esencial, tu meta es $24,000–$48,000. Mantenlo en cuenta separada con rendimiento (CETES/fondos líquidos).', 2, true),
-(gen_random_uuid(), 'emergency_fund',    '¿Dónde guardar el fondo de emergencia?',        'En instrumento líquido y seguro: cuenta de ahorro con rendimiento, CETES a 28 días, o fondos de deuda a corto plazo. NO en inversiones volátiles ni con penalización por retiro anticipado.', 2, true),
-(gen_random_uuid(), 'auto_saving',       '¿Por qué se recomienda el ahorro automático?', 'Elimina la decisión de ahorrar. El dinero que no ves no lo gastas. Configura transferencia automática el día de quincena a cuenta de ahorro separada. Empieza con 5%, aumenta cada 3 meses.', 1, true),
-(gen_random_uuid(), 'control_basics',    '¿Qué es el flujo de efectivo personal?',        'Ingresos menos gastos del mes. Positivo = generas ahorro. Negativo = te endeudas. Regístralo 30 días para saber tu punto de partida real.', 2, true),
+-- Make domain NOT NULL now that existing rows are filled
+ALTER TABLE public.flashcards
+  ALTER COLUMN domain SET NOT NULL;
 
--- CRÉDITO
-(gen_random_uuid(), 'credit_basics',     '¿Qué es el CAT (Costo Anual Total)?',           'Indicador que incluye tasa de interés + comisiones + seguros. Es el costo real de un crédito. Tarjetas en México: CAT promedio 52–54%. Crédito hipotecario: 10–14%.', 2, true),
-(gen_random_uuid(), 'credit_basics',     '¿Cuál es la diferencia entre tasa nominal y CAT?', 'Tasa nominal: solo el interés. CAT: interés + todas las comisiones. Una tarjeta con tasa 30% anual puede tener CAT 52% al sumar anualidad, seguros y comisiones por retraso.', 2, true),
-(gen_random_uuid(), 'credit_score',      '¿Qué factores afectan tu Buró de Crédito?',    '1. Puntualidad en pagos (factor más importante). 2. Nivel de uso del crédito (ideal <30% del límite). 3. Antigüedad del historial. 4. Número de créditos activos. 5. Solicitudes recientes.', 2, true),
-(gen_random_uuid(), 'min_payment_trap',  '¿Qué pasa si solo pagas el mínimo de tu tarjeta?', 'Con $10,000 de deuda al CAT 52%, pagando solo el mínimo (~4%) tardas 4–5 años en liquidar y pagas ~$12,000 adicionales en intereses — pagando 2.2x el precio original.', 3, true),
-(gen_random_uuid(), 'min_payment_trap',  '¿Cuánto te cuesta usar el crédito revolving?',  'Ejemplo real: compras $3,000, pagas mínimo 8 meses → gastas $4,200 total. La deuda "viva" al CAT 52% crece $130 cada mes que no pagas el total.', 3, true),
-(gen_random_uuid(), 'rate_compare',      '¿Cómo convertir tasa mensual a anual?',         'Tasa anual ≈ tasa mensual × 12 (aproximación simple). Exacto: (1 + tasa_mensual)^12 - 1. Ejemplo: 3.5% mensual = 42% anual simple = 51% anual compuesto.', 3, true),
-(gen_random_uuid(), 'snowball_avalanche', '¿Cómo funciona el método avalancha para deudas?', 'Paga el mínimo en todas las deudas, y el dinero extra a la de MAYOR tasa. Cuando la liquidas, ese dinero va a la siguiente. Es el método que ahorra más dinero en intereses totales.', 2, true),
-(gen_random_uuid(), 'snowball_avalanche', '¿Qué es el método bola de nieve?',              'Paga el mínimo en todas y el extra a la MENOR deuda primero. Liquidas más rápido, ganas motivación psicológica. Puede costar más en intereses que avalancha, pero mejora la adherencia.', 2, true),
-(gen_random_uuid(), 'debt_plan_30d',     '¿Cuál es el primer paso para salir de deudas?', 'Listar TODAS las deudas: saldo, tasa, pago mínimo. Calcula el total y el costo mensual real. Sin ese mapa completo, es imposible hacer un plan efectivo.', 1, true),
+-- Update existing index / add domain index
+CREATE INDEX IF NOT EXISTS idx_flashcards_domain ON public.flashcards(domain);
 
--- PROTECCIÓN
-(gen_random_uuid(), 'fraud_basics',      '¿Qué es el phishing financiero?',               'Engaño donde suplantan a banco/SAT/IMSS para robar datos. Señales: urgencia extrema, links sospechosos, solicitan contraseña completa. Los bancos NUNCA piden tu NIP por teléfono.', 1, true),
-(gen_random_uuid(), 'fraud_basics',      '¿Cómo verificar si un sitio de inversión es legítimo?', 'Consulta CONDUSEF y CNBV. Entidades reguladas aparecen en sus registros públicos. Si promete rendimientos >15% sin riesgo, es probable fraude. "Si suena demasiado bueno, es fraude."', 2, true),
-(gen_random_uuid(), 'identity_protection', '¿Cómo proteger tu RFC y CURP?',               'No compartas en sitios no oficiales. Revisa tu expediente en SAT cada 6 meses. Si sospechas uso indebido, presenta declaratoria ante SAT. Activa e.firma para trámites oficiales.', 2, true),
+-- ============================================================
+-- SEED: 24 flashcards (6 per domain)
+-- ============================================================
 
--- CRECIMIENTO (inversión, inflación)
-(gen_random_uuid(), 'inflation_basics',  '¿Qué es la inflación y cómo te afecta?',        'Es el aumento de precios. Inflación MX 2024: ~4.5% anual. Si tienes $10,000 en efectivo sin rendimiento, en 1 año equivalen a $9,569 en poder de compra. Tu dinero pierde valor quieto.', 2, true),
-(gen_random_uuid(), 'inflation_basics',  '¿Qué son los CETES y cómo funcionan?',          'Certificados de Tesorería del gobierno mexicano. Tasa actual: ~10.1% anual. Disponibles desde $100 MXN en cetesdirecto.com.mx. Sin riesgo de emisor (es el gobierno federal).', 1, true),
-(gen_random_uuid(), 'investing_basics',  '¿Qué es el interés compuesto?',                 'Interés sobre interés. $10,000 al 10% anual: año 1 = $11,000, año 2 = $12,100, año 5 = $16,105, año 10 = $25,937. Einstein lo llamó "el octavo milagro del mundo".', 1, true),
-(gen_random_uuid(), 'investing_basics',  '¿Cuál es la diferencia entre ahorro e inversión?', 'Ahorro: capital seguro, bajo rendimiento (1–3%), alta liquidez. Inversión: mayor rendimiento potencial, asumes algún riesgo, plazo mínimo recomendado. No uses para el fondo de emergencia.', 2, true),
-(gen_random_uuid(), 'investing_basics',  '¿Qué es la diversificación?',                   'Distribuir el dinero en distintos instrumentos/activos para no depender de uno solo. "No pongas todos los huevos en la misma canasta." Reduce riesgo sin eliminar rendimiento.', 2, true),
-(gen_random_uuid(), 'inflation_basics',  '¿Qué es el rendimiento real de una inversión?', 'Rendimiento nominal menos inflación. CETES 10.1% - inflación 4.5% = rendimiento real ~5.4%. Si tu inversión rinde menos que la inflación, estás perdiendo poder adquisitivo.', 3, true);
+INSERT INTO public.flashcards (skill_id, domain, front, back, difficulty) VALUES
+
+-- CONTROL (6 cards)
+('control_basics', 'control', '¿Qué es el flujo de caja personal?', 'La diferencia entre ingresos y gastos en un período. Positivo = ahorro. Negativo = deuda. Conocerlo es el primer paso de control.', 1),
+('budget_3_buckets', 'control', '¿Qué propone la regla 50/30/20?', '50% a necesidades (renta, comida, transporte), 30% a deseos (ocio, ropa, salidas), 20% a ahorro y deuda. Ejemplo con $12,000/mes: $6,000 / $3,600 / $2,400.', 2),
+('spending_leaks', 'control', '¿Qué es un gasto hormiga?', 'Pequeños gastos recurrentes que parecen insignificantes pero suman mucho. Ejemplo: café diario $50 × 22 días = $1,100/mes = $13,200/año.', 1),
+('emergency_fund', 'control', '¿Cuánto debe tener tu fondo de emergencia?', 'Entre 3 y 6 meses de gastos básicos. Si tus gastos son $8,000/mes, tu meta es $24,000–$48,000. Guárdalo en cuenta de ahorro o CETES a la vista.', 2),
+('auto_saving', 'control', '¿Por qué el ahorro automático funciona mejor?', 'Elimina la dependencia de fuerza de voluntad. Si el dinero se transfiere al ahorro antes de que lo veas, no puedes gastarlo. Paga primero al futuro tú.', 2),
+('control_basics', 'control', '¿Cuál es la diferencia entre necesidad y deseo?', 'Necesidad: esencial para vivir (comida, techo, transporte al trabajo). Deseo: mejora tu vida pero no es indispensable (streaming, ropa de moda, restaurantes). Confundirlos es el error #1 de presupuesto.', 1),
+
+-- CRÉDITO (6 cards)
+('credit_basics', 'credito', '¿Qué es el CAT (Costo Anual Total)?', 'Incluye tasa de interés + comisiones + seguros. Promedio tarjetas de crédito en México: 52–54% CAT. Úsalo para comparar: una tarjeta al 25% CAT es mejor que otra al 60% aunque la segunda tenga más beneficios.', 2),
+('min_payment_trap', 'credito', '¿Qué pasa si solo pagas el mínimo en tu tarjeta?', 'Con un saldo de $10,000 a 52% CAT pagando solo el mínimo, puedes tardar más de 5 años y pagar hasta $15,000 extra en intereses — 2.5 veces el valor original.', 1),
+('credit_score', 'credito', '¿Cómo se calcula el score de Buró de Crédito?', 'Pago puntual (35% del peso), uso del crédito disponible (30%), antigüedad del historial (15%), diversidad de créditos (10%), consultas recientes (10%). Nunca rebasar el 30% de tu línea de crédito.', 3),
+('rate_compare', 'credito', '¿Qué es la tasa de interés mensual vs anual?', 'Una tasa mensual del 4% parece pequeña pero equivale al 48% anual. Siempre pide la tasa anual o el CAT para comparar productos financieros realmente.', 2),
+('snowball_avalanche', 'credito', '¿Cuál es la diferencia entre método bola de nieve y avalancha?', 'Bola de nieve: paga primero la deuda más pequeña (motivación psicológica). Avalancha: paga primero la de mayor tasa de interés (ahorra más dinero). La avalancha es matemáticamente superior; la bola de nieve es mejor si necesitas victorias rápidas.', 3),
+('debt_plan_30d', 'credito', '¿Qué es la regla del 36% de deuda?', 'Tu pago mensual total de deudas (tarjetas, créditos, préstamos) no debe superar el 36% de tu ingreso mensual. Con $12,000/mes: máximo $4,320 en pagos de deuda.', 2),
+
+-- PROTECCIÓN (6 cards)
+('fraud_basics', 'proteccion', '¿Cuáles son las 3 banderas rojas de fraude financiero?', '1. Promesas de rendimientos garantizados muy altos (>20% mensual). 2. Presión para decidir "ahora o nunca". 3. Solicitan acceso a tus cuentas o contraseñas. Si ves una, detente.', 1),
+('identity_protection', 'proteccion', '¿Qué debes hacer si sospechas robo de identidad en México?', '1. Reporta en CONDUSEF (800-999-8080). 2. Revisa tu historial en Buró de Crédito (1 consulta gratis/año). 3. Bloquea tus tarjetas con tu banco. 4. Cambia contraseñas y activa 2FA.', 2),
+('fraud_basics', 'proteccion', '¿Qué es el phishing y cómo evitarlo?', 'Engaño por correo/SMS simulando ser tu banco para robarte datos. Regla: tu banco NUNCA pide contraseñas por mensaje. Siempre entra directo a la app oficial, nunca por links en mensajes.', 1),
+('identity_protection', 'proteccion', '¿Por qué es importante diversificar dónde guardas tu dinero?', 'Si tienes todo en una sola institución y quiebra, el IPAB protege hasta 400,000 UDIS (~$3 millones MXN) por persona. Por encima de eso, puedes perder el excedente.', 3),
+('fraud_basics', 'proteccion', '¿Cómo proteger tus contraseñas financieras?', 'Usa contraseñas únicas para cada cuenta bancaria. Activa autenticación de dos factores (2FA). No guardes contraseñas en notas de tu teléfono. Un gestor de contraseñas como Bitwarden es más seguro.', 2),
+('identity_protection', 'proteccion', '¿Qué cubre el IMSS vs un seguro de gastos médicos mayores?', 'IMSS cubre solo si cotizas activamente (trabajo formal). Gastos médicos mayores cubre hospitalizaciones, cirugías, emergencias sin importar el empleo. Una cirugía compleja puede costar $500,000+ MXN — sin seguro puede borrar tus ahorros.', 3),
+
+-- CRECIMIENTO (6 cards)
+('inflation_basics', 'crecimiento', '¿Qué es la inflación y cómo afecta tu dinero?', 'La inflación es el aumento general de precios. Con inflación del 4.5% anual, $1,000 de hoy valen solo $956 en poder adquisitivo el próximo año. Si tu dinero no crece más que la inflación, pierdes poder de compra.', 1),
+('investing_basics', 'crecimiento', '¿Qué son los CETES y cómo invertir en ellos?', 'Certificados de la Tesorería — deuda del gobierno mexicano. Desde $100 MXN. Tasa actual: ~10.1% anual, lo que supera la inflación actual (~4.5%). Disponibles en cetesdirecto.com.mx sin comisiones.', 2),
+('inflation_basics', 'crecimiento', '¿Qué es el interés compuesto?', 'Ganar interés sobre los intereses ya ganados. $10,000 al 8% anual: año 1 = $10,800, año 10 = $21,589, año 20 = $46,610. Einstein lo llamó "el octavo milagro del mundo".', 1),
+('investing_basics', 'crecimiento', '¿Cuál es la diferencia entre ahorro e inversión?', 'Ahorro: dinero guardado con bajo riesgo y baja ganancia (cuentas bancarias, CETES a corto plazo). Inversión: dinero puesto a trabajar con más riesgo y mayor potencial de ganancia (acciones, fondos, bienes raíces).', 1),
+('inflation_basics', 'crecimiento', '¿Cómo afectó la inflación a los precios en México 2020–2025?', 'La inflación acumulada fue ~40%. Una despensa de $500 en 2020 cuesta ~$700 en 2025. El salario mínimo subió de $123 a $278/día (+126%), superando la inflación — pero solo si lo tienes.', 2),
+('investing_basics', 'crecimiento', '¿Qué es la diversificación de inversiones?', 'Distribuir tu dinero en distintos activos para no depender de uno solo. "No pongas todos los huevos en una canasta". Mezclar CETES + acciones + fondo de emergencia reduce el riesgo sin sacrificar rendimiento a largo plazo.', 2)
+
+ON CONFLICT DO NOTHING;

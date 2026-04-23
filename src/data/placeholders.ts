@@ -44,6 +44,7 @@ export const PILOT_COURSE: PlaceholderCourse = {
       ],
     },
     {
+      /* CONTENT_REVIEW — figura: $12,000/mes ingreso ejemplo — no es cifra real, es ejemplo pedagógico — valid_until: N/A */
       id: "scenario-002",
       title: "Presupuesto",
       description: "Tu ingreso mensual es $12,000, ¿cómo lo distribuyes?",
@@ -62,10 +63,12 @@ export const PILOT_COURSE: PlaceholderCourse = {
       options: [
         { id: "opt_a", text: "Pagar solo el mínimo cada mes", feedback: "Pagar el mínimo puede costarte años de intereses. Los intereses compuestos trabajan en tu contra.", is_best: false },
         { id: "opt_b", text: "Pagar más del mínimo enfocándome en la deuda más cara", feedback: "¡Correcto! Atacar primero la deuda con mayor tasa de interés (método avalancha) te ahorra más dinero.", is_best: true },
+        /* CONTENT_REVIEW — figura: no aplica cifra específica — valid_until: N/A */
         { id: "opt_c", text: "Sacar otro crédito para pagar este", feedback: "Endeudarte para pagar deuda rara vez funciona. Puede convertirse en un ciclo peligroso.", is_best: false },
       ],
     },
     {
+      /* CONTENT_REVIEW — figura: $8,000 gasto inesperado — ejemplo pedagógico, no cifra real — valid_until: N/A */
       id: "scenario-004",
       title: "Fondo de emergencia",
       description: "Surge un gasto inesperado de $8,000, ¿cómo lo cubres?",
@@ -77,13 +80,15 @@ export const PILOT_COURSE: PlaceholderCourse = {
       ],
     },
     {
+      /* CONTENT_REVIEW — figura: $10,000 ahorros ejemplo; mínimo CETES $100 — fuente: cetesdirecto.com — valid_until: verificar si cambia el mínimo */
       id: "scenario-005",
       title: "CETES",
       description: "Tienes $10,000 ahorrados, ¿dónde los pones a trabajar?",
       sort_order: 5,
       options: [
         { id: "opt_a", text: "Dejarlos en la cuenta de ahorro del banco", feedback: "Las cuentas de ahorro dan rendimientos muy bajos, a veces por debajo de la inflación. Tu dinero pierde valor.", is_best: false },
-        { id: "opt_b", text: "Invertir en CETES a 28 días", feedback: "¡Buena elección! CETES es seguro (respaldado por el gobierno), accesible desde $100 y da mejores rendimientos que el banco.", is_best: true },
+        /* CONTENT_REVIEW — figura: CETES rinde ~8.25 % anual — fuente: Banxico subasta semanal — valid_until: verificar trimestralmente */
+        { id: "opt_b", text: "Invertir en CETES a 28 días", feedback: "¡Buena elección! CETES es seguro (respaldado por el gobierno), accesible desde $100 y da mejores rendimientos que el banco (~8.25 % anual; verificar en Banxico).", is_best: true },
         { id: "opt_c", text: "Comprar criptomonedas", feedback: "Las cripto pueden dar altos rendimientos pero son muy volátiles. No es ideal para tus primeros ahorros.", is_best: false },
       ],
     },

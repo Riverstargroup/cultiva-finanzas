@@ -32,17 +32,17 @@ export function usePrediction({ userId, scenarioId }: UsePredictionOptions): Use
     setError(null)
     try {
       const { data, error: dbError } = await supabase
-        .from('user_predictions' as any)
+        .from('user_predictions')
         .insert({
           user_id: userId,
           scenario_id: scenarioId,
           predicted_value: predicted,
-        } as any)
+        })
         .select('id')
         .single()
 
       if (dbError) throw dbError
-      setPredictionId((data as any).id)
+      setPredictionId(data.id)
       setPredictedValue(predicted)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error guardando predicción')
@@ -63,18 +63,18 @@ export function usePrediction({ userId, scenarioId }: UsePredictionOptions): Use
 
     try {
       await supabase
-        .from('user_predictions' as any)
+        .from('user_predictions')
         .update({
           actual_value: actual,
           was_correct: wasCorrect,
           coins_earned: coinsEarned,
-        } as any)
+        })
         .eq('id', predictionId)
 
       if (wasCorrect) {
-        await supabase.rpc('award_coins' as any, {
+        await supabase.rpc('award_coins', {
           p_user_id: userId,
-          p_amount: PREDICTION_CORRECT_COINS,
+          p_delta: PREDICTION_CORRECT_COINS,
           p_reason: 'prediction_correct',
         })
       }
