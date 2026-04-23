@@ -3,6 +3,7 @@ import { GripVertical, CheckCircle2, Circle } from 'lucide-react'
 import { DragDropExercise } from '@/features/dragdrop/components/DragDropExercise'
 import { EXERCISES } from '@/features/dragdrop/data/exercises'
 import { DOMAIN_LABELS } from '@/features/garden/types'
+import { RewardToast, RewardToastContainer } from '@/components/RewardToast'
 import type { DragDropExercise as DragDropExerciseType } from '@/features/dragdrop/types'
 
 const DOMAIN_EMOJI: Record<string, string> = {
@@ -15,6 +16,7 @@ const DOMAIN_EMOJI: Record<string, string> = {
 export default function Ejercicios() {
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null)
   const [completedToday, setCompletedToday] = useState<Set<string>>(new Set())
+  const [showReward, setShowReward] = useState(false)
 
   const activeExercise = activeExerciseId
     ? EXERCISES.find((ex) => ex.id === activeExerciseId) ?? null
@@ -24,9 +26,10 @@ export default function Ejercicios() {
     ? EXERCISES.findIndex((ex) => ex.id === activeExerciseId)
     : -1
 
-  const handleNext = () => {
+  const handleNext = (wasCorrect?: boolean) => {
     if (activeExerciseId) {
       setCompletedToday((prev) => new Set([...prev, activeExerciseId]))
+      if (wasCorrect) setShowReward(true)
     }
     const nextIndex = activeIndex + 1
     if (nextIndex < EXERCISES.length) {
@@ -114,6 +117,16 @@ export default function Ejercicios() {
         >
           <DragDropExercise exercise={activeExercise} onNext={handleNext} />
         </div>
+
+        <RewardToastContainer>
+          {showReward && (
+            <RewardToast
+              key="dragdrop-reward"
+              coins={15}
+              onDismiss={() => setShowReward(false)}
+            />
+          )}
+        </RewardToastContainer>
       </div>
     )
   }

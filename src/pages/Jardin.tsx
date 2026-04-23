@@ -14,6 +14,7 @@ import { PlantShopDrawer } from '@/features/garden/components/PlantShopDrawer'
 import { InventoryDrawer } from '@/features/garden/components/InventoryDrawer'
 import { JardinSkeleton } from '@/features/garden/components/JardinSkeleton'
 import { JardinWelcome } from '@/features/garden/components/JardinWelcome'
+import { LevelBadge } from '@/components/LevelBadge'
 import type { InventoryItem } from '@/features/garden/types'
 
 export default function Jardin() {
@@ -69,6 +70,8 @@ export default function Jardin() {
         <div className="mx-auto max-w-2xl space-y-4">
 
           <BackyardSkyHeader coins={garden.coins} streakDays={streakDays} />
+
+          <LevelBadge showProgress />
 
           <GardenErrorBoundary>
             <GardenEconomyBanner

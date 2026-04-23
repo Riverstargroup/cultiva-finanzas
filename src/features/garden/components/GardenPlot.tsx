@@ -4,7 +4,7 @@ import { PlantSprite } from './PlantSprite'
 import { ParticleEffect } from './ParticleEffect'
 import { masteryProgress } from '../lib/stage'
 import { DOMAIN_LABELS, PLANT_COLOR_SCHEMES, SPECIES_EMOJI } from '../types'
-import { stageUpgradeConfig, masteredAmbientConfig } from '../constants/particles'
+import { stageUpgradeConfig, masteredAmbientConfig, masteredUpgradeConfig } from '../constants/particles'
 import type { GardenPlot as GardenPlotData, GrowthStage, PlantAnimationKey } from '../types'
 
 interface GardenPlotProps {
@@ -33,6 +33,7 @@ export function GardenPlot({ plot, isActive, animation = 'idle', onClick, classN
 
   const prevStage = usePrevious(plant.stage)
   const [upgradeActive, setUpgradeActive] = useState(false)
+  const [masteredActive, setMasteredActive] = useState(false)
 
   useEffect(() => {
     if (
@@ -40,7 +41,11 @@ export function GardenPlot({ plot, isActive, animation = 'idle', onClick, classN
       prevStage !== plant.stage &&
       STAGE_ORDER.indexOf(plant.stage) > STAGE_ORDER.indexOf(prevStage)
     ) {
-      setUpgradeActive(true)
+      if (plant.stage === 'mastered') {
+        setMasteredActive(true)
+      } else {
+        setUpgradeActive(true)
+      }
     }
   }, [plant.stage, prevStage])
 
@@ -61,11 +66,18 @@ export function GardenPlot({ plot, isActive, animation = 'idle', onClick, classN
       whileTap={!shouldReduceMotion ? { scale: 0.98 } : undefined}
       transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
     >
-      {/* Stage upgrade particles */}
+      {/* Regular stage upgrade particles (seed → sprout → growing → blooming) */}
       <ParticleEffect
         config={stageUpgradeConfig}
         active={upgradeActive}
         onComplete={() => setUpgradeActive(false)}
+      />
+
+      {/* Mastered celebration — more spectacular than regular upgrades */}
+      <ParticleEffect
+        config={masteredUpgradeConfig}
+        active={masteredActive}
+        onComplete={() => setMasteredActive(false)}
       />
 
       {/* Mastered ambient particles — loop while mastered */}
