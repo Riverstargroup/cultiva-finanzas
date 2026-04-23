@@ -59,8 +59,8 @@ export function useFlashcardSession(cards: Flashcard[]): FlashcardSessionState &
     try {
       const { error } = await supabase.rpc('apply_flashcard_review', {
         p_user_id: user.id,
-        p_card_id: card.id,
-        p_rating: rating,
+        p_flashcard_id: card.id,
+        p_quality: rating,
       })
 
       if (error) throw error

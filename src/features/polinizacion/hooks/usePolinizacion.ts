@@ -91,7 +91,7 @@ export function useSubmitInsight() {
       // Award coins
       const { error: coinError } = await supabase.rpc('award_coins', {
         p_user_id: user.id,
-        p_amount: 20,
+        p_delta: 20,
         p_reason: 'Polinización cruzada completada',
       })
       if (coinError) throw coinError

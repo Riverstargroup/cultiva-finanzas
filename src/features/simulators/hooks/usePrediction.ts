@@ -74,7 +74,7 @@ export function usePrediction({ userId, scenarioId }: UsePredictionOptions): Use
       if (wasCorrect) {
         await supabase.rpc('award_coins' as any, {
           p_user_id: userId,
-          p_amount: PREDICTION_CORRECT_COINS,
+          p_delta: PREDICTION_CORRECT_COINS,
           p_reason: 'prediction_correct',
         })
       }

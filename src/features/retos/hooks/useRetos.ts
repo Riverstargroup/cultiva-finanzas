@@ -159,7 +159,7 @@ export function useCompleteChallenge() {
       // Award coins
       const { error: coinError } = await supabase.rpc('award_coins', {
         p_user_id: user.id,
-        p_amount: template.reward_coins,
+        p_delta: template.reward_coins,
         p_reason: `Reto completado: ${template.title}`,
       })
       if (coinError) throw coinError
