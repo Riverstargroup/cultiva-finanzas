@@ -65,6 +65,23 @@ export default function FeedbackStep({ coaching, selectedOption, mission, scenar
         <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-warm)" }}>
           {selectedOption.feedback}
         </p>
+
+        {(selectedOption.short_term_result || selectedOption.long_term_result) && (
+          <div className="mt-3 space-y-1.5 border-t pt-3" style={{ borderColor: selectedOption.is_best ? "var(--leaf-fresh)" : "color-mix(in srgb, var(--terracotta-vivid) 20%, transparent)" }}>
+            {selectedOption.short_term_result && (
+              <div className="flex items-start gap-2">
+                <span className="text-xs font-bold uppercase tracking-wide mt-0.5 shrink-0" style={{ color: "var(--leaf-muted)" }}>Corto plazo</span>
+                <span className="text-sm font-semibold" style={{ color: "var(--forest-deep)" }}>{selectedOption.short_term_result}</span>
+              </div>
+            )}
+            {selectedOption.long_term_result && (
+              <div className="flex items-start gap-2">
+                <span className="text-xs font-bold uppercase tracking-wide mt-0.5 shrink-0" style={{ color: "var(--leaf-muted)" }}>Largo plazo</span>
+                <span className="text-sm font-semibold" style={{ color: "var(--forest-deep)" }}>{selectedOption.long_term_result}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Coaching */}

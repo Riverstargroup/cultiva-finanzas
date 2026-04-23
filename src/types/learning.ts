@@ -17,6 +17,9 @@ export interface ScenarioOption {
   text: string;
   feedback: string;
   is_best: boolean;
+  short_term_result?: string;
+  long_term_result?: string;
+  consequence_months?: number;
 }
 
 export interface RecallChoice {
