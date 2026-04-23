@@ -1,8 +1,7 @@
 import { motion } from "framer-motion";
-import { Sprout, BookOpen, Calculator, Trophy, User, Gamepad2 } from "lucide-react";
+import { Sprout, BookOpen, User, Gamepad2 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { SECTION_ORDER } from "@/hooks/useSectionNavigation";
 import type { LucideIcon } from "lucide-react";
 
 interface DockItem {
@@ -12,11 +11,9 @@ interface DockItem {
 }
 
 const DOCK_ITEMS: DockItem[] = [
-  { path: SECTION_ORDER[0], label: "Inicio", icon: Sprout },
-  { path: SECTION_ORDER[1], label: "Cursos", icon: BookOpen },
-  { path: SECTION_ORDER[2], label: "Calculadora", icon: Calculator },
-  { path: SECTION_ORDER[3], label: "Logros", icon: Trophy },
-  { path: SECTION_ORDER[4], label: "Perfil", icon: User },
+  { path: "/perfil", label: "Perfil", icon: User },
+  { path: "/", label: "Inicio", icon: Sprout },
+  { path: "/cursos", label: "Cursos", icon: BookOpen },
   { path: "/juegos", label: "Juegos", icon: Gamepad2 },
 ];
 

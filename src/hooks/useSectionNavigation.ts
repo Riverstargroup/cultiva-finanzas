@@ -2,11 +2,10 @@ import { useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export const SECTION_ORDER = [
+  "/perfil",
   "/",
   "/cursos",
-  "/calculadora",
-  "/logros",
-  "/perfil",
+  "/juegos",
 ] as const;
 
 export type SectionPath = (typeof SECTION_ORDER)[number];

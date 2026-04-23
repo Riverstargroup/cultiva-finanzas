@@ -15,8 +15,8 @@ import { InventoryDrawer } from '@/features/garden/components/InventoryDrawer'
 import { JardinSkeleton } from '@/features/garden/components/JardinSkeleton'
 import { JardinWelcome } from '@/features/garden/components/JardinWelcome'
 import { useUserLevel } from '@/hooks/useUserLevel'
-import { LevelBadge } from '@/components/LevelBadge'
 import { LevelUpNotification } from '@/components/LevelUpNotification'
+import { OnboardingOverlay } from '@/features/onboarding'
 import type { InventoryItem } from '@/features/garden/types'
 
 export default function Jardin() {
@@ -70,16 +70,11 @@ export default function Jardin() {
   return (
     <PageTransition>
       <LevelUpNotification level={userLevel.level} isLoading={userLevel.isLoading} />
+      <OnboardingOverlay />
       <div className="dashboard-skin botanical-bg -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-28 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
         <div className="mx-auto max-w-2xl space-y-4">
 
           <BackyardSkyHeader coins={garden.coins} streakDays={streakDays} />
-
-          {!userLevel.isLoading && (
-            <div className="flex justify-center">
-              <LevelBadge level={userLevel.level} size="md" />
-            </div>
-          )}
 
           <GardenErrorBoundary>
             <GardenEconomyBanner
