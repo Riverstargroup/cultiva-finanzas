@@ -15,5 +15,7 @@ interface BackyardViewProps {
 // We accept an optional coins prop so Jardin.tsx can pass garden.coins without
 // changes; when missing, default to 0.
 export function BackyardView({ plots, coins = 0 }: BackyardViewProps) {
-  return <GardenScene plots={plots} coins={coins} timeOfDay="day" weather="clear" showLabels />
+  // timeOfDay is intentionally omitted so GardenScene derives it from the user's
+  // local clock. Labels are hidden by default for a cleaner scene.
+  return <GardenScene plots={plots} coins={coins} weather="clear" />
 }

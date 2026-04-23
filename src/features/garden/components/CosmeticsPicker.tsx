@@ -1,30 +1,20 @@
 import type { CosmeticId } from './CosmeticsOverlay'
-
-interface CosmeticDef {
-  readonly id: CosmeticId
-  readonly label: string
-  readonly price: number
-}
-
-const COSMETICS: readonly CosmeticDef[] = [
-  { id: 'sombrero', label: 'Sombrero', price: 15 },
-  { id: 'corona', label: 'Corona', price: 25 },
-  { id: 'birrete', label: 'Birrete', price: 20 },
-  { id: 'lentes', label: 'Lentes', price: 10 },
-  { id: 'bufanda', label: 'Bufanda', price: 12 },
-]
+import { COSMETIC_ITEMS } from './cosmeticsData'
 
 interface CosmeticsPickerProps {
   domain: string
   label: string
   equipped: CosmeticId | null
+  ownedIds: ReadonlyArray<CosmeticId>
+  coins: number
   onEquip: (id: CosmeticId | null) => void
+  onBuy: (id: CosmeticId) => void
   onClose: () => void
 }
 
 function CosmeticThumb({ id }: { id: CosmeticId }): JSX.Element {
   return (
-    <svg width={28} height={20} viewBox="0 0 55 40">
+    <svg width={28} height={20} viewBox="0 0 55 40" aria-hidden="true">
       {id === 'sombrero' && (
         <>
           <ellipse cx="27" cy="30" rx="22" ry="6" fill="#1B1210" />
@@ -60,7 +50,17 @@ function CosmeticThumb({ id }: { id: CosmeticId }): JSX.Element {
   )
 }
 
-export function CosmeticsPicker({ label, equipped, onEquip, onClose }: CosmeticsPickerProps): JSX.Element {
+export function CosmeticsPicker({
+  label,
+  equipped,
+  ownedIds,
+  coins,
+  onEquip,
+  onBuy,
+  onClose,
+}: CosmeticsPickerProps): JSX.Element {
+  const ownedSet = new Set(ownedIds)
+
   return (
     <div
       style={{
@@ -72,7 +72,7 @@ export function CosmeticsPicker({ label, equipped, onEquip, onClose }: Cosmetics
         border: '1px solid #5D3136',
         borderRadius: 8,
         padding: 10,
-        width: 200,
+        width: 220,
         boxShadow: '0 8px 24px rgba(93,49,54,0.2)',
         zIndex: 60,
       }}
@@ -107,6 +107,7 @@ export function CosmeticsPicker({ label, equipped, onEquip, onClose }: Cosmetics
             color: '#A2777A',
             lineHeight: 1,
           }}
+          aria-label="Cerrar"
         >
           ×
         </button>
@@ -127,36 +128,57 @@ export function CosmeticsPicker({ label, equipped, onEquip, onClose }: Cosmetics
         >
           Ninguno
         </button>
-        {COSMETICS.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => onEquip(c.id)}
-            title={`${c.label} — ${c.price}`}
-            style={{
-              border: equipped === c.id ? '2px solid #5D3136' : '1px solid #D8BFC0',
-              background: equipped === c.id ? '#F9ECDF' : '#FEFBF6',
-              borderRadius: 6,
-              padding: '5px 7px',
-              cursor: 'pointer',
-              fontSize: 11,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 2,
-            }}
-          >
-            <CosmeticThumb id={c.id} />
-            <span
+        {COSMETIC_ITEMS.map((c) => {
+          const owned = ownedSet.has(c.id)
+          const isEquipped = equipped === c.id
+          const canAfford = coins >= c.price
+          return (
+            <button
+              key={c.id}
+              onClick={() => (owned ? onEquip(c.id) : canAfford ? onBuy(c.id) : undefined)}
+              disabled={!owned && !canAfford}
+              title={owned ? `${c.name} — equipado si haces clic` : `Comprar ${c.name} · ${c.price} 🪙`}
               style={{
-                fontFamily: "'IBM Plex Mono', monospace",
-                fontSize: 8,
-                color: '#7D5658',
+                border: isEquipped ? '2px solid #5D3136' : '1px solid #D8BFC0',
+                background: isEquipped ? '#F9ECDF' : owned ? '#FEFBF6' : '#F4ECE2',
+                borderRadius: 6,
+                padding: '5px 7px',
+                cursor: owned || canAfford ? 'pointer' : 'not-allowed',
+                opacity: !owned && !canAfford ? 0.55 : 1,
+                fontSize: 11,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 2,
+                position: 'relative',
               }}
             >
-              {c.label}
-            </span>
-          </button>
-        ))}
+              <CosmeticThumb id={c.id} />
+              <span
+                style={{
+                  fontFamily: "'IBM Plex Mono', monospace",
+                  fontSize: 8,
+                  color: '#7D5658',
+                }}
+              >
+                {c.name}
+              </span>
+              {!owned && (
+                <span
+                  style={{
+                    fontFamily: "'IBM Plex Mono', monospace",
+                    fontSize: 8,
+                    color: canAfford ? '#5D3136' : '#A2777A',
+                    fontWeight: 700,
+                    marginTop: 1,
+                  }}
+                >
+                  🪙 {c.price}
+                </span>
+              )}
+            </button>
+          )
+        })}
       </div>
       <div
         style={{
@@ -166,9 +188,12 @@ export function CosmeticsPicker({ label, equipped, onEquip, onClose }: Cosmetics
           fontSize: 9,
           color: '#A2777A',
           fontFamily: "'IBM Plex Mono', monospace",
+          display: 'flex',
+          justifyContent: 'space-between',
         }}
       >
-        DOBLE CLIC → cosméticos
+        <span>DOBLE CLIC → cosméticos</span>
+        <span>🪙 {coins}</span>
       </div>
     </div>
   )
