@@ -60,10 +60,10 @@ export default function Escenario() {
   const { data: streak } = useStreak();
   const { data: missionData } = useUserMission(scenarioId);
 
-  const { prediction, isLoading: predLoading, savePrediction, revealOutcome } = usePrediction(scenarioId ?? '');
+  const { predictionId, predictedValue, savePrediction, resolvePrediction, saving: predSaving } = usePrediction({ userId: user?.id, scenarioId });
   const [predictionReady, setPredictionReady] = useState(false);
-  const [showReveal, setShowReveal] = useState(false);
-  const [revealResult, setRevealResult] = useState<{ isCorrect: boolean; coinsEarned: number } | null>(null);
+  const [predResolved, setPredResolved] = useState(false);
+  const [revealResult, setRevealResult] = useState<{ wasCorrect: boolean; coinsEarned: number } | null>(null);
 
   const [step, setStep] = useState<Step>("decision");
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
@@ -197,16 +197,12 @@ export default function Escenario() {
       queryClient.invalidateQueries({ queryKey: ["user-skills"] });
       queryClient.invalidateQueries({ queryKey: ["user-mission"] });
 
-      // Reveal prediction outcome
-      if (prediction?.id && prediction.actualValue === null) {
+      // Reveal prediction outcome (non-critical, guard against double-call)
+      if (predictionId && predictedValue !== null && !predResolved) {
         try {
-          const res = await revealOutcome.mutateAsync({
-            predictionId: prediction.id,
-            predictedValue: prediction.predictedValue,
-            actualValue: Math.round(score * 100),
-          });
+          const res = await resolvePrediction(Math.round(score * 100));
+          setPredResolved(true);
           setRevealResult(res);
-          setShowReveal(true);
         } catch {
           // non-critical
         }
@@ -221,7 +217,7 @@ export default function Escenario() {
     } finally {
       setSaving(false);
     }
-  }, [user, courseId, scenarioId, saving, scenarios, scenario, streak, invalidateProgress, queryClient, prediction, revealOutcome, toast]);
+  }, [user, courseId, scenarioId, saving, scenarios, scenario, streak, invalidateProgress, queryClient, predictionId, predictedValue, predResolved, resolvePrediction, toast]);
 
   if (scenarioLoading) {
     return <ScenarioSkeleton />;
@@ -269,33 +265,13 @@ export default function Escenario() {
   };
 
   const showPredictionModal =
-    step === "decision" && !predLoading && !prediction && !predictionReady;
+    step === "decision" && !predSaving && predictedValue === null && !predictionReady;
 
   return (
     <BotanicalPage
       title={scenario.title}
       subtitle={`Semilla ${scenarioIndex + 1} de ${scenarios.length}`}
     >
-      {/* Prediction modal — shown before decision step if no prediction exists */}
-      <PredictionModal
-        open={showPredictionModal}
-        onConfirm={async (value) => {
-          await savePrediction.mutateAsync(value);
-          setPredictionReady(true);
-        }}
-        onSkip={() => setPredictionReady(true)}
-      />
-
-      {/* Outcome reveal — shown when scenario completes */}
-      {revealResult && (
-        <OutcomeReveal
-          open={showReveal}
-          isCorrect={revealResult.isCorrect}
-          predictedValue={prediction?.predictedValue ?? 0}
-          actualValue={Math.round(finalScore * 100)}
-          onClose={() => setShowReveal(false)}
-        />
-      )}
 
       <button
         onClick={() => navigate(`/cursos/${courseId}`)}
@@ -306,6 +282,34 @@ export default function Escenario() {
       </button>
 
       <div className="organic-card p-5 md:p-6">
+        {showPredictionModal ? (
+          <>
+            <PredictionModal
+              scenarioTitle={scenario.title}
+              isLoading={predSaving}
+              onConfirm={async (value) => {
+                await savePrediction(value);
+                setPredictionReady(true);
+              }}
+            />
+            <button
+              onClick={() => setPredictionReady(true)}
+              className="mt-3 w-full text-xs underline min-h-[36px]"
+              style={{ color: "var(--leaf-muted)" }}
+            >
+              Saltar predicción
+            </button>
+          </>
+        ) : revealResult ? (
+          <OutcomeReveal
+            wasCorrect={revealResult.wasCorrect}
+            coinsEarned={revealResult.coinsEarned}
+            predictedValue={predictedValue ?? 0}
+            actualValue={Math.round(finalScore * 100)}
+            onContinue={() => setRevealResult(null)}
+          />
+        ) : (
+          <>
         {step === "decision" && (
           <DecisionStep prompt={scenario.prompt} options={scenario.options} onSelect={handleDecision} />
         )}
@@ -360,6 +364,8 @@ export default function Escenario() {
               )}
             </button>
           </motion.div>
+        )}
+          </>
         )}
       </div>
     </BotanicalPage>

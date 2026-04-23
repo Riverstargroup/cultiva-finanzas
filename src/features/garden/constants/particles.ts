@@ -58,3 +58,20 @@ export const masteredAmbientConfig: ParticleConfig = {
   lifespan: 2400,
   blur: 1,
 }
+
+export const iceSparkleConfig: ParticleConfig = {
+  count: 4,
+  continuous: true,
+  spawnInterval: 600,
+  origin: 'random-within-bounds',
+  pattern: 'drift-up',
+  size: { min: 2, max: 5 },
+  color: ['#89C4F4', '#B4DCFF', '#D6EFFF', '#E8F6FF'],
+  shape: 'star4',
+  velocity: { min: 15, max: 35, angleDeg: { min: -115, max: -65 } },
+  gravity: -5,
+  opacity: { from: 0, peak: 0.9, to: 0, curve: 'bell' },
+  lifespan: 2000,
+  blur: 0.5,
+  rotation: { from: 0, to: 180, randomDir: true },
+}
