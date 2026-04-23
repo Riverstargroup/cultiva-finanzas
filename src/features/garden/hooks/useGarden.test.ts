@@ -28,7 +28,7 @@ const mockRpc = supabase.rpc as ReturnType<typeof vi.fn>
 
 function makeChain(result: { data: unknown; error: unknown }) {
   const chain: Record<string, unknown> = {}
-  const methods = ['select', 'eq', 'order', 'single', 'limit']
+  const methods = ['select', 'eq', 'order', 'single', 'maybeSingle', 'limit']
   for (const m of methods) {
     chain[m] = vi.fn(() => chain)
   }
