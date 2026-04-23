@@ -11,6 +11,7 @@ import { useCourses } from "@/hooks/useCourses";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { LevelBadge } from "@/components/LevelBadge";
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -215,6 +216,9 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+
+          {/* Level badge */}
+          <LevelBadge showProgress className="mt-1" />
 
           {/* C) Stats Grid */}
           <motion.div variants={stagger} initial="hidden" animate="show" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">

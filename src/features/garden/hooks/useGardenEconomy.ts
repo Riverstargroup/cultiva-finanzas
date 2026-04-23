@@ -3,13 +3,14 @@ import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { gardenKeys } from './useGarden'
 import { isPowerActive, isRentOverdue, rentCountdownMs } from '../lib/economy'
+import type { Tables } from '@/integrations/supabase/types'
 import type { GardenEconomy } from '../types'
 
 type TickResult = { rent_delta: number; gold_delta: number }
 
 async function fetchGardenEconomy(userId: string): Promise<GardenEconomy | null> {
   const { data, error } = await supabase
-    .from('user_garden_economy' as any)
+    .from('user_garden_economy')
     .select('*')
     .eq('user_id', userId)
     .maybeSingle()
@@ -17,7 +18,7 @@ async function fetchGardenEconomy(userId: string): Promise<GardenEconomy | null>
   if (error) throw error
   if (!data) return null
 
-  const row = data as any
+  const row: Tables<'user_garden_economy'> = data
   return {
     rentDueAt: row.rent_due_at,
     rentAmount: row.rent_amount,
@@ -67,7 +68,7 @@ export function useGardenTick() {
   return useMutation({
     mutationFn: async (): Promise<TickResult> => {
       if (!user?.id) throw new Error('Not authenticated')
-      const { data, error } = await supabase.rpc('tick_garden_economy' as any, {
+      const { data, error } = await supabase.rpc('tick_garden_economy', {
         p_user_id: user.id,
       })
       if (error) throw error

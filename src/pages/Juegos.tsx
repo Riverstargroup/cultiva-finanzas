@@ -10,6 +10,8 @@ import {
   PresupuestoRapidoIllustration,
   InflacionChallengeIllustration,
 } from '@/features/minigames/assets';
+import { useGardenReward } from '@/features/garden/hooks/useGardenReward';
+import { RewardToast, RewardToastContainer } from '@/components/RewardToast';
 import type { GameId, GameCard } from '@/features/minigames/types';
 
 const GAME_CARDS: GameCard[] = [
@@ -44,16 +46,30 @@ export default function Juegos() {
   const reduced = useReducedMotion();
   const [activeView, setActiveView] = useState<View>('lobby');
   const [gameKey, setGameKey] = useState(0);
+  const [rewardCoins, setRewardCoins] = useState<number | null>(null);
+  const { onPresupuestoComplete, onInflacionComplete } = useGardenReward();
 
   const handlePlay = (id: GameId) => setActiveView(id);
 
   const handleRestart = () => {
     setGameKey((k) => k + 1);
+    setRewardCoins(null);
   };
 
   const handleBackToLobby = () => {
     setActiveView('lobby');
     setGameKey((k) => k + 1);
+    setRewardCoins(null);
+  };
+
+  const handlePresupuestoComplete = (score: number, total: number) => {
+    onPresupuestoComplete(score, total);
+    if (score / total >= 0.6) setRewardCoins(Math.round(score * 10));
+  };
+
+  const handleInflacionComplete = (score: number, total: number) => {
+    onInflacionComplete(score, total);
+    if (score > 0) setRewardCoins(score * 8);
   };
 
   const activeGame = GAME_CARDS.find((g) => g.id === activeView);
@@ -162,10 +178,18 @@ export default function Juegos() {
 
             <div className="organic-card p-5 md:p-6">
               {activeView === 'presupuesto-rapido' && (
-                <PresupuestoRapido key={gameKey} onRestart={handleRestart} />
+                <PresupuestoRapido
+                  key={gameKey}
+                  onRestart={handleRestart}
+                  onGameComplete={handlePresupuestoComplete}
+                />
               )}
               {activeView === 'inflacion-challenge' && (
-                <InflacionChallenge key={gameKey} onRestart={handleRestart} />
+                <InflacionChallenge
+                  key={gameKey}
+                  onRestart={handleRestart}
+                  onGameComplete={handleInflacionComplete}
+                />
               )}
             </div>
 
@@ -183,6 +207,16 @@ export default function Juegos() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <RewardToastContainer>
+        {rewardCoins !== null && (
+          <RewardToast
+            key={`game-reward-${gameKey}`}
+            coins={rewardCoins}
+            onDismiss={() => setRewardCoins(null)}
+          />
+        )}
+      </RewardToastContainer>
     </BotanicalPage>
   );
 }

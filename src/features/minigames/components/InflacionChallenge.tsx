@@ -60,9 +60,10 @@ const formatPrice = (price: number) =>
 
 interface Props {
   onRestart: () => void;
+  onGameComplete?: (score: number, total: number) => void;
 }
 
-export function InflacionChallenge({ onRestart }: Props) {
+export function InflacionChallenge({ onRestart, onGameComplete }: Props) {
   const reduced = useReducedMotion();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<InflacionAnswer[]>([]);
@@ -85,6 +86,8 @@ export function InflacionChallenge({ onRestart }: Props) {
       if (currentIndex + 1 >= PRODUCTS.length) {
         setAnswers(updatedAnswers);
         setGameOver(true);
+        const score = updatedAnswers.filter((a) => a.isCorrect).length;
+        onGameComplete?.(score, PRODUCTS.length);
       } else {
         setAnswers(updatedAnswers);
         setCurrentIndex((prev) => prev + 1);

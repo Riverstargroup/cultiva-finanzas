@@ -39,7 +39,7 @@ export function useAvailableChallenges() {
   return useQuery({
     queryKey: retosKeys.templates(),
     queryFn: async (): Promise<ChallengeTemplate[]> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('challenge_templates')
         .select('*')
         .eq('is_active', true)
@@ -58,7 +58,7 @@ export function useMyActiveChallenges(userId: string) {
   return useQuery({
     queryKey: retosKeys.activeChallenges(userId),
     queryFn: async (): Promise<ActiveChallengeWithTemplate[]> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('user_weekly_challenges')
         .select('*, template:challenge_templates(*)')
         .eq('user_id', userId)
@@ -79,7 +79,7 @@ export function useWeeklyCompletedCount(userId: string) {
   return useQuery({
     queryKey: [...retosKeys.all, 'completed-count', userId, weekStart],
     queryFn: async (): Promise<number> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('user_weekly_challenges')
         .select('id')
         .eq('user_id', userId)
@@ -103,7 +103,7 @@ export function useStartChallenge() {
       if (!user?.id) throw new Error('Not authenticated')
       const weekStart = getMondayOfCurrentWeek()
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('user_weekly_challenges')
         .insert({
           user_id: user.id,
@@ -139,7 +139,7 @@ export function useCompleteChallenge() {
       if (!user?.id) throw new Error('Not authenticated')
 
       // Mark challenge as completed
-      const { error: updateError } = await (supabase as any)
+      const { error: updateError } = await supabase
         .from('user_weekly_challenges')
         .update({ status: 'completed', completed_at: new Date().toISOString() })
         .eq('id', challengeId)

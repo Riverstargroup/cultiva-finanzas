@@ -10,7 +10,7 @@ export function useDailyLock() {
     queryFn: async () => {
       if (!user?.id) return false
       const today = new Date().toISOString().split('T')[0]
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('user_pollination_sessions')
         .select('id')
         .eq('user_id', user.id)

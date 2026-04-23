@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { MessageCircle, Target, Check, SkipForward, Loader2 } from "lucide-react";
+import { MessageCircle, Target, Check, SkipForward, Loader2, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { supabase } from "@/integrations/supabase/client";
 import type { ScenarioOption } from "@/types/learning";
@@ -25,14 +25,14 @@ export default function FeedbackStep({ coaching, selectedOption, mission, scenar
     setSaving(true);
     try {
       await supabase
-        .from("user_missions" as any)
+        .from("user_missions")
         .upsert(
           {
             user_id: userId,
             scenario_id: scenarioId,
             status,
             done_at: status === "done" ? new Date().toISOString() : null,
-          } as any,
+          },
           { onConflict: "user_id,scenario_id" }
         );
       setMissionStatus(status);
@@ -65,6 +65,38 @@ export default function FeedbackStep({ coaching, selectedOption, mission, scenar
         <p className="text-sm mt-1 leading-relaxed" style={{ color: "var(--text-warm)" }}>
           {selectedOption.feedback}
         </p>
+
+        {/* Numerical consequences — shown when available */}
+        {(selectedOption.short_term_result || selectedOption.long_term_result) && (
+          <div className="mt-3 space-y-2">
+            {selectedOption.short_term_result && (
+              <div className="flex items-start gap-2">
+                <TrendingUp className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" style={{ color: "var(--leaf-bright)" }} />
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--leaf-muted)" }}>
+                    Corto plazo
+                  </span>
+                  <p className="text-xs font-semibold" style={{ color: "var(--forest-deep)" }}>
+                    {selectedOption.short_term_result}
+                  </p>
+                </div>
+              </div>
+            )}
+            {selectedOption.long_term_result && (
+              <div className="flex items-start gap-2">
+                <Clock className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" style={{ color: selectedOption.is_best ? "var(--leaf-bright)" : "var(--terracotta-vivid)" }} />
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--leaf-muted)" }}>
+                    {selectedOption.consequence_months ? `En ${selectedOption.consequence_months} meses` : 'Largo plazo'}
+                  </span>
+                  <p className="text-xs font-semibold" style={{ color: "var(--forest-deep)" }}>
+                    {selectedOption.long_term_result}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Coaching */}

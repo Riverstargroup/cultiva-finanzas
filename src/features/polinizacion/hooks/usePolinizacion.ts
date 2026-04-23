@@ -25,7 +25,7 @@ export function useTodaySession(userId: string) {
   return useQuery({
     queryKey: polinizacionKeys.todaySession(userId),
     queryFn: async (): Promise<PollinationSession | null> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('user_pollination_sessions')
         .select('*')
         .eq('user_id', userId)
@@ -44,7 +44,7 @@ export function useSessionCount(userId: string) {
   return useQuery({
     queryKey: polinizacionKeys.allSessions(userId),
     queryFn: async (): Promise<number> => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('user_pollination_sessions')
         .select('id')
         .eq('user_id', userId)
@@ -74,7 +74,7 @@ export function useSubmitInsight() {
       const today = getTodayDateString()
 
       // Insert session
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('user_pollination_sessions')
         .insert({
           user_id: user.id,
