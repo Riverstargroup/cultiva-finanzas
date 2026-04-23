@@ -1,16 +1,25 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Gamepad2, Clock, BarChart2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import BotanicalPage from '@/components/layout/BotanicalPage';
-import { PresupuestoRapido } from '@/features/minigames/components/PresupuestoRapido';
+import { PresupuestoRapido } from '@/features/minigames/games/PresupuestoRapido';
 import { InflacionChallenge } from '@/features/minigames/components/InflacionChallenge';
+import { SemillasCredito } from '@/features/minigames/games/SemillasCredito';
+import { MemoriaMercado } from '@/features/minigames/games/MemoriaMercado';
+import { AhorraCosecha } from '@/features/minigames/games/AhorraCosecha';
 import {
   PresupuestoRapidoIllustration,
   InflacionChallengeIllustration,
+  SemillasCreditoIllustration,
+  MemoriaMercadoIllustration,
+  AhorraCosechaIllustration,
 } from '@/features/minigames/assets';
-import type { GameId, GameCard } from '@/features/minigames/types';
+import { CategoryChips } from '@/features/minigames/components/CategoryChips';
+import { GameStatRow } from '@/features/minigames/components/GameStatRow';
+import { useGameStats } from '@/features/minigames/hooks/useGameStats';
+import type { GameId, GameCard, GameCategory } from '@/features/minigames/types';
 
 const GAME_CARDS: GameCard[] = [
   {
@@ -20,6 +29,8 @@ const GAME_CARDS: GameCard[] = [
     icon: <PresupuestoRapidoIllustration className="w-full h-full" />,
     duration: '60 seg',
     difficulty: 'Fácil',
+    category: 'Presupuesto',
+    concept: 'Clasifica gastos en 4 categorías',
   },
   {
     id: 'inflacion-challenge',
@@ -28,8 +39,41 @@ const GAME_CARDS: GameCard[] = [
     icon: <InflacionChallengeIllustration className="w-full h-full" />,
     duration: '~3 min',
     difficulty: 'Medio',
+    category: 'Inflación',
+    concept: 'Estima el impacto de la inflación',
+  },
+  {
+    id: 'semillas-credito',
+    title: 'Semillas de Crédito',
+    description: 'Desliza acciones de crédito a la izquierda o derecha para construir o dañar tu historial.',
+    icon: <SemillasCreditoIllustration className="w-full h-full" />,
+    duration: '~2 min',
+    difficulty: 'Medio',
+    category: 'Crédito',
+    concept: 'Construye o daña tu historial crediticio',
+  },
+  {
+    id: 'memoria-mercado',
+    title: 'Memoria del Mercado',
+    description: 'Empareja instrumentos de inversión mexicanos. ¿Conoces los CETES, FIBRAS y la AFORE?',
+    icon: <MemoriaMercadoIllustration className="w-full h-full" />,
+    duration: '90 seg',
+    difficulty: 'Medio',
+    category: 'Inversión',
+    concept: 'Reconoce instrumentos de inversión',
+  },
+  {
+    id: 'ahorra-cosecha',
+    title: 'Ahorra la Cosecha',
+    description: 'Detén el péndulo en la zona de ahorro ideal. ¡Cada quincena cuenta!',
+    icon: <AhorraCosechaIllustration className="w-full h-full" />,
+    duration: '~2 min',
+    difficulty: 'Fácil',
+    category: 'Ahorro',
+    concept: 'Aprende a ahorrar consistentemente',
   },
 ];
+// GAME_REGISTRY_INSERTION_POINT — Wave 3 games append here
 
 const DIFFICULTY_COLOR: Record<string, string> = {
   Fácil: 'var(--leaf-bright)',
@@ -38,12 +82,26 @@ const DIFFICULTY_COLOR: Record<string, string> = {
 };
 
 type View = 'lobby' | GameId;
+type CategoryFilter = GameCategory | 'Todos';
 
 export default function Juegos() {
   const navigate = useNavigate();
   const reduced = useReducedMotion();
   const [activeView, setActiveView] = useState<View>('lobby');
   const [gameKey, setGameKey] = useState(0);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('Todos');
+  const stats = useGameStats();
+
+  const availableCategories = useMemo<GameCategory[]>(() => {
+    const seen = new Set<GameCategory>();
+    for (const card of GAME_CARDS) seen.add(card.category);
+    return Array.from(seen);
+  }, []);
+
+  const visibleCards = useMemo(() => {
+    if (selectedCategory === 'Todos') return GAME_CARDS;
+    return GAME_CARDS.filter((card) => card.category === selectedCategory);
+  }, [selectedCategory]);
 
   const handlePlay = (id: GameId) => setActiveView(id);
 
@@ -79,8 +137,14 @@ export default function Juegos() {
               Mi Jardín
             </button>
 
+            <CategoryChips
+              categories={availableCategories}
+              selected={selectedCategory}
+              onChange={setSelectedCategory}
+            />
+
             <div className="grid gap-4 sm:grid-cols-2">
-              {GAME_CARDS.map((card) => (
+              {visibleCards.map((card) => (
                 <motion.div
                   key={card.id}
                   whileHover={reduced ? undefined : { scale: 1.01 }}
@@ -116,6 +180,8 @@ export default function Juegos() {
                       {card.description}
                     </p>
                   </div>
+
+                  <GameStatRow stat={stats[card.id]} />
 
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--leaf-muted)' }}>
@@ -162,10 +228,19 @@ export default function Juegos() {
 
             <div className="organic-card p-5 md:p-6">
               {activeView === 'presupuesto-rapido' && (
-                <PresupuestoRapido key={gameKey} onRestart={handleRestart} />
+                <PresupuestoRapido key={gameKey} onBack={handleBackToLobby} />
               )}
               {activeView === 'inflacion-challenge' && (
                 <InflacionChallenge key={gameKey} onRestart={handleRestart} />
+              )}
+              {activeView === 'semillas-credito' && (
+                <SemillasCredito key={gameKey} onBack={handleBackToLobby} />
+              )}
+              {activeView === 'memoria-mercado' && (
+                <MemoriaMercado key={gameKey} onBack={handleBackToLobby} />
+              )}
+              {activeView === 'ahorra-cosecha' && (
+                <AhorraCosecha key={gameKey} onBack={handleBackToLobby} />
               )}
             </div>
 

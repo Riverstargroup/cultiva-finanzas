@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Check, Lock, Play } from "lucide-react";
+import { Check, Lock, Play, Zap } from "lucide-react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 export type ScenarioStatus = "locked" | "in_progress" | "completed" | "mastered";
@@ -10,6 +10,7 @@ interface ScenarioCardProps {
   description: string;
   status: ScenarioStatus;
   onClick?: () => void;
+  estimatedXp?: number;
 }
 
 const statusConfig: Record<ScenarioStatus, { icon: typeof Check; bgClass: string; borderClass: string }> = {
@@ -19,7 +20,7 @@ const statusConfig: Record<ScenarioStatus, { icon: typeof Check; bgClass: string
   locked: { icon: Lock, bgClass: "bg-muted", borderClass: "border-border/50" },
 };
 
-export default function ScenarioCard({ index, title, description, status, onClick }: ScenarioCardProps) {
+export default function ScenarioCard({ index, title, description, status, onClick, estimatedXp }: ScenarioCardProps) {
   const reduced = useReducedMotion();
   const config = statusConfig[status];
   const Icon = config.icon;
@@ -40,9 +41,19 @@ export default function ScenarioCard({ index, title, description, status, onClic
         <Icon className={`h-4 w-4 ${status === "completed" ? "text-primary" : status === "in_progress" ? "text-accent-foreground" : "text-muted-foreground"}`} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm text-foreground">
-          {index}. {title}
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-medium text-sm text-foreground truncate">
+            {index}. {title}
+          </p>
+          {typeof estimatedXp === "number" && estimatedXp > 0 && (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
+              style={{ background: "color-mix(in srgb, var(--leaf-bright) 20%, transparent)", color: "var(--forest-deep)" }}
+            >
+              <Zap size={10} /> {estimatedXp} XP
+            </span>
+          )}
+        </div>
         <p className="text-xs text-muted-foreground leading-relaxed line-clamp-1 mt-0.5">
           {description}
         </p>

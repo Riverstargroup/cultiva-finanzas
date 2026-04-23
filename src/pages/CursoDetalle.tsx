@@ -3,9 +3,19 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import ScenarioCard, { type ScenarioStatus } from "@/components/ScenarioCard";
 import BotanicalPage from "@/components/layout/BotanicalPage";
+import ContinueBanner from "@/components/courses/ContinueBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCourseDetail } from "@/hooks/useCourseDetail";
 import { useProgress } from "@/hooks/useProgress";
+import { estimatedXp } from "@/lib/courseMeta";
+
+type LevelKey = "basico" | "intermedio" | "avanzado";
+function toLevelKey(level: string): LevelKey {
+  const normalized = level.toLowerCase();
+  if (normalized === "intermedio" || normalized === "medio") return "intermedio";
+  if (normalized === "avanzado" || normalized === "dificil" || normalized === "difícil") return "avanzado";
+  return "basico";
+}
 
 function CourseDetailSkeleton() {
   return (
@@ -79,12 +89,23 @@ export default function CursoDetalle() {
   };
 
   const nextScenario = course.scenarios.find((s) => !completedIds.includes(s.id));
+  const levelKey = toLevelKey(course.level);
+  const showContinueBanner = completedCount > 0 && progressPct < 100;
 
   const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
   const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
   return (
     <BotanicalPage title={course.title} subtitle={`${course.scenarios.length} semillas · ~${course.estimated_minutes} min`}>
+      {showContinueBanner && nextScenario && (
+        <ContinueBanner
+          courseId={course.id}
+          courseTitle={course.title}
+          progressPct={progressPct}
+          nextScenarioTitle={nextScenario.title}
+          onContinue={() => navigate(`/cursos/${course.id}/escenario/${nextScenario.id}`)}
+        />
+      )}
       {/* Back */}
       <button
         onClick={() => navigate("/cursos")}
@@ -143,6 +164,7 @@ export default function CursoDetalle() {
                 description={s.prompt.substring(0, 80) + "..."}
                 status={getStatus(i)}
                 onClick={() => navigate(`/cursos/${course.id}/escenario/${s.id}`)}
+                estimatedXp={estimatedXp(i, levelKey)}
               />
             </motion.div>
           ))}
