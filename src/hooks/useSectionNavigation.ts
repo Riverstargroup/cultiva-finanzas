@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export const SECTION_ORDER = [
-  "/dashboard",
+  "/",
   "/cursos",
   "/calculadora",
   "/logros",

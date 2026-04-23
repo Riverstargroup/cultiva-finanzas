@@ -71,12 +71,12 @@ export default function Juegos() {
             className="space-y-4"
           >
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/')}
               className="flex items-center gap-2 text-sm font-semibold min-h-[44px] transition-colors"
               style={{ color: 'var(--leaf-muted)' }}
             >
               <ArrowLeft className="h-4 w-4" />
-              Dashboard
+              Mi Jardín
             </button>
 
             <div className="grid gap-4 sm:grid-cols-2">

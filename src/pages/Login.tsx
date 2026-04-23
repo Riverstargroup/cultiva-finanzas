@@ -17,7 +17,7 @@ const Login = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/dashboard";
+  const redirectTo = searchParams.get("redirect") || "/";
 
   // Manejo del envio del formulario de inicio de sesion
   const handleSubmit = async (e: React.FormEvent) => {
