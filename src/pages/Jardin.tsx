@@ -99,6 +99,7 @@ export default function Jardin() {
               onPlaced={handlePlaced}
               onCancelPlace={() => setPlacing(null)}
               economy={economy.data}
+              coins={garden.coins}
             />
           </GardenErrorBoundary>
 
