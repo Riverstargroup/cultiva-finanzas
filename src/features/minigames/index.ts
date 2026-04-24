@@ -1,5 +1,8 @@
-export { PresupuestoRapido } from './components/PresupuestoRapido';
+export { PresupuestoRapido } from './games/PresupuestoRapido';
 export { InflacionChallenge } from './components/InflacionChallenge';
+export { SemillasCredito } from './games/SemillasCredito';
+export { MemoriaMercado } from './games/MemoriaMercado';
+export { AhorraCosecha } from './games/AhorraCosecha';
 export type {
   GameId,
   GameState,
@@ -11,4 +14,5 @@ export type {
   InflacionAnswer,
   InflacionResult,
   GameCard,
+  GameCategory,
 } from './types';

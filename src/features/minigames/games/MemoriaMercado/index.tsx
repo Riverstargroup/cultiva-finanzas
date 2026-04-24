@@ -98,6 +98,7 @@ export function MemoriaMercado({ onBack, mode = 'standalone' }: Props) {
         timer={timer}
         won={won}
         total={total}
+        score={score}
         onBack={onBack}
         onRestart={handleRestart}
       />

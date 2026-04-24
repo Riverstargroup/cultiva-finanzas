@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Check, X } from 'lucide-react'
 import { ScoreDial } from './ScoreDial'
+import { ShareScoreButton } from '@/features/minigames/components/ShareScoreButton'
 import type { SwipeRecord } from './useSemillasCredito'
 
 interface Props {
@@ -87,6 +88,7 @@ export function ResultsView({ history, score, total, won, onBack, onRestart }: P
         >
           Volver
         </button>
+        <ShareScoreButton score={score} gameTitle="Semillas de Crédito" />
         <button
           onClick={onRestart}
           className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"
