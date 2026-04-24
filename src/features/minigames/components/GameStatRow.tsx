@@ -1,4 +1,4 @@
-import { Clock, Gamepad2, Trophy } from 'lucide-react';
+import { Clock, Gamepad2, Trophy, Sparkles } from 'lucide-react';
 import type { GameStat } from '../hooks/useGameStats';
 
 interface GameStatRowProps {
@@ -38,21 +38,37 @@ export function GameStatRow({ stat }: GameStatRowProps) {
     background: 'color-mix(in srgb, var(--clay-soft) 18%, transparent)',
   };
 
+  if (timesPlayed === 0) {
+    return (
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span
+          className="inline-flex items-center gap-1 rounded-full px-2 py-1 font-medium"
+          style={{ ...pillStyle, opacity: 0.6 }}
+        >
+          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+          Juega primero
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-2 text-xs">
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-1 font-medium"
         style={pillStyle}
       >
-        <Trophy className="h-3.5 w-3.5" aria-hidden="true" />
-        {highScore > 0 ? `${highScore} pts` : '— pts'}
+        <Trophy className="h-3.5 w-3.5" aria-hidden="true" style={{ color: 'var(--leaf-muted)' }} />
+        <span style={{ color: highScore > 0 ? 'var(--leaf-bright)' : 'var(--leaf-muted)' }}>
+          {highScore > 0 ? `${highScore} pts` : '— pts'}
+        </span>
       </span>
       <span
         className="inline-flex items-center gap-1 rounded-full px-2 py-1 font-medium"
         style={pillStyle}
       >
         <Gamepad2 className="h-3.5 w-3.5" aria-hidden="true" />
-        {timesPlayed > 0 ? `${timesPlayed}x` : 'Sin jugar'}
+        {`${timesPlayed}x`}
       </span>
       {lastPlayedLabel && (
         <span

@@ -147,63 +147,69 @@ export default function Juegos() {
               {visibleCards.map((card) => (
                 <motion.div
                   key={card.id}
-                  whileHover={reduced ? undefined : { scale: 1.01 }}
-                  className="organic-card p-5 space-y-3 cursor-pointer"
+                  whileHover={reduced ? undefined : { scale: 1.02, y: -2 }}
+                  whileTap={reduced ? undefined : { scale: 0.98 }}
+                  className="organic-card overflow-hidden cursor-pointer"
+                  style={{ padding: 0 }}
                   onClick={() => handlePlay(card.id)}
                 >
-                  <div className="flex items-start justify-between gap-2">
+                  {/* Full-width illustration banner */}
+                  <div className="relative w-full h-28 overflow-hidden">
                     <div
-                      className="w-24 h-20 shrink-0 rounded-xl overflow-hidden"
-                      style={{ background: 'color-mix(in srgb, var(--clay-soft) 20%, transparent)' }}
+                      className="w-full h-full"
+                      style={{ background: 'color-mix(in srgb, var(--clay-soft) 30%, var(--soil-warm, #e8dcc4))' }}
                     >
                       {card.icon}
                     </div>
+                    {/* Difficulty badge — absolute top-right */}
                     <span
-                      className="text-xs font-bold px-2 py-0.5 rounded-full"
+                      className="absolute top-2 right-2 text-xs font-bold px-2 py-0.5 rounded-full"
                       style={{
                         color: DIFFICULTY_COLOR[card.difficulty],
-                        background: `color-mix(in srgb, ${DIFFICULTY_COLOR[card.difficulty]} 15%, transparent)`,
+                        background: `color-mix(in srgb, ${DIFFICULTY_COLOR[card.difficulty]} 18%, white)`,
                       }}
                     >
                       {card.difficulty}
                     </span>
                   </div>
 
-                  <div>
-                    <h3
-                      className="font-heading font-bold text-lg leading-tight"
-                      style={{ color: 'var(--forest-deep)' }}
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <h3
+                        className="font-heading font-bold text-lg leading-tight"
+                        style={{ color: 'var(--forest-deep)' }}
+                      >
+                        {card.title}
+                      </h3>
+                      <p className="text-sm mt-1" style={{ color: 'var(--leaf-muted)' }}>
+                        {card.description}
+                      </p>
+                    </div>
+
+                    <GameStatRow stat={stats[card.id]} />
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--leaf-muted)' }}>
+                        <Clock className="h-3.5 w-3.5" />
+                        {card.duration}
+                      </div>
+                      <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--leaf-muted)' }}>
+                        <BarChart2 className="h-3.5 w-3.5" />
+                        {card.difficulty}
+                      </div>
+                    </div>
+
+                    <button
+                      className="vibrant-btn w-full justify-center min-h-[44px] font-bold"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePlay(card.id);
+                      }}
                     >
-                      {card.title}
-                    </h3>
-                    <p className="text-sm mt-1" style={{ color: 'var(--leaf-muted)' }}>
-                      {card.description}
-                    </p>
+                      <Gamepad2 className="mr-2 h-4 w-4" />
+                      Jugar
+                    </button>
                   </div>
-
-                  <GameStatRow stat={stats[card.id]} />
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--leaf-muted)' }}>
-                      <Clock className="h-3.5 w-3.5" />
-                      {card.duration}
-                    </div>
-                    <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--leaf-muted)' }}>
-                      <BarChart2 className="h-3.5 w-3.5" />
-                      {card.difficulty}
-                    </div>
-                  </div>
-
-                  <button
-                    className="vibrant-btn w-full justify-center min-h-[44px] font-bold"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePlay(card.id);
-                    }}
-                  >
-                    <Gamepad2 className="mr-2 h-4 w-4" />
-                    Jugar
-                  </button>
                 </motion.div>
               ))}
             </div>

@@ -77,10 +77,11 @@ export function ScoreDial({ score }: Props) {
           strokeLinecap="round"
           fill="none"
           initial={false}
-          animate={{ d: fillPath }}
+          animate={{ d: fillPath, stroke: color }}
           transition={{
             duration: reduced ? 0 : 0.55,
             ease: [0.16, 1, 0.3, 1],
+            stroke: { duration: 0.4, ease: 'easeInOut' },
           }}
         />
         {/* End markers */}
@@ -107,10 +108,11 @@ export function ScoreDial({ score }: Props) {
           x={CX}
           y={CY + 2}
           textAnchor="middle"
-          fontSize="24"
-          fontWeight="700"
+          fontSize="26"
+          fontWeight="800"
           fill="var(--forest-deep, #1a3a2a)"
           fontFamily="ui-sans-serif, system-ui"
+          style={{ fontVariantNumeric: 'tabular-nums' }}
           initial={false}
           animate={{ fill: color }}
           transition={{ duration: 0.4 }}
@@ -119,7 +121,7 @@ export function ScoreDial({ score }: Props) {
         </motion.text>
       </svg>
       <p
-        className="text-[10px] uppercase tracking-[0.18em] font-semibold -mt-2"
+        className="font-heading text-[10px] uppercase tracking-[0.18em] font-semibold -mt-2"
         style={{ color: 'var(--leaf-muted, #6b7a6b)' }}
       >
         Score crediticio · {labelForScore(clamped)}
