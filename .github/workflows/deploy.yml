@@ -25,6 +25,9 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
+      - name: Run tests
+        run: npm run test
+
       - name: Build
         run: npm run build
         env:
@@ -51,7 +54,6 @@ jobs:
             --content-type "text/html"
 
       - name: Invalidate CloudFront cache
-        id: invalidation
         run: |
           aws cloudfront create-invalidation \
             --distribution-id ${{ secrets.CF_DISTRIBUTION_ID }} \
