@@ -262,15 +262,17 @@ export default function Escenario() {
   };
 
   const handleFeedbackContinue = () => {
+    if (!selectedOption) return;
     if (scenario.recall && scenario.recall.length > 0) {
       setStep("recall");
     } else {
-      handleFinish(selectedOption!.is_best, 0, 0);
+      handleFinish(selectedOption.is_best, 0, 0);
     }
   };
 
   const handleRecallComplete = (correctCount: number, total: number) => {
-    handleFinish(selectedOption!.is_best, correctCount, total);
+    if (!selectedOption) return;
+    handleFinish(selectedOption.is_best, correctCount, total);
   };
 
   const handleNext = () => {
