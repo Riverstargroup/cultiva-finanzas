@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { SemillasCreditoIllustration } from '@/features/minigames/assets'
 import { useGrowPlant } from '@/features/garden/hooks/useGarden'
 import { useMinigameSession } from '../../hooks/useMinigameSession'
 import { ScoreDial } from './ScoreDial'
@@ -53,12 +54,9 @@ export function SemillasCredito({ onBack, mode = 'standalone' }: Props) {
         animate={{ opacity: 1, y: 0 }}
         className="organic-card p-8 text-center space-y-4"
       >
-        <span
-          className="inline-flex items-center justify-center w-12 h-12 rounded-full"
-          style={{ background: 'rgba(74, 222, 128, 0.18)' }}
-        >
-          <Sparkles size={22} style={{ color: 'var(--forest-deep)' }} />
-        </span>
+        <div className="w-40 h-32 mx-auto rounded-2xl overflow-hidden" style={{ background: 'color-mix(in srgb, var(--clay-soft) 30%, transparent)' }}>
+          <SemillasCreditoIllustration className="w-full h-full" />
+        </div>
         <h3 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
           Semillas de Crédito
         </h3>

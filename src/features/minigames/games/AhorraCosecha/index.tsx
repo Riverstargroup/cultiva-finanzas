@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Play } from 'lucide-react'
 import { useGrowPlant } from '@/features/garden/hooks/useGarden'
 import { useMinigameSession } from '../../hooks/useMinigameSession'
-import { AhorraCosechaIllustration } from '../../assets/AhorraCosechaIllustration'
+import { AhorraCosechaIllustration } from '@/features/minigames/assets'
 import { Pendulum } from './Pendulum'
 import { RevealBand } from './RevealBand'
 import { ResultsView } from './ResultsView'
@@ -65,8 +65,8 @@ export function AhorraCosecha({ onBack, mode = 'standalone' }: AhorraCosechaProp
         animate={{ opacity: 1, y: 0 }}
         className="organic-card space-y-5 p-6"
       >
-        <div className="flex justify-center">
-          <AhorraCosechaIllustration className="h-28 w-auto" />
+        <div className="w-40 h-32 mx-auto rounded-2xl overflow-hidden" style={{ background: 'color-mix(in srgb, var(--clay-soft) 30%, transparent)' }}>
+          <AhorraCosechaIllustration className="w-full h-full" />
         </div>
         <header className="space-y-1 text-center">
           <h3

@@ -1,11 +1,12 @@
+import { Home, Sparkles, PiggyBank, CreditCard } from 'lucide-react'
 import { useDroppable } from '@dnd-kit/core'
 import type { Zone } from './data'
 
-const ZONE_META: Record<Zone, { label: string; emoji: string; tint: string; ring: string }> = {
-  necesidades: { label: 'Necesidades', emoji: '🏠', tint: 'rgba(76,175,80,0.10)', ring: '#3f8a4f' },
-  deseos: { label: 'Deseos', emoji: '🎮', tint: 'rgba(168,85,247,0.10)', ring: '#8b5cf6' },
-  ahorro: { label: 'Ahorro', emoji: '🐷', tint: 'rgba(244,114,182,0.10)', ring: '#db2777' },
-  deudas: { label: 'Deudas', emoji: '💳', tint: 'rgba(239,68,68,0.10)', ring: '#dc2626' },
+const ZONE_META: Record<Zone, { label: string; icon: React.ReactNode; tint: string; ring: string }> = {
+  necesidades: { label: 'Necesidades', icon: <Home size={28} />, tint: 'rgba(76,175,80,0.10)', ring: '#3f8a4f' },
+  deseos: { label: 'Deseos', icon: <Sparkles size={28} />, tint: 'rgba(168,85,247,0.10)', ring: '#8b5cf6' },
+  ahorro: { label: 'Ahorro', icon: <PiggyBank size={28} />, tint: 'rgba(244,114,182,0.10)', ring: '#db2777' },
+  deudas: { label: 'Deudas', icon: <CreditCard size={28} />, tint: 'rgba(239,68,68,0.10)', ring: '#dc2626' },
 }
 
 export function Jar({ zone, flash }: { zone: Zone; flash: boolean }) {
@@ -31,7 +32,7 @@ export function Jar({ zone, flash }: { zone: Zone; flash: boolean }) {
         textAlign: 'center',
       }}
     >
-      <span style={{ fontSize: '1.75rem', lineHeight: 1 }}>{meta.emoji}</span>
+      <div style={{ color: meta.ring }}>{meta.icon}</div>
       <span
         className="font-heading"
         style={{

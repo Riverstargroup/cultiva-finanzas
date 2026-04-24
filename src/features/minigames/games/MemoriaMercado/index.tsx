@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { Brain, Timer, XCircle } from 'lucide-react'
+import { Timer, XCircle } from 'lucide-react'
+import { MemoriaMercadoIllustration } from '@/features/minigames/assets'
 import { useGrowPlant } from '@/features/garden/hooks/useGarden'
 import { useMinigameSession } from '../../hooks/useMinigameSession'
 import { useMemoriaMercado } from './useMemoriaMercado'
@@ -60,8 +61,8 @@ export function MemoriaMercado({ onBack, mode = 'standalone' }: Props) {
         animate={{ opacity: 1, y: 0 }}
         className="organic-card p-8 text-center space-y-4"
       >
-        <div className="flex justify-center">
-          <Brain size={48} style={{ color: 'var(--forest-deep)' }} />
+        <div className="w-40 h-32 mx-auto rounded-2xl overflow-hidden" style={{ background: 'color-mix(in srgb, var(--clay-soft) 30%, transparent)' }}>
+          <MemoriaMercadoIllustration className="w-full h-full" />
         </div>
         <h3 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
           Memoria del Mercado

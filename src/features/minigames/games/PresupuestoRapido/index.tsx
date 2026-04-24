@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { PresupuestoRapidoIllustration } from '@/features/minigames/assets'
 import {
   DndContext,
   type DragEndEvent,
@@ -79,7 +80,9 @@ export function PresupuestoRapido({ onBack }: { onBack: () => void }) {
         animate={{ opacity: 1, y: 0 }}
         className="organic-card p-8 text-center space-y-4"
       >
-        <span className="text-6xl">💸</span>
+        <div className="w-40 h-32 mx-auto rounded-2xl overflow-hidden" style={{ background: 'color-mix(in srgb, var(--clay-soft) 30%, transparent)' }}>
+          <PresupuestoRapidoIllustration className="w-full h-full" />
+        </div>
         <h3 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
           Presupuesto Rápido
         </h3>
