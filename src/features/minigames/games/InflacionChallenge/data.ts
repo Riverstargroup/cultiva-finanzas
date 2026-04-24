@@ -19,7 +19,8 @@ export const PRODUCTOS = [
   { id: '3', product: 'Salario mínimo/día', emoji: '💵', price2020: 123, price2025: 278 },
   /* CONTENT_REVIEW — figura: $35→$58 (66%) — fuente: SNIIM precio promedio consumidor — valid_until: verificar trimestralmente (precio estacional) */
   { id: '4', product: 'Aguacate 1kg', emoji: '🥑', price2020: 35, price2025: 58 },
-  /* CONTENT_REVIEW — figura: $5→$7 (40%) — ⚠️ VERIFICAR: tarifa STC Metro CDMX ha sido $5 desde 2012;
-     confirmar si hubo aumento antes de publicar. Si sigue en $5, corregir price2025 a 5 — valid_until: inmediato */
-  { id: '5', product: 'Metro CDMX boleto', emoji: '🚇', price2020: 5, price2025: 7 },
+  /* CONTENT_REVIEW — figura: $5→$5 (0%) — fuente: STC Metro CDMX; tarifa subsidiada sin variación 2012-2025.
+     La tarifa NO aumentó durante 2020-2025, lo que ilustra la política de subsidio al transporte público.
+     valid_until: verificar anualmente (enero). Si hay aumento posterior a ago-2025, actualizar price2025. */
+  { id: '5', product: 'Metro CDMX boleto', emoji: '🚇', price2020: 5, price2025: 5 },
 ] as const
