@@ -372,7 +372,7 @@ export default function Escenario() {
               <p className="text-sm" style={{ color: "var(--leaf-muted)" }}>
                 Puntaje: {Math.round(finalScore * 100)}%
               </p>
-              <RewardToast coins={scenarioCoinsEarned} visible={scenarioCoinsEarned > 0} />
+              <RewardToast coins={scenarioCoinsEarned} streak={streak ?? 0} visible={scenarioCoinsEarned > 0} />
               <button
                 onClick={handleNext}
                 disabled={saving}
