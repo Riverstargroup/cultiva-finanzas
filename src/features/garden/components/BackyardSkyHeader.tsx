@@ -1,20 +1,21 @@
 import { Leaf } from 'lucide-react'
+import { LevelBadge } from '@/components/LevelBadge'
+import type { UserLevel } from '@/hooks/useUserLevel'
 
 interface BackyardSkyHeaderProps {
   coins: number
   streakDays: number
+  level?: UserLevel
 }
 
-export function BackyardSkyHeader({ coins, streakDays }: BackyardSkyHeaderProps) {
+export function BackyardSkyHeader({ coins, streakDays, level }: BackyardSkyHeaderProps) {
   return (
     <div className="flex items-center justify-between">
-      <div>
+      <div className="space-y-1">
         <h1 className="font-heading text-2xl font-bold md:text-3xl" style={{ color: 'var(--forest-deep)' }}>
-          Mi Jardín 🌱
+          Mi Jardín
         </h1>
-        <p className="text-sm mt-0.5" style={{ color: 'var(--leaf-muted)' }}>
-          Tu progreso financiero, hecho visible
-        </p>
+        {level && <LevelBadge level={level} size="sm" />}
       </div>
       <div className="flex items-center gap-3">
         {streakDays > 0 && (
