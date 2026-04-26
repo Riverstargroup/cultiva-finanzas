@@ -209,6 +209,25 @@ export default function Escenario() {
         // non-critical
       }
 
+      if (isFirstCompletion && typeof window !== 'undefined') {
+        try {
+          window.localStorage.setItem(
+            'cf.recentSeedReward',
+            JSON.stringify({
+              scenarioId,
+              scenarioTitle: scenario?.title ?? 'Semilla completada',
+              coins: coinsToAward,
+              score: Math.round(score * 100),
+              bossDamage: Math.round(12 + score * 18),
+              unlockedPlantamigo: completedArr.length === 0 ? 'Nopalito' : null,
+              completedAt: new Date().toISOString(),
+            })
+          )
+        } catch {
+          // non-critical
+        }
+      }
+
       invalidateProgress();
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
@@ -216,6 +235,7 @@ export default function Escenario() {
       queryClient.invalidateQueries({ queryKey: ["review-queue"] });
       queryClient.invalidateQueries({ queryKey: ["user-skills"] });
       queryClient.invalidateQueries({ queryKey: ["user-mission"] });
+      queryClient.invalidateQueries({ queryKey: ["garden"] });
 
       // Reveal prediction outcome (non-critical, guard against double-call)
       if (predictionId && predictedValue !== null && !predResolved) {
