@@ -1,6 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BookOpen, Gamepad2, Home, LockKeyhole, Route, RotateCcw, ShoppingBag, X } from 'lucide-react'
+import {
+  BookOpen,
+  Gamepad2,
+  Home,
+  LockKeyhole,
+  RotateCcw,
+  ShoppingBag,
+  Sparkles,
+  Star,
+  Trophy,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { motion } from 'framer-motion'
+import livingPathBase from '@/assets/world/living-path-base.webp'
 import nopalitoIdle from '@/assets/pixel/optimized/plantamigo-nopalito-idle.webp'
 import helechoIdle from '@/assets/pixel/optimized/plantamigo-helecho-sabio-idle.webp'
 import lirioIdle from '@/assets/pixel/optimized/plantamigo-lirio-guardian-idle.webp'
@@ -8,10 +21,6 @@ import giraIdle from '@/assets/pixel/optimized/plantamigo-gira-compas-idle.webp'
 import doradoIdle from '@/assets/pixel/optimized/plantamigo-brotin-dorado-idle.webp'
 import gastoHormigaIdle from '@/assets/pixel/optimized/enemy-gasto-hormiga-idle.webp'
 import gastoHormigaWeakened from '@/assets/pixel/optimized/enemy-gasto-hormiga-weakened.webp'
-import greenhousePoi from '@/assets/pixel/optimized/poi-course-greenhouse.webp'
-import shopGatePoi from '@/assets/pixel/optimized/poi-shop-gate.webp'
-import gardenHomePoi from '@/assets/pixel/optimized/poi-garden-home.webp'
-import pathNode from '@/assets/pixel/optimized/ui-path-node.webp'
 import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
 
 interface AdventureNode {
@@ -19,10 +28,11 @@ interface AdventureNode {
   title: string
   description: string
   reward: string
-  status: 'available' | 'next' | 'locked' | 'boss'
-  icon: typeof BookOpen
-  image?: string
+  status: 'completed' | 'next' | 'available' | 'locked' | 'boss'
+  type: 'lesson' | 'review' | 'game' | 'chest' | 'home' | 'shop' | 'boss'
+  icon: LucideIcon
   actionLabel: string
+  position: { x: number; y: number }
   onAction?: () => void
 }
 
@@ -98,6 +108,7 @@ export function GardenAdventureMap({
 }: GardenAdventureMapProps) {
   const [recentReward, setRecentReward] = useState<RecentSeedReward | null>(null)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
+  const [selectedNodeId, setSelectedNodeId] = useState('first-seed')
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -121,6 +132,97 @@ export function GardenAdventureMap({
     return Math.max(18, 72 - masteryDamage - rewardDamage)
   }, [recentReward?.bossDamage, totalMastery])
 
+  const nodes = useMemo<AdventureNode[]>(
+    () => [
+      {
+        id: 'first-seed',
+        title: 'Primera semilla',
+        description: 'Empieza Finanzas Basicas y gana tu primer companero.',
+        reward: '+40 monedas',
+        status: 'next',
+        type: 'lesson',
+        icon: BookOpen,
+        actionLabel: 'Empezar leccion',
+        position: { x: 51, y: 12.5 },
+        onAction: onOpenCourses,
+      },
+      {
+        id: 'market-memory',
+        title: 'Memoria de mercado',
+        description: 'Un juego corto para reconocer decisiones de gasto.',
+        reward: 'entrenamiento',
+        status: 'available',
+        type: 'game',
+        icon: Gamepad2,
+        actionLabel: 'Jugar',
+        position: { x: 60, y: 25.5 },
+        onAction: onOpenGames,
+      },
+      {
+        id: 'flash-review',
+        title: 'Repaso express',
+        description: 'Refuerza conceptos antes de que el camino se bloquee.',
+        reward: 'racha y memoria',
+        status: 'available',
+        type: 'review',
+        icon: RotateCcw,
+        actionLabel: 'Repasar',
+        position: { x: 40, y: 36.5 },
+        onAction: onOpenFlashcards,
+      },
+      {
+        id: 'seed-chest',
+        title: 'Cofre de semillas',
+        description: 'Recompensas por mantener el ritmo del aprendizaje.',
+        reward: 'monedas bonus',
+        status: 'available',
+        type: 'chest',
+        icon: Sparkles,
+        actionLabel: 'Ver recompensa',
+        position: { x: 58, y: 47.8 },
+        onAction: onOpenCourses,
+      },
+      {
+        id: 'garden-home',
+        title: 'Casita del jardin',
+        description: 'Aqui viven tus plantamigos y sus estadisticas.',
+        reward: 'coleccion',
+        status: 'locked',
+        type: 'home',
+        icon: Home,
+        actionLabel: 'Pronto',
+        position: { x: 47, y: 60.3 },
+      },
+      {
+        id: 'shop-gate',
+        title: 'Tienda botanica',
+        description: 'Compra cosmeticos para tu viajero y plantamigos.',
+        reward: 'desbloqueos',
+        status: 'available',
+        type: 'shop',
+        icon: ShoppingBag,
+        actionLabel: 'Abrir tienda',
+        position: { x: 58, y: 73.2 },
+        onAction: onOpenShop,
+      },
+      {
+        id: 'boss-gasto',
+        title: 'Gasto Hormiga',
+        description: 'Un bloqueo que se debilita con lecciones, repasos y juegos.',
+        reward: `poder ${bossPower}%`,
+        status: 'boss',
+        type: 'boss',
+        icon: Trophy,
+        actionLabel: 'Prepararme',
+        position: { x: 49, y: 88 },
+        onAction: onOpenCourses,
+      },
+    ],
+    [bossPower, onOpenCourses, onOpenFlashcards, onOpenGames, onOpenShop],
+  )
+
+  const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? nodes[0]
+
   const dismissReward = () => {
     setRecentReward(null)
     try {
@@ -129,61 +231,6 @@ export function GardenAdventureMap({
       // ignore storage errors
     }
   }
-
-  const nodes: AdventureNode[] = [
-    {
-      id: 'first-seed',
-      title: 'Primera semilla',
-      description: 'Empieza Raices y gana tu primer companero.',
-      reward: '+40 monedas, planta reacciona',
-      status: 'next',
-      icon: BookOpen,
-      image: greenhousePoi,
-      actionLabel: 'Empezar curso',
-      onAction: onOpenCourses,
-    },
-    {
-      id: 'review-spring',
-      title: 'Fuente de repaso',
-      description: 'Refuerza conceptos antes del siguiente bloqueo.',
-      reward: 'racha y memoria',
-      status: 'available',
-      icon: RotateCcw,
-      actionLabel: 'Repasar',
-      onAction: onOpenFlashcards,
-    },
-    {
-      id: 'mini-game',
-      title: 'Prueba express',
-      description: 'Juega 60 segundos para debilitar malos habitos.',
-      reward: 'bonus de ataque',
-      status: 'available',
-      icon: Gamepad2,
-      actionLabel: 'Jugar',
-      onAction: onOpenGames,
-    },
-    {
-      id: 'home-base',
-      title: 'Casita del jardin',
-      description: 'Aqui viven tus plantamigos y sus estadisticas.',
-      reward: 'coleccion',
-      status: 'locked',
-      icon: Home,
-      image: gardenHomePoi,
-      actionLabel: 'Pronto',
-    },
-    {
-      id: 'shop-gate',
-      title: 'Puerta de tienda',
-      description: 'Compra plantamigos especiales y cosmeticos.',
-      reward: 'desbloqueos',
-      status: 'available',
-      icon: ShoppingBag,
-      image: shopGatePoi,
-      actionLabel: 'Abrir tienda',
-      onAction: onOpenShop,
-    },
-  ]
 
   return (
     <section className="space-y-4">
@@ -200,53 +247,275 @@ export function GardenAdventureMap({
       {recentReward && (
         <RewardImpactBanner reward={recentReward} bossPower={bossPower} onDismiss={dismissReward} />
       )}
-      <div className="grid gap-4 lg:grid-cols-[1.35fr_0.85fr]">
-        <div
-          className="overflow-hidden rounded-lg border"
-          style={{
-            borderColor: 'color-mix(in srgb, var(--clay-soft) 70%, transparent)',
-            background:
-              'linear-gradient(145deg, rgba(254,251,246,0.95), rgba(232,220,196,0.72))',
-            boxShadow: '0 14px 38px rgba(93,49,54,0.12)',
-          }}
-        >
-          <div className="flex items-start justify-between gap-3 border-b p-4" style={{ borderColor: 'var(--clay-soft)' }}>
-            <div>
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
-                <Route className="h-4 w-4" />
-                Ruta viva
-              </div>
-              <h2 className="mt-1 font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
-                Derrota los malos habitos avanzando por nodos
-              </h2>
-            </div>
-            <div className="hidden rounded-full px-3 py-1 text-xs font-bold md:block" style={{ background: 'var(--forest-deep)', color: '#fff' }}>
-              Vertical slice
-            </div>
-          </div>
 
-          <div className="relative min-h-[340px] p-4 md:p-5">
-            <div
-              className="absolute left-[8%] right-[8%] top-[50%] h-2 rounded-full"
-              style={{
-                background:
-                  'linear-gradient(90deg, var(--leaf-bright), var(--coin-gold, #E5B84B), rgba(91,122,58,0.38))',
-              }}
-              aria-hidden="true"
-            />
-            <div className="relative grid min-h-[300px] grid-cols-2 gap-3 md:grid-cols-5 md:items-center">
-              {nodes.map((node, index) => (
-                <AdventureNodeCard key={node.id} node={node} index={index} />
-              ))}
+      <div className="grid gap-4 lg:grid-cols-[minmax(360px,0.74fr)_minmax(320px,0.46fr)]">
+        <div className="mx-auto w-full max-w-[560px]">
+          <LivingPathMap
+            nodes={nodes}
+            selectedNode={selectedNode}
+            bossPower={bossPower}
+            onSelectNode={setSelectedNodeId}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <NodeDetailPanel node={selectedNode} />
+          <BossCard power={bossPower} />
+          <PlantBuddyRoster compact />
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function LivingPathMap({
+  nodes,
+  selectedNode,
+  bossPower,
+  onSelectNode,
+}: {
+  nodes: AdventureNode[]
+  selectedNode: AdventureNode
+  bossPower: number
+  onSelectNode: (nodeId: string) => void
+}) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-[28px] border"
+      style={{
+        borderColor: 'rgba(212,172,117,0.58)',
+        background: '#F8EBCB',
+        boxShadow: '0 18px 48px rgba(43,79,53,0.16)',
+      }}
+    >
+      <div className="relative aspect-[941/1672] w-full">
+        <img
+          src={livingPathBase}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-hidden="true"
+          draggable={false}
+        />
+
+        <WorldMapHeader />
+
+        {nodes.map((node) => (
+          <LivingNodeButton
+            key={node.id}
+            node={node}
+            selected={selectedNode.id === node.id}
+            onSelect={() => onSelectNode(node.id)}
+          />
+        ))}
+
+        <motion.img
+          src={nopalitoIdle}
+          alt="Nopalito"
+          className="absolute right-[7%] top-[33%] w-[22%] max-w-[128px] drop-shadow-[0_10px_18px_rgba(43,79,53,0.24)]"
+          style={{ imageRendering: 'pixelated' }}
+          animate={{ y: [0, -6, 0] }}
+          transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
+        />
+
+        <div className="absolute left-[5%] top-[68%] flex items-center gap-2 rounded-full border bg-white/78 px-3 py-2 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.55)' }}>
+          <img
+            src={bossPower < 55 ? gastoHormigaWeakened : gastoHormigaIdle}
+            alt=""
+            className="h-9 w-9 rounded-full object-cover"
+            style={{ imageRendering: 'pixelated' }}
+            aria-hidden="true"
+          />
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#8A4B22' }}>
+              Gasto Hormiga
+            </p>
+            <div className="mt-1 h-1.5 w-20 overflow-hidden rounded-full bg-red-100">
+              <div className="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400" style={{ width: `${bossPower}%` }} />
             </div>
           </div>
         </div>
 
-        <BossCard power={bossPower} />
+        <div className="absolute bottom-4 left-4 right-4 rounded-2xl border bg-[#FEFBF6]/88 p-3 shadow-[0_10px_30px_rgba(43,79,53,0.14)] backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.55)' }}>
+          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
+            Nodo seleccionado
+          </p>
+          <h2 className="font-heading text-lg font-bold leading-tight" style={{ color: 'var(--forest-deep)' }}>
+            {selectedNode.title}
+          </h2>
+          <p className="mt-1 line-clamp-2 text-xs leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
+            {selectedNode.description}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function WorldMapHeader() {
+  return (
+    <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-2">
+      <div className="rounded-full border bg-[#FEFBF6]/86 px-3 py-2 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
+        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
+          Ruta viva
+        </p>
+        <p className="font-heading text-sm font-bold" style={{ color: 'var(--forest-deep)' }}>
+          Finanzas basicas
+        </p>
+      </div>
+      <div className="flex items-center gap-1 rounded-full border bg-[#FEFBF6]/86 px-2 py-1.5 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
+        <img src={coinSprout} alt="" className="h-6 w-6" style={{ imageRendering: 'pixelated' }} aria-hidden="true" />
+        <span className="text-xs font-bold" style={{ color: 'var(--forest-deep)' }}>
+          +40
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function LivingNodeButton({
+  node,
+  selected,
+  onSelect,
+}: {
+  node: AdventureNode
+  selected: boolean
+  onSelect: () => void
+}) {
+  const Icon = node.icon
+  const locked = node.status === 'locked'
+  const palette = getNodePalette(node)
+
+  return (
+    <motion.button
+      type="button"
+      onClick={onSelect}
+      className="absolute flex aspect-square w-[17.5%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-center transition active:scale-95"
+      style={{
+        left: `${node.position.x}%`,
+        top: `${node.position.y}%`,
+        borderColor: selected ? palette.border : 'rgba(255,255,255,0.9)',
+        background: palette.background,
+        color: palette.color,
+        boxShadow: selected
+          ? `0 0 0 4px ${palette.ring}, 0 10px 20px rgba(43,79,53,0.22)`
+          : '0 8px 16px rgba(43,79,53,0.16)',
+      }}
+      aria-label={`${node.title}: ${node.description}`}
+      animate={node.status === 'next' ? { y: [0, -4, 0] } : undefined}
+      transition={node.status === 'next' ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : undefined}
+    >
+      {locked ? <LockKeyhole className="h-[34%] w-[34%]" /> : <Icon className="h-[36%] w-[36%]" />}
+      {node.status === 'completed' && (
+        <span className="absolute -bottom-2 flex gap-0.5">
+          {[0, 1, 2].map((star) => (
+            <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-500" />
+          ))}
+        </span>
+      )}
+      {node.status === 'boss' && (
+        <span className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-bold text-white">
+          !
+        </span>
+      )}
+    </motion.button>
+  )
+}
+
+function getNodePalette(node: AdventureNode) {
+  if (node.status === 'locked') {
+    return {
+      background: 'linear-gradient(180deg, #D8D0BE, #B9AD97)',
+      border: '#9B907E',
+      ring: 'rgba(155,144,126,0.2)',
+      color: '#6F6658',
+    }
+  }
+
+  if (node.status === 'boss') {
+    return {
+      background: 'linear-gradient(180deg, #F6C6B8, #D87057)',
+      border: '#BF4E39',
+      ring: 'rgba(216,112,87,0.26)',
+      color: '#7F1D1D',
+    }
+  }
+
+  if (node.type === 'game') {
+    return {
+      background: 'linear-gradient(180deg, #CBEFBB, #7FC25D)',
+      border: '#5B9E3D',
+      ring: 'rgba(91,158,61,0.22)',
+      color: '#1B3B26',
+    }
+  }
+
+  if (node.type === 'review') {
+    return {
+      background: 'linear-gradient(180deg, #D3F0E8, #8BC7BA)',
+      border: '#5FA99A',
+      ring: 'rgba(95,169,154,0.22)',
+      color: '#17413B',
+    }
+  }
+
+  if (node.type === 'chest' || node.status === 'completed') {
+    return {
+      background: 'linear-gradient(180deg, #FFE4A3, #E8B64A)',
+      border: '#CB922E',
+      ring: 'rgba(203,146,46,0.24)',
+      color: '#6B4B12',
+    }
+  }
+
+  return {
+    background: 'linear-gradient(180deg, #FDF7E8, #A9D98F)',
+    border: '#7DB95B',
+    ring: 'rgba(125,185,91,0.22)',
+    color: '#1B3B26',
+  }
+}
+
+function NodeDetailPanel({ node }: { node: AdventureNode }) {
+  const Icon = node.icon
+  const locked = node.status === 'locked'
+
+  return (
+    <div className="rounded-[22px] border bg-[#FEFBF6]/92 p-4 shadow-[0_14px_34px_rgba(43,79,53,0.12)]" style={{ borderColor: 'rgba(212,172,117,0.58)' }}>
+      <div className="flex items-start gap-3">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl" style={{ background: 'rgba(112,181,91,0.16)', color: 'var(--forest-deep)' }}>
+          <Icon className="h-6 w-6" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
+            {node.status === 'boss' ? 'Bloqueo del camino' : 'Siguiente paso'}
+          </p>
+          <h2 className="font-heading text-xl font-bold leading-tight" style={{ color: 'var(--forest-deep)' }}>
+            {node.title}
+          </h2>
+          <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
+            {node.description}
+          </p>
+        </div>
       </div>
 
-      <PlantBuddyRoster />
-    </section>
+      <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl px-3 py-2" style={{ background: 'rgba(229,184,75,0.14)', color: '#6B4B12' }}>
+        <span className="text-xs font-bold uppercase tracking-wide">Recompensa</span>
+        <span className="text-sm font-bold">{node.reward}</span>
+      </div>
+
+      <button
+        type="button"
+        disabled={locked || !node.onAction}
+        onClick={node.onAction}
+        className="mt-4 min-h-[46px] w-full rounded-2xl px-4 text-sm font-bold transition active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
+        style={{
+          background: locked ? 'rgba(91,122,58,0.12)' : 'var(--forest-deep)',
+          color: locked ? 'var(--leaf-muted)' : '#fff',
+        }}
+      >
+        {node.actionLabel}
+      </button>
+    </div>
   )
 }
 
@@ -267,14 +536,14 @@ function PlantamigoUnlockModal({
         aria-labelledby="plantamigo-unlock-title"
         initial={{ opacity: 0, y: 14, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        className="w-full max-w-md rounded-lg border p-5 text-center"
+        className="w-full max-w-md rounded-[24px] border p-5 text-center"
         style={{
           borderColor: 'color-mix(in srgb, var(--leaf-bright) 45%, var(--clay-soft))',
           background: 'linear-gradient(145deg, #FEFBF6, rgba(229,184,75,0.2))',
           boxShadow: '0 24px 80px rgba(27,59,38,0.28)',
         }}
       >
-        <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-lg" style={{ background: 'rgba(76,175,80,0.12)' }}>
+        <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-2xl" style={{ background: 'rgba(76,175,80,0.12)' }}>
           <img
             src={nopalitoIdle}
             alt={plantamigoName}
@@ -299,7 +568,7 @@ function PlantamigoUnlockModal({
           <button
             type="button"
             onClick={onStartCourse}
-            className="min-h-[44px] rounded-md px-4 text-sm font-bold"
+            className="min-h-[44px] rounded-2xl px-4 text-sm font-bold"
             style={{ background: 'var(--forest-deep)', color: '#fff' }}
           >
             Seguir entrenando
@@ -307,7 +576,7 @@ function PlantamigoUnlockModal({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-[44px] rounded-md px-4 text-sm font-bold"
+            className="min-h-[44px] rounded-2xl px-4 text-sm font-bold"
             style={{
               background: 'color-mix(in srgb, var(--forest-deep) 10%, transparent)',
               color: 'var(--forest-deep)',
@@ -334,7 +603,7 @@ function RewardImpactBanner({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-lg border p-4"
+      className="rounded-[22px] border p-4"
       style={{
         borderColor: 'color-mix(in srgb, var(--leaf-bright) 45%, var(--clay-soft))',
         background: 'linear-gradient(135deg, rgba(254,251,246,0.98), rgba(229,184,75,0.18))',
@@ -372,96 +641,20 @@ function RewardImpactBanner({
   )
 }
 
-function AdventureNodeCard({ node, index }: { node: AdventureNode; index: number }) {
-  const Icon = node.icon
-  const isLocked = node.status === 'locked'
-  const isNext = node.status === 'next'
-
-  return (
-    <motion.article
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.22 }}
-      className="relative flex min-h-[196px] flex-col justify-between rounded-lg border p-3"
-      style={{
-        borderColor: isNext ? 'var(--leaf-bright)' : 'color-mix(in srgb, var(--clay-soft) 70%, transparent)',
-        background: isNext ? '#FEFBF6' : 'rgba(255,255,255,0.72)',
-        boxShadow: isNext ? '0 0 0 3px color-mix(in srgb, var(--leaf-bright) 18%, transparent)' : 'none',
-        transform: `translateY(${index % 2 === 0 ? -18 : 22}px)`,
-      }}
-    >
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-lg"
-            style={{
-              background: isLocked ? 'rgba(91,122,58,0.1)' : 'color-mix(in srgb, var(--leaf-bright) 16%, white)',
-              color: isLocked ? 'var(--leaf-muted)' : 'var(--forest-deep)',
-            }}
-          >
-            {node.image ? (
-              <img
-                src={node.image}
-                alt=""
-                className="h-full w-full object-cover"
-                style={{ imageRendering: 'pixelated' }}
-                aria-hidden="true"
-              />
-            ) : isLocked ? (
-              <LockKeyhole className="h-5 w-5" />
-            ) : (
-              <Icon className="h-5 w-5" />
-            )}
-          </span>
-          {isNext ? (
-            <img src={coinSprout} alt="" className="h-7 w-7" style={{ imageRendering: 'pixelated' }} aria-hidden="true" />
-          ) : (
-            <img src={pathNode} alt="" className="h-7 w-7 opacity-75" style={{ imageRendering: 'pixelated' }} aria-hidden="true" />
-          )}
-        </div>
-        <div>
-          <h3 className="font-heading text-base font-bold leading-tight" style={{ color: 'var(--forest-deep)' }}>
-            {node.title}
-          </h3>
-          <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
-            {node.description}
-          </p>
-        </div>
-        <p className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold" style={{ background: 'rgba(229,184,75,0.18)', color: '#6B4B12' }}>
-          <img src={coinSprout} alt="" className="h-4 w-4" style={{ imageRendering: 'pixelated' }} aria-hidden="true" />
-          {node.reward}
-        </p>
-      </div>
-      <button
-        type="button"
-        disabled={isLocked || !node.onAction}
-        onClick={node.onAction}
-        className="mt-3 min-h-[38px] rounded-md px-3 text-xs font-bold transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-55"
-        style={{
-          background: isNext ? 'var(--forest-deep)' : 'color-mix(in srgb, var(--forest-deep) 10%, transparent)',
-          color: isNext ? '#fff' : 'var(--forest-deep)',
-        }}
-      >
-        {node.actionLabel}
-      </button>
-    </motion.article>
-  )
-}
-
 function BossCard({ power }: { power: number }) {
   const isWeakened = power < 55
 
   return (
     <aside
-      className="rounded-lg border p-4"
+      className="rounded-[22px] border p-4"
       style={{
-        borderColor: 'rgba(127,29,29,0.22)',
-        background: 'linear-gradient(160deg, #FEFBF6, rgba(255,237,213,0.86))',
-        boxShadow: '0 14px 38px rgba(127,29,29,0.12)',
+        borderColor: 'rgba(127,29,29,0.18)',
+        background: 'linear-gradient(160deg, #FEFBF6, rgba(255,237,213,0.76))',
+        boxShadow: '0 14px 34px rgba(127,29,29,0.1)',
       }}
     >
       <div className="flex items-start gap-3">
-        <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-lg" style={{ background: 'rgba(239,68,68,0.12)', color: '#991B1B' }}>
+        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl" style={{ background: 'rgba(239,68,68,0.1)', color: '#991B1B' }}>
           <img
             src={isWeakened ? gastoHormigaWeakened : gastoHormigaIdle}
             alt="Gasto Hormiga"
@@ -471,50 +664,38 @@ function BossCard({ power }: { power: number }) {
         </div>
         <div>
           <div className="text-xs font-bold uppercase tracking-wider" style={{ color: '#991B1B' }}>
-            Bloqueo del camino
+            Enemigo de la ruta
           </div>
           <h2 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
             Gasto Hormiga
           </h2>
           <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
-            Se alimenta de compras pequenas, suscripciones olvidadas y decisiones automaticas.
+            Se alimenta de compras pequenas y decisiones automaticas.
           </p>
         </div>
       </div>
 
-      <div className="mt-5 space-y-3">
-        <div>
-          <div className="mb-1 flex justify-between text-xs font-bold" style={{ color: 'var(--forest-deep)' }}>
-            <span>Poder actual</span>
-            <span>{power}%</span>
-          </div>
-          <div className="h-3 overflow-hidden rounded-full" style={{ background: 'rgba(127,29,29,0.12)' }}>
-            <div className="h-full rounded-full transition-all" style={{ width: `${power}%`, background: 'linear-gradient(90deg, #EF4444, #F59E0B)' }} />
-          </div>
+      <div className="mt-4">
+        <div className="mb-1 flex justify-between text-xs font-bold" style={{ color: 'var(--forest-deep)' }}>
+          <span>Poder actual</span>
+          <span>{power}%</span>
         </div>
-
-        <div className="grid gap-2 text-xs">
-          {[
-            'Completa una semilla de Control: -25%',
-            'Repasa 5 tarjetas vencidas: -15%',
-            'Gana Presupuesto Rapido: -20%',
-          ].map((item) => (
-            <div key={item} className="rounded-md px-3 py-2 font-semibold" style={{ background: 'rgba(255,255,255,0.72)', color: 'var(--forest-deep)' }}>
-              {item}
-            </div>
-          ))}
+        <div className="h-3 overflow-hidden rounded-full" style={{ background: 'rgba(127,29,29,0.12)' }}>
+          <div className="h-full rounded-full transition-all" style={{ width: `${power}%`, background: 'linear-gradient(90deg, #EF4444, #F59E0B)' }} />
         </div>
       </div>
     </aside>
   )
 }
 
-function PlantBuddyRoster() {
+function PlantBuddyRoster({ compact = false }: { compact?: boolean }) {
+  const buddies = compact ? PLANT_BUDDIES.slice(0, 3) : PLANT_BUDDIES
+
   return (
     <div
-      className="rounded-lg border p-4"
+      className="rounded-[22px] border p-4"
       style={{
-        borderColor: 'color-mix(in srgb, var(--clay-soft) 70%, transparent)',
+        borderColor: 'rgba(212,172,117,0.58)',
         background: 'rgba(254,251,246,0.88)',
       }}
     >
@@ -524,31 +705,25 @@ function PlantBuddyRoster() {
             Plantamigos
           </div>
           <h2 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
-            Companeros desbloqueables
+            Companeros vivos
           </h2>
         </div>
-        <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: 'rgba(76,175,80,0.14)', color: 'var(--forest-deep)' }}>
-          5 MVP
-        </span>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-        {PLANT_BUDDIES.map((buddy) => (
-          <article key={buddy.id} className="rounded-lg border bg-white/70 p-3" style={{ borderColor: 'var(--clay-soft)' }}>
+      <div className={compact ? 'grid grid-cols-3 gap-2' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-5'}>
+        {buddies.map((buddy) => (
+          <article key={buddy.id} className="rounded-2xl border bg-white/70 p-2" style={{ borderColor: 'var(--clay-soft)' }}>
             <div className="flex justify-center">
-              <PixelSprite src={buddy.image} alt={buddy.name} />
+              <PixelSprite src={buddy.image} alt={buddy.name} compact={compact} />
             </div>
-            <div className="mt-3 space-y-2">
-              <h3 className="font-heading text-sm font-bold" style={{ color: 'var(--forest-deep)' }}>
-                {buddy.name}
-              </h3>
-              <p className="text-xs leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
+            <h3 className="mt-2 text-center font-heading text-xs font-bold leading-tight" style={{ color: 'var(--forest-deep)' }}>
+              {buddy.name}
+            </h3>
+            {!compact && (
+              <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
                 {buddy.role}
               </p>
-              <p className="rounded-md px-2 py-1 text-[11px] font-semibold" style={{ background: 'rgba(91,122,58,0.1)', color: 'var(--forest-deep)' }}>
-                {buddy.unlock}
-              </p>
-            </div>
+            )}
           </article>
         ))}
       </div>
@@ -556,10 +731,10 @@ function PlantBuddyRoster() {
   )
 }
 
-function PixelSprite({ src, alt }: { src: string; alt: string }) {
+function PixelSprite({ src, alt, compact }: { src: string; alt: string; compact?: boolean }) {
   return (
     <div
-      className="relative h-28 w-28 overflow-hidden rounded-lg"
+      className={compact ? 'relative h-16 w-16 overflow-hidden rounded-xl' : 'relative h-28 w-28 overflow-hidden rounded-lg'}
       style={{
         imageRendering: 'pixelated',
         background: 'linear-gradient(145deg, rgba(91,122,58,0.16), rgba(229,184,75,0.12))',
@@ -570,9 +745,7 @@ function PixelSprite({ src, alt }: { src: string; alt: string }) {
         alt={alt}
         draggable={false}
         className="h-full w-full select-none object-cover"
-        style={{
-          imageRendering: 'pixelated',
-        }}
+        style={{ imageRendering: 'pixelated' }}
       />
     </div>
   )

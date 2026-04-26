@@ -5,6 +5,7 @@ import nopalitoCelebrating from '@/assets/pixel/optimized/plantamigo-nopalito-ce
 import gastoHormigaIdle from '@/assets/pixel/optimized/enemy-gasto-hormiga-idle.webp'
 import greenhousePoi from '@/assets/pixel/optimized/poi-course-greenhouse.webp'
 import gardenHomePoi from '@/assets/pixel/optimized/poi-garden-home.webp'
+import onboardingGardenEntrance from '@/assets/world/onboarding-garden-entrance.webp'
 import { useReducedMotion } from '@/hooks/useReducedMotion'
 import { useOnboarding } from '../hooks/useOnboarding'
 
@@ -99,17 +100,18 @@ export function OnboardingOverlay() {
             transition={{ duration: 0.22 }}
             className="grid gap-0 md:grid-cols-[0.95fr_1.05fr]"
           >
-            <div
-              className="flex min-h-[260px] items-center justify-center p-6"
-              style={{
-                background:
-                  'radial-gradient(circle at center, rgba(229,184,75,0.28), rgba(76,175,80,0.12), transparent 72%)',
-              }}
-            >
+            <div className="relative flex min-h-[300px] items-center justify-center overflow-hidden p-6">
+              <img
+                src={onboardingGardenEntrance}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover"
+                aria-hidden="true"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#FEFBF6]/36 via-transparent to-[#FEFBF6]/10" aria-hidden="true" />
               <img
                 src={current.image}
                 alt={current.imageAlt}
-                className="max-h-56 w-full object-contain"
+                className="relative max-h-56 w-full object-contain drop-shadow-[0_12px_22px_rgba(43,79,53,0.24)]"
                 style={{ imageRendering: 'pixelated' }}
               />
             </div>
