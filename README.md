@@ -168,9 +168,8 @@ cultiva-finanzas/
 git clone https://github.com/riverstargroup/cultiva-finanzas.git
 cd cultiva-finanzas
 
-# 2. Instalar dependencias (o usar el script)
-npm install
-# Alternativa: bash scripts/install-dependencies.sh
+# 2. Instalar dependencias
+npm ci
 
 # 3. Configurar variables de entorno
 cp .env.example .env
@@ -227,13 +226,39 @@ aws cloudformation deploy \
 bash scripts/deploy.sh
 ```
 
-### CI/CD Automatizado (CodePipeline)
+### CI/CD Automatizado (GitHub Actions)
 
 El pipeline se activa automaticamente con cada push a `main`:
 
-1. **Source Stage**: Detecta cambios en GitHub
-2. **Build Stage**: CodeBuild ejecuta `npm install`, `npm test`, `npm run build`
-3. **Deploy Stage**: Sincroniza archivos con S3 e invalida cache CloudFront
+1. `npm ci` — instalacion deterministica de dependencias
+2. `npx tsc --noEmit` — verificacion estricta de TypeScript (falla el build si hay errores)
+3. `npm run test` — suite de tests con Vitest
+4. `npm run build` — build de produccion con Vite
+5. `aws s3 sync dist/ s3://$S3_BUCKET --delete` — sincroniza archivos a S3
+6. `aws cloudfront create-invalidation` — invalida el cache para que los cambios sean visibles
+
+**Workflows disponibles:**
+
+| Workflow | Disparo | Descripcion |
+|---|---|---|
+| `deploy.yml` | Push a `main` | Deploy completo a S3 + CloudFront |
+| `pr-check.yml` | PR hacia `main` | Verifica que el build no esta roto antes de mergear |
+| `supabase-types.yml` | Manual (`workflow_dispatch`) | Regenera tipos TypeScript desde el esquema Supabase |
+
+**Secretos de GitHub Actions requeridos** (configurar en Settings → Secrets → Actions):
+
+| Secreto | Descripcion |
+|---|---|
+| `AWS_ACCESS_KEY_ID` | ID de clave de acceso IAM para CI/CD |
+| `AWS_SECRET_ACCESS_KEY` | Clave secreta IAM correspondiente |
+| `AWS_REGION` | Region AWS (ej. `us-east-1`) |
+| `S3_BUCKET` | Nombre del bucket S3 de produccion |
+| `CF_DISTRIBUTION_ID` | ID de distribucion CloudFront |
+| `VITE_SUPABASE_URL` | URL del proyecto Supabase |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Clave anonima de Supabase |
+| `SUPABASE_ACCESS_TOKEN` | Token personal Supabase (solo para sync de tipos) |
+
+> Para instrucciones detalladas sobre despliegue, rollback y migraciones, ver [docs/DEPLOY.md](docs/DEPLOY.md).
 
 ---
 

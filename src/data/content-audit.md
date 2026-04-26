@@ -2,8 +2,21 @@
 
 > **Propósito:** Registro central de todas las cifras financieras del app, sus fuentes, y cuándo deben revisarse.
 > **Responsable:** Equipo de contenido (Enactus ITESM)
-> **Última actualización:** 2026-04-23
-> **Próxima revisión completa:** 2026-07-23 (trimestral)
+> **Última actualización:** 2026-04-24
+> **Próxima revisión completa:** 2026-07-24 (trimestral)
+
+---
+
+## 0. Historial de Correcciones
+
+| Fecha | Qué se corrigió | Migración/Archivo | Motivo |
+|-------|----------------|-------------------|--------|
+| 2026-04-24 | CETES 28d: 10.1 % → **8.25 %** en escenarios 2, 4, 5, 7 y flashcards seed 000004 | `20260424000001_cetes_rate_correction.sql` | Ciclo de recortes Banxico; tasa pico fue ~11.25 % (ago-2023), hoy ~8.25 % |
+| 2026-04-24 | INPC: 4.5 % → **3.9 %** en escenarios 5, 7 y flashcards seed 000004 | `20260424000001_cetes_rate_correction.sql` | INEGI dato mensual actualizado |
+| 2026-04-24 | Inflación acum. 2020-2025: ~40 % → **~32 %** en flashcard; $700 → **$660** | `20260424000001_cetes_rate_correction.sql` | INPC acumulado real (2020-2024) ≈ 31.7 % |
+| 2026-04-24 | Metro CDMX 2025: $7 → **$5** (tarifa no aumentó 2012-2025) | `InflacionChallenge/data.ts` | STC Metro tarifa subsidiada sin variación; dato $7 era incorrecto |
+| 2026-04-24 | MemoriaMercado CETES descriptor: ~10.5 % → **~8.25 %** | `MemoriaMercado/data.ts` | Consistencia con tasa Banxico actual |
+| 2026-04-24 | Montos recalculados: $3,303→**$3,248**; $4,888→**$4,459**; $7,707→**$7,578**; $30,120→**$29,900** | `20260424000001_cetes_rate_correction.sql` | FV recalculado con 8.25 % en lugar de 10.1 % |
 
 ---
 
@@ -11,12 +24,15 @@
 
 | Figura | Valor Actual | Valor Anterior | Fuente | Cadencia de Revisión | Archivo(s) |
 |--------|-------------|----------------|--------|----------------------|------------|
-| CETES 28 días (tasa anual) | ~8.25 % | 10.1 % | Banxico subasta semanal: banxico.org.mx | **Semanal** (cambio cada subasta) | `PolinizacionSession.tsx`, flashcard `fc…019`, `fc…020` |
-| INPC / Inflación anual | ~3.9 % | 4.5 % | INEGI INPC: inegi.org.mx | **Mensual** (primera semana) | `PolinizacionSession.tsx`, flashcard `fc…008`, `fc…018` |
-| CAT promedio tarjetas grandes | 50–90 % | 30–60 % (incorrecto) | CNBV comparativo CAT: cnbv.gob.mx | **Semestral** | Scenario `111103`, flashcard `fc…009`, `fc…012`, `fc…013` |
+| CETES 28 días (tasa anual) | ~8.25 % | 10.1 % → corregido 2026-04-24 | Banxico subasta semanal: banxico.org.mx | **Semanal** (cambio cada subasta) | `PolinizacionSession.tsx`, flashcards `fc…019`, `fc…020`, seed 000004 |
+| INPC / Inflación anual | ~3.9 % | 4.5 % → corregido 2026-04-24 | INEGI INPC: inegi.org.mx | **Mensual** (primera semana) | `PolinizacionSession.tsx`, flashcards `fc…008`, `fc…018`, seed 000004 |
+| Inflación acumulada 2020-2025 | ~32 % | ~40 % (incorrecto) → corregido 2026-04-24 | INEGI INPC acumulado | Una vez (dato histórico) | flashcard seed 000004 |
+| CAT promedio tarjetas grandes | 50–90 % | 30–60 % (incorrecto) → corregido 2026-04-23 | CNBV comparativo CAT: cnbv.gob.mx | **Semestral** | Scenario `111103`, flashcards `fc…009`, `fc…012`, `fc…013` |
 | Tasa préstamo personal (grandes bancos) | 18–36 % anual | 28 % anual (preset) | CNBV / bancos grandes | Semestral | `debtPresets.ts` |
 | Tasa microcrédito | 60–120 % CAT | 90 % anual (preset) | CONDUSEF / Kueski / Credijusto | Semestral | `debtPresets.ts` |
 | Salario mínimo diario | $278.80 (2025) | $123.22 (2020) | CONASAMI decreto enero 2025 | **Anual** (enero) | `InflacionChallenge/data.ts` |
+| Tarifa Metro CDMX | $5 (sin variación 2012-2025) | $7 (incorrecto) → corregido 2026-04-24 | STC Metro CDMX | **Anual** (enero) | `InflacionChallenge/data.ts` |
+| CETES descriptor (minijuego) | ~8.25 % anual | ~10.5 % (incorrecto) → corregido 2026-04-24 | Banxico | Trimestral | `MemoriaMercado/data.ts` |
 
 ---
 
@@ -28,10 +44,9 @@
 | Gasolina Magna 1 L | $18.50 | $24 | +30 % | CRE / PROFECO | ✅ Plausible |
 | Salario mínimo/día | $123 | $278 | +126 % | CONASAMI ✓ | ✅ Verificado |
 | Aguacate 1 kg | $35 | $58 | +66 % | SNIIM (precio promedio) | ✅ Plausible (precio estacional) |
-| Metro CDMX boleto | $5 | $7 | +40 % | ⚠️ STC Metro — **VERIFICAR** | ❌ **Pendiente**: tarifa ha sido $5 desde 2012 |
+| Metro CDMX boleto | $5 | **$5** | **0 %** | STC Metro — tarifa subsidiada sin aumento 2012-2025 | ✅ **Corregido 2026-04-24** (era $7, incorrecto) |
 
-> **Acción urgente:** Confirmar tarifa actual del Metro CDMX antes del próximo release.
-> Si la tarifa sigue en $5, actualizar `price2025: 5` en `InflacionChallenge/data.ts`.
+> **Nota pedagógica:** El Metro CDMX NO aumentó su tarifa durante 2020-2025, ilustrando la política de subsidio al transporte público. Es una excepción interesante en el juego de inflación — revisar anualmente si la tarifa cambia.
 
 ---
 
@@ -129,16 +144,23 @@
 | **Trimestral** (enero, abril, julio, octubre) | CETES rate en flashcards y tips; ISR retención | banxico.org.mx, cetesdirecto.com, SAT |
 | **Semestral** (enero y julio) | CAT promedio tarjetas; tasas préstamos | cnbv.gob.mx → Banca Múltiple; banxico.org.mx |
 | **Anual** (enero) | Salario mínimo (decreto CONASAMI), precios InflacionChallenge, tarifa Metro CDMX | conasami.gob.mx, STC Metro |
-| **Inmediato** | Tarifa Metro CDMX — confirmar si subió de $5 | stcmetro.cdmx.gob.mx |
+| **Inmediato (RESUELTO 2026-04-24)** | Metro CDMX: tarifa $5 sin cambio 2012-2025; corregido en `InflacionChallenge/data.ts` | stcmetro.cdmx.gob.mx |
 
 ---
 
 ## 9. Contenidos Pendientes (brechas identificadas)
 
-Ver issues en Linear: [Contenido] tag en proyecto "Cultiva Finanzas — Garden Gamification"
+Issues creados en Linear (proyecto "Cultiva Finanzas — Garden Gamification", equipo Delivery):
 
-- ❌ **Seguros**: No existe ningún escenario o flashcard que explique IMSS, ISSSTE, seguro de vida, ni cómo contratar GMM
-- ❌ **AFORE / Retiro**: No hay contenido sobre SAR (2 % patrón + aportaciones voluntarias), subcuentas AFORE, rendimientos históricos
-- ❌ **Impuestos**: Ningún escenario aborda SAT, RESICO (régimen para actividades empresariales), declaración anual para asalariados
-- ❌ **Crédito hipotecario**: No hay escenario sobre Infonavit, fovissste, enganche, CAT hipotecario (~15–20 %)
-- ⚠️ **ENIF**: La estadística "63 % sin presupuesto" cita ENIF 2021 — necesita actualización si hay ENIF 2024
+| Issue | Dominio | Prioridad | Estado |
+|-------|---------|-----------|--------|
+| [DLV-105](https://linear.app/riverstar/issue/DLV-105) | Seguros: IMSS, GMM, seguro de vida | **Alta** | Backlog |
+| [DLV-106](https://linear.app/riverstar/issue/DLV-106) | AFORE / Retiro: SAR, subcuentas, rendimientos | **Alta** | Backlog |
+| [DLV-107](https://linear.app/riverstar/issue/DLV-107) | Impuestos: SAT, RESICO, declaración anual | Normal | Backlog |
+| [DLV-108](https://linear.app/riverstar/issue/DLV-108) | Crédito hipotecario: Infonavit, CAT hipotecario | Normal | Backlog |
+
+- ❌ **Seguros** (DLV-105): IMSS, ISSSTE, seguro de vida, cómo contratar GMM — **High priority**
+- ❌ **AFORE / Retiro** (DLV-106): SAR (patrón 5.15 % + empleado 1.125 % + cuota social), subcuentas, rendimientos históricos — **High priority**
+- ❌ **Impuestos** (DLV-107): SAT, RESICO, declaración anual para asalariados, ISR freelance — Normal
+- ❌ **Crédito hipotecario** (DLV-108): Infonavit, fovissste, enganche, CAT hipotecario (~15–20 %) — Normal
+- ⚠️ **ENIF**: La estadística "63 % sin presupuesto" cita ENIF 2021 — necesita actualización si hay ENIF 2024 (sin issue por ahora — verificar disponibilidad del dato)

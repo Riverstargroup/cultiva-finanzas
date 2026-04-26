@@ -18,7 +18,8 @@ export const PAIRS: readonly InstrumentPair[] = [
   {
     instrumentId: 'cetes',
     name: 'CETES',
-    descriptor: 'Deuda del gobierno, bajo riesgo, ~10.5% anual',
+    /* CONTENT_REVIEW — figura: ~8.25% anual — fuente: Banxico subasta CETES 28d — valid_until: verificar trimestralmente */
+    descriptor: 'Deuda del gobierno, bajo riesgo, ~8.25% anual',
     iconName: 'Landmark',
   },
   {

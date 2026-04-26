@@ -8,7 +8,7 @@ interface GardenRewardOptions {
   domain: SkillDomain
   masteryDelta: number
   coins?: number
-  reason?: string
+  coinReason?: string
 }
 
 export function useGardenReward() {
@@ -16,19 +16,20 @@ export function useGardenReward() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
-  function reward({ domain, masteryDelta, coins, reason }: GardenRewardOptions) {
+  function grantReward({ domain, masteryDelta, coins, coinReason }: GardenRewardOptions) {
     growPlant.mutate({ domain, masteryDelta })
 
     if (coins && user?.id) {
       supabase
-        .rpc('award_coins', {
+        .rpc('award_coins' as any, {
           p_user_id: user.id,
-          p_delta: coins,
-          p_reason: reason ?? 'activity_complete',
+          p_amount: coins,
+          p_reason: coinReason ?? 'activity_complete',
         })
         .then(() => queryClient.invalidateQueries({ queryKey: gardenKeys.all }))
+        .catch(() => { /* non-critical */ })
     }
   }
 
-  return { reward, isLoading: growPlant.isPending }
+  return { grantReward, isLoading: growPlant.isPending }
 }
