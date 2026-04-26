@@ -1,9 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import ScenarioCard, { type ScenarioStatus } from "@/components/ScenarioCard";
+import type { ScenarioStatus } from "@/components/ScenarioCard";
 import BotanicalPage from "@/components/layout/BotanicalPage";
 import ContinueBanner from "@/components/courses/ContinueBanner";
+import { CoursePathMap } from "@/components/courses/CoursePathMap";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCourseDetail } from "@/hooks/useCourseDetail";
 import { useProgress } from "@/hooks/useProgress";
@@ -92,9 +92,6 @@ export default function CursoDetalle() {
   const levelKey = toLevelKey(course.level);
   const showContinueBanner = completedCount > 0 && progressPct < 100;
 
-  const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
-  const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
-
   return (
     <BotanicalPage title={course.title} subtitle={`${course.scenarios.length} semillas · ~${course.estimated_minutes} min`}>
       {showContinueBanner && nextScenario && (
@@ -155,20 +152,12 @@ export default function CursoDetalle() {
         <h2 className="font-heading font-bold text-lg" style={{ color: "var(--forest-deep)" }}>
           Semillas
         </h2>
-        <motion.div variants={stagger} initial="hidden" animate="show" className="space-y-2">
-          {course.scenarios.map((s, i) => (
-            <motion.div key={s.id} variants={item}>
-              <ScenarioCard
-                index={i + 1}
-                title={s.title}
-                description={s.prompt.substring(0, 80) + "..."}
-                status={getStatus(i)}
-                onClick={() => navigate(`/cursos/${course.id}/escenario/${s.id}`)}
-                estimatedXp={estimatedXp(i, levelKey)}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
+        <CoursePathMap
+          scenarios={course.scenarios}
+          getStatus={getStatus}
+          getEstimatedXp={(i) => estimatedXp(i, levelKey)}
+          onScenarioClick={(scenarioId) => navigate(`/cursos/${course.id}/escenario/${scenarioId}`)}
+        />
       </div>
 
       {/* CTA */}

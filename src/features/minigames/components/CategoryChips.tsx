@@ -1,3 +1,5 @@
+import { motion } from 'framer-motion';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 import type { GameCategory } from '../types';
 
 type ChipValue = GameCategory | 'Todos';
@@ -9,6 +11,7 @@ interface CategoryChipsProps {
 }
 
 export function CategoryChips({ categories, selected, onChange }: CategoryChipsProps) {
+  const reduced = useReducedMotion();
   const options: ChipValue[] = ['Todos', ...categories];
 
   return (
@@ -21,23 +24,26 @@ export function CategoryChips({ categories, selected, onChange }: CategoryChipsP
       {options.map((option) => {
         const isActive = option === selected;
         return (
-          <button
+          <motion.button
             key={option}
             type="button"
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(option)}
-            className="shrink-0 min-h-[44px] px-4 rounded-full text-sm font-semibold transition-colors"
+            whileTap={reduced ? undefined : { scale: 0.95 }}
+            className="shrink-0 min-h-[44px] px-4 rounded-full text-sm font-semibold"
             style={{
-              background: isActive ? '#ffffff' : 'transparent',
-              border: `1.5px solid ${
-                isActive ? 'var(--leaf-bright)' : 'var(--clay-soft)'
-              }`,
-              color: isActive ? 'var(--forest-deep)' : 'var(--leaf-muted)',
+              background: isActive ? 'var(--forest-deep)' : 'transparent',
+              border: `1.5px solid ${isActive ? 'var(--forest-deep)' : 'var(--clay-soft)'}`,
+              color: isActive ? '#ffffff' : 'var(--leaf-muted)',
+              boxShadow: isActive
+                ? '0 2px 8px color-mix(in srgb, var(--forest-deep) 20%, transparent)'
+                : 'none',
+              transition: 'background 0.15s, color 0.15s, border-color 0.15s, box-shadow 0.15s',
             }}
           >
             {option}
-          </button>
+          </motion.button>
         );
       })}
     </div>

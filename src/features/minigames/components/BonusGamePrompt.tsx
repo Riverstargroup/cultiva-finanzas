@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Gamepad2 } from 'lucide-react';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import {
   PresupuestoRapidoIllustration,
@@ -120,7 +120,7 @@ export function BonusGamePrompt({ gameId, onPlay, onDismiss }: Props) {
         onClick={onPlay}
         className="vibrant-btn w-full justify-center min-h-[44px] font-bold text-sm"
       >
-        ¡Jugar bonus! 🎮
+        <Gamepad2 className="h-4 w-4" /> ¡Jugar bonus!
       </button>
     </motion.div>
   );

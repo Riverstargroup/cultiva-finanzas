@@ -1,4 +1,6 @@
 import { motion } from 'framer-motion'
+import { Trophy, Target } from 'lucide-react'
+import { ShareScoreButton } from '@/features/minigames/components/ShareScoreButton'
 import type { Gasto, Zone } from './data'
 
 const ZONE_LABEL: Record<Zone, string> = {
@@ -32,7 +34,10 @@ export function ResultsView({ items, placements, score, total, won, onBack, onRe
       className="organic-card p-6 space-y-4"
     >
       <div className="text-center space-y-2">
-        <span className="text-5xl block">{won ? '🎉' : '😅'}</span>
+        {won
+          ? <Trophy className="h-12 w-12 mx-auto" style={{ color: 'var(--leaf-bright)' }} />
+          : <Target className="h-12 w-12 mx-auto" style={{ color: 'var(--clay-soft)' }} />
+        }
         <h3 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
           {won ? '¡Bien hecho!' : '¡Casi!'}
         </h3>
@@ -84,6 +89,7 @@ export function ResultsView({ items, placements, score, total, won, onBack, onRe
         >
           Volver
         </button>
+        <ShareScoreButton score={score} gameTitle="Presupuesto Rápido" />
         <button
           onClick={onRestart}
           className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"

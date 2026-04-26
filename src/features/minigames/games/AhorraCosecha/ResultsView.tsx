@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { ArrowLeft, RotateCw } from 'lucide-react'
+import { ShareScoreButton } from '@/features/minigames/components/ShareScoreButton'
 import type { SavingsAttempt } from './useAhorraCosecha'
 
 interface ResultsViewProps {
@@ -89,6 +90,7 @@ export function ResultsView({
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Volver
         </button>
+        <ShareScoreButton score={totalPoints} gameTitle="Ahorra la Cosecha" />
         <button
           onClick={onRestart}
           className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white"

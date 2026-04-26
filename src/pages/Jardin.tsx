@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import PageTransition from '@/components/PageTransition'
 import { WeeklyRetos } from '@/features/retos/components/WeeklyRetos'
 import { useGarden, useInitGarden } from '@/features/garden/hooks/useGarden'
@@ -14,12 +15,15 @@ import { PlantShopDrawer } from '@/features/garden/components/PlantShopDrawer'
 import { InventoryDrawer } from '@/features/garden/components/InventoryDrawer'
 import { JardinSkeleton } from '@/features/garden/components/JardinSkeleton'
 import { JardinWelcome } from '@/features/garden/components/JardinWelcome'
+import { GardenAdventureMap } from '@/features/garden/components/GardenAdventureMap'
+import { NopalitoGuide } from '@/features/garden/components/NopalitoGuide'
 import { useUserLevel } from '@/hooks/useUserLevel'
 import { LevelUpNotification } from '@/components/LevelUpNotification'
 import { OnboardingOverlay } from '@/features/onboarding'
 import type { InventoryItem } from '@/features/garden/types'
 
 export default function Jardin() {
+  const navigate = useNavigate()
   const userLevel = useUserLevel()
   const garden = useGarden()
   const economy = useGardenEconomy()
@@ -55,7 +59,7 @@ export default function Jardin() {
     return (
       <PageTransition>
         <div className="dashboard-skin botanical-bg -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-28 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
-          <div className="mx-auto max-w-2xl">
+          <div className="mx-auto max-w-4xl">
             <JardinWelcome
               isPending={initGarden.isPending}
               isError={initGarden.isError}
@@ -72,7 +76,7 @@ export default function Jardin() {
       <LevelUpNotification level={userLevel.level} isLoading={userLevel.isLoading} />
       <OnboardingOverlay />
       <div className="dashboard-skin botanical-bg -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-28 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
-        <div className="mx-auto max-w-2xl space-y-4">
+        <div className="mx-auto max-w-7xl space-y-4">
 
           <BackyardSkyHeader coins={garden.coins} streakDays={streakDays} level={userLevel.isLoading ? undefined : userLevel.level} />
 
@@ -104,7 +108,24 @@ export default function Jardin() {
             inventoryCount={unplacedCount}
           />
 
-          <WeeklyRetos />
+          <GardenAdventureMap
+            totalMastery={garden.totalMastery}
+            onOpenCourses={() => navigate('/cursos')}
+            onOpenGames={() => navigate('/juegos')}
+            onOpenFlashcards={() => navigate('/flashcards')}
+            onOpenShop={() => setShopOpen(true)}
+          />
+
+          <NopalitoGuide
+            totalMastery={garden.totalMastery}
+            onOpenCourses={() => navigate('/cursos')}
+            onOpenGames={() => navigate('/juegos')}
+            onOpenFlashcards={() => navigate('/flashcards')}
+          />
+
+          <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+            <WeeklyRetos />
+          </div>
         </div>
       </div>
 

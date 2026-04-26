@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Trophy, Clock, XCircle } from 'lucide-react'
+import { ShareScoreButton } from '@/features/minigames/components/ShareScoreButton'
 import type { InstrumentId } from './data'
 
 interface Props {
@@ -8,6 +9,7 @@ interface Props {
   timer: number
   won: boolean
   total: number
+  score: number
   onBack: () => void
   onRestart: () => void
 }
@@ -18,6 +20,7 @@ export function ResultsView({
   timer,
   won,
   total,
+  score,
   onBack,
   onRestart,
 }: Props) {
@@ -81,6 +84,7 @@ export function ResultsView({
         >
           Volver
         </button>
+        <ShareScoreButton score={score} gameTitle="Memoria del Mercado" />
         <button
           onClick={onRestart}
           className="flex-1 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90"

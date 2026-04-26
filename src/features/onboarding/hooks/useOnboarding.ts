@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 
-const STORAGE_KEY = 'cf.onboarding.v1'
-const TOTAL_STEPS = 4
+const STORAGE_KEY = 'cf.onboarding.v3'
+const TOTAL_STEPS = 5
 
 interface UseOnboardingResult {
   isOpen: boolean

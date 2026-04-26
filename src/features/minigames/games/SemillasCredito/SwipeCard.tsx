@@ -39,7 +39,7 @@ export function SwipeCard({ card, onSwipe, disabled = false }: Props) {
         x,
         rotate: reduced ? 0 : rotate,
         minHeight: '220px',
-        touchAction: 'none',
+        touchAction: 'pan-y',
         cursor: disabled ? 'default' : 'grab',
       }}
       drag={disabled ? false : 'x'}
