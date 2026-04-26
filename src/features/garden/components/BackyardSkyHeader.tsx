@@ -1,6 +1,7 @@
-import { Leaf } from 'lucide-react'
+import { Flame, Leaf } from 'lucide-react'
 import { LevelBadge } from '@/components/LevelBadge'
 import type { UserLevel } from '@/hooks/useUserLevel'
+import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
 
 interface BackyardSkyHeaderProps {
   coins: number
