@@ -5,6 +5,46 @@
 
 ---
 
+## UPDATE 2026-04-27 - Unified World Shell
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/world-shell`
+
+### Summary
+
+Started the first app-wide cohesion pass so Cursos, Juegos, Perfil, Calculadora, Logros, Polinizacion, Escenario, and Inicio feel like sections inside the same garden world instead of separate products.
+
+### Changes In This Branch
+
+- `src/components/layout/BotanicalPage.tsx`
+  - Converts the shared page wrapper into a Sendero Semilla world shell.
+  - Adds a garden-sign header with a consistent eyebrow, title, and subtitle treatment.
+
+- `src/components/navigation/DockNav.tsx`
+  - Reworks the persistent dock into a softer botanical navigation bar.
+  - Keeps the existing routes and mobile-first behavior unchanged.
+
+- `src/index.css`
+  - Adds reusable `world-shell`, `world-page-header`, `world-page-kicker`, and `world-dock` classes.
+  - Builds a lightweight botanical path backdrop with CSS/SVG patterns instead of heavy baked images.
+
+- `src/pages/Jardin.tsx`
+  - Moves the Home/Sendero render onto the same world shell used by the rest of the authenticated app.
+
+### Product Intent
+
+This is a shell-level metamorphosis, not a full page redesign. The goal is to preserve the existing course/game/profile UI that already works while making the whole product feel like one garden-world system.
+
+### Still Pending
+
+- Tune the map node scale and depth after live review.
+- Decide if the dock labels should stay literal (`Cursos`, `Juegos`) or become narrative zones (`Invernadero`, `Retos`).
+- Extend coin and sprite asset consistency into older reward and simulator surfaces.
+- Add a true module-level boss encounter for Gasto Hormiga.
+
+---
+
 ## UPDATE 2026-04-27 - Sendero Visual Asset Cleanup
 
 Status: IN PROGRESS
