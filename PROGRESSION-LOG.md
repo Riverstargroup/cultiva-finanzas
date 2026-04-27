@@ -37,6 +37,9 @@ Started implementation of the Sendero Semilla rebrand. The Home/Jardin page is b
 - `src/pages/Juegos.tsx`
   - Added support for launching a specific game from the Sendero with `?game=...`.
 
+- `src/features/onboarding/components/OnboardingOverlay.tsx`
+  - Made the last prologue CTA actionable so "Tomar la primera semilla" can send the learner into Cursos.
+
 ### Product Intent
 
 This is not a deletion of courses, games, profile, rewards, or Nopalito. It is a cleanup pass to stop Home from feeling like multiple products stacked together.

@@ -66,7 +66,11 @@ const STEPS: OnboardingStep[] = [
   },
 ]
 
-export function OnboardingOverlay() {
+interface OnboardingOverlayProps {
+  onComplete?: () => void
+}
+
+export function OnboardingOverlay({ onComplete }: OnboardingOverlayProps) {
   const { isOpen, step, total, next, skip } = useOnboarding()
   const reducedMotion = useReducedMotion()
 
@@ -77,6 +81,10 @@ export function OnboardingOverlay() {
 
   const Icon = current.icon
   const isLast = step === total - 1
+  const handleContinue = () => {
+    next()
+    if (isLast) onComplete?.()
+  }
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
@@ -168,7 +176,7 @@ export function OnboardingOverlay() {
                   >
                     Saltar
                   </button>
-                  <button type="button" onClick={next} className="vibrant-btn">
+                  <button type="button" onClick={handleContinue} className="vibrant-btn">
                     {isLast ? 'Tomar la primera semilla' : 'Continuar'}
                   </button>
                 </div>
