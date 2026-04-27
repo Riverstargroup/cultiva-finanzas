@@ -18,6 +18,8 @@ import { useStreak } from "@/hooks/useStreak";
 import { useUserMission } from "@/hooks/useUserMission";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useUserLevel } from "@/hooks/useUserLevel";
+import { LevelUpNotification } from "@/components/LevelUpNotification";
 import DecisionStep from "@/components/scenario/DecisionStep";
 import FeedbackStep from "@/components/scenario/FeedbackStep";
 import RecallStep from "@/components/scenario/RecallStep";
@@ -63,6 +65,8 @@ export default function Escenario() {
   const { data: progress, invalidate: invalidateProgress } = useProgress(courseId);
   const { data: streak } = useStreak();
   const { data: missionData } = useUserMission(scenarioId);
+
+  const userLevel = useUserLevel();
 
   const { predictionId, predictedValue, savePrediction, resolvePrediction, saving: predSaving } = usePrediction({ userId: user?.id, scenarioId });
   const [predictionReady, setPredictionReady] = useState(false);
@@ -315,6 +319,7 @@ export default function Escenario() {
       title={scenario.title}
       subtitle={`Semilla ${scenarioIndex + 1} de ${scenarios.length}`}
     >
+      <LevelUpNotification level={userLevel.level} isLoading={userLevel.isLoading} />
 
       <button
         onClick={() => navigate(`/cursos/${courseId}`)}
