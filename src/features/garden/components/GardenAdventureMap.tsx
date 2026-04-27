@@ -19,11 +19,11 @@ import gastoHormigaIdle from '@/assets/pixel/optimized/enemy-gasto-hormiga-idle.
 import gastoHormigaWeakened from '@/assets/pixel/optimized/enemy-gasto-hormiga-weakened.webp'
 import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
 import {
-  SENDERO_PHASE_ONE_NODES,
   SENDERO_PHASE_ONE_TITLE,
   type SenderoNode,
   type SenderoNodeAction,
 } from '@/features/sendero/senderoNodes'
+import { useSenderoProgress } from '@/features/sendero/useSenderoProgress'
 
 type AdventureNode = SenderoNode & {
   icon: LucideIcon
@@ -57,6 +57,7 @@ export function GardenAdventureMap({
   const [recentReward, setRecentReward] = useState<RecentSeedReward | null>(null)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
   const [selectedNodeId, setSelectedNodeId] = useState('first-seed')
+  const senderoProgress = useSenderoProgress()
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -82,7 +83,7 @@ export function GardenAdventureMap({
 
   const nodes = useMemo<AdventureNode[]>(
     () =>
-      SENDERO_PHASE_ONE_NODES.map((node) => ({
+      senderoProgress.nodes.map((node) => ({
         ...node,
         reward: node.status === 'boss' ? `poder ${bossPower}%` : node.reward,
         icon: getNodeIcon(node.type),
@@ -94,7 +95,7 @@ export function GardenAdventureMap({
           onOpenShop,
         }),
       })),
-    [bossPower, onOpenCourses, onOpenFlashcards, onOpenGames, onOpenShop],
+    [bossPower, onOpenCourses, onOpenFlashcards, onOpenGames, onOpenShop, senderoProgress.nodes],
   )
 
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? nodes[0]
@@ -130,6 +131,7 @@ export function GardenAdventureMap({
             nodes={nodes}
             selectedNode={selectedNode}
             bossPower={bossPower}
+            completedScenarios={senderoProgress.completedScenarios}
             onSelectNode={setSelectedNodeId}
           />
         </div>
@@ -144,11 +146,13 @@ function LivingPathMap({
   nodes,
   selectedNode,
   bossPower,
+  completedScenarios,
   onSelectNode,
 }: {
   nodes: AdventureNode[]
   selectedNode: AdventureNode
   bossPower: number
+  completedScenarios: number
   onSelectNode: (nodeId: string) => void
 }) {
   return (
@@ -169,7 +173,7 @@ function LivingPathMap({
           draggable={false}
         />
 
-        <WorldMapHeader />
+        <WorldMapHeader completedScenarios={completedScenarios} />
 
         {nodes.map((node) => (
           <LivingNodeButton
@@ -223,7 +227,7 @@ function LivingPathMap({
   )
 }
 
-function WorldMapHeader() {
+function WorldMapHeader({ completedScenarios }: { completedScenarios: number }) {
   return (
     <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-2">
       <div className="rounded-full border bg-[#FEFBF6]/86 px-3 py-2 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
@@ -237,7 +241,7 @@ function WorldMapHeader() {
       <div className="flex items-center gap-1 rounded-full border bg-[#FEFBF6]/86 px-2 py-1.5 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
         <img src={coinSprout} alt="" className="h-6 w-6" style={{ imageRendering: 'pixelated' }} aria-hidden="true" />
         <span className="text-xs font-bold" style={{ color: 'var(--forest-deep)' }}>
-          +40
+          {completedScenarios} semillas
         </span>
       </div>
     </div>

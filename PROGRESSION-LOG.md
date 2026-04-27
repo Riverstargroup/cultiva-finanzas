@@ -5,6 +5,40 @@
 
 ---
 
+## UPDATE 2026-04-26 - Sendero Progress State
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/sendero-progress-state`
+
+### Summary
+
+Started converting Sendero Semilla from a static visual path into a progress-aware learning surface.
+
+### Changes In This Branch
+
+- `src/features/sendero/useSenderoProgress.ts`
+  - Added a Sendero progress hook.
+  - Reads completed scenarios from `user_course_progress`.
+  - Reads minigame completion through existing game stats.
+  - Resolves node status as `locked`, `next`, `available`, `completed`, or `boss`.
+
+- `src/features/sendero/senderoNodes.ts`
+  - Added `requiredCompletedScenarios` gates to phase-one nodes.
+
+- `src/features/garden/components/GardenAdventureMap.tsx`
+  - Uses progress-aware nodes instead of raw static node data.
+  - Shows completed scenario count in the map header.
+
+### Still Pending
+
+- Tie first lesson node to a specific course/scenario instead of generic `/cursos`.
+- Make boss unlock/open a real boss encounter.
+- Persist chest rewards and shop unlock rules.
+- Add mastery/dorado visual states for repeated review.
+
+---
+
 ## UPDATE 2026-04-26 - Home Cleanup: Sendero First Impact
 
 Status: IN PROGRESS

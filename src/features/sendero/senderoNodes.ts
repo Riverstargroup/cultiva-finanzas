@@ -14,6 +14,7 @@ export interface SenderoNode {
   actionLabel: string
   action: SenderoNodeAction
   gameId?: GameId
+  requiredCompletedScenarios?: number
   position: { x: number; y: number }
 }
 
@@ -41,6 +42,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     actionLabel: 'Jugar',
     action: 'games',
     gameId: 'presupuesto-rapido',
+    requiredCompletedScenarios: 1,
     position: { x: 60, y: 25.5 },
   },
   {
@@ -52,6 +54,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     type: 'review',
     actionLabel: 'Repasar',
     action: 'flashcards',
+    requiredCompletedScenarios: 1,
     position: { x: 40, y: 36.5 },
   },
   {
@@ -63,6 +66,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     type: 'chest',
     actionLabel: 'Ver recompensa',
     action: 'courses',
+    requiredCompletedScenarios: 2,
     position: { x: 58, y: 47.8 },
   },
   {
@@ -74,6 +78,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     type: 'home',
     actionLabel: 'Pronto',
     action: 'courses',
+    requiredCompletedScenarios: 3,
     position: { x: 47, y: 60.3 },
   },
   {
@@ -85,6 +90,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     type: 'shop',
     actionLabel: 'Abrir tienda',
     action: 'shop',
+    requiredCompletedScenarios: 2,
     position: { x: 58, y: 73.2 },
   },
   {
@@ -96,6 +102,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     type: 'boss',
     actionLabel: 'Prepararme',
     action: 'courses',
+    requiredCompletedScenarios: 3,
     position: { x: 49, y: 88 },
   },
 ] as const
