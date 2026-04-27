@@ -46,12 +46,12 @@ export default function Jardin() {
 
   const openSenderoNode = (node: SenderoNode) => {
     if (node.action === 'lesson') {
-      navigate(senderoEntry.data?.firstLessonRoute ?? '/cursos')
+      navigate(senderoEntry.routeForNode(node))
       return
     }
 
     if (node.action === 'course') {
-      navigate(senderoEntry.data?.courseRoute ?? '/cursos')
+      navigate(senderoEntry.routeForNode(node))
       return
     }
 

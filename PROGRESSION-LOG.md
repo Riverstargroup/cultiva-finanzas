@@ -5,6 +5,44 @@
 
 ---
 
+## UPDATE 2026-04-27 - Sendero Curriculum Metadata
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/sendero-curriculum-map`
+
+### Summary
+
+Started turning Sendero Semilla into a curriculum-aware path. Nodes now know which module, course slug, scenario order, and learning domain they belong to.
+
+### Changes In This Branch
+
+- `src/features/sendero/senderoNodes.ts`
+  - Added `moduleId`, `courseSlug`, `scenarioOrder`, and `learningDomain` metadata.
+  - Anchored phase-one nodes to the existing published course slug `raices-control-sin-dolor`.
+  - Mapped the first seed to scenario 1, the seed chest to scenario 2 context, and the Gasto Hormiga prep node to scenario 3 context.
+
+- `src/features/sendero/useSenderoEntryRoute.ts`
+  - Fetches all published courses and their scenarios instead of only the first course.
+  - Exposes `routeForNode(node)` to resolve a Sendero node into a concrete course/scenario URL.
+  - Keeps the existing next-uncompleted fallback for onboarding and generic first-lesson CTAs.
+
+- `src/pages/Jardin.tsx`
+  - Uses node-aware routing for lesson and course nodes.
+  - Keeps games, flashcards, and shop behavior unchanged.
+
+### Why This Matters
+
+This is the bridge between the visual path and the actual learning engine. It lets future nodes target specific lessons without hardcoding database UUIDs in UI components.
+
+### Still Pending
+
+- Expand the path with more lesson nodes from scenarios 4-7.
+- Build a real chest reward claim flow instead of routing chest context to course content.
+- Add a dedicated Gasto Hormiga boss encounter once the first module requirements are finalized.
+
+---
+
 ## UPDATE 2026-04-26 - Sendero Node Action Map
 
 Status: IN PROGRESS
