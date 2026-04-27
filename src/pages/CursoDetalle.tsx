@@ -93,7 +93,14 @@ export default function CursoDetalle() {
   const showContinueBanner = completedCount > 0 && progressPct < 100;
 
   return (
-    <BotanicalPage title={course.title} subtitle={`${course.scenarios.length} semillas · ~${course.estimated_minutes} min`}>
+    <BotanicalPage
+      title={course.title}
+      subtitle={`${course.scenarios.length} semillas · ~${course.estimated_minutes} min`}
+      eyebrow="Mapa del modulo"
+      zoneLabel="Ruta de semillas"
+      zoneHint="Cada nodo mezcla decision, memoria, practica y recompensa."
+      zoneItems={["Semilla", "Repaso", "Dominio"]}
+    >
       {showContinueBanner && nextScenario && (
         <ContinueBanner
           courseId={course.id}

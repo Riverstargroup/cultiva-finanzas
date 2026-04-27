@@ -1,4 +1,7 @@
 import { ArrowRight } from 'lucide-react';
+import type { CSSProperties } from 'react';
+import pathNode from '@/assets/pixel/optimized/ui-path-node.webp';
+import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp';
 
 interface ContinueBannerProps {
   courseId: string;
@@ -16,14 +19,16 @@ export default function ContinueBanner({
 }: ContinueBannerProps) {
   return (
     <div
-      className="organic-card sticky top-0 z-10 p-4 flex items-center gap-3 flex-wrap sm:flex-nowrap"
-      style={{ borderLeft: '4px solid var(--leaf-bright)' }}
+      className="continue-node sticky top-0 z-10"
+      style={{ '--continue-progress': `${progressPct}%` } as CSSProperties}
     >
+      <div className="continue-node-token" aria-hidden="true">
+        <img src={pathNode} alt="" />
+        <img src={coinSprout} alt="" className="continue-node-coin" />
+      </div>
       <div className="flex-1 min-w-0">
-        <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--leaf-muted)' }}>
-          Sigue tu curso
-        </div>
-        <div className="font-heading font-bold text-sm truncate" style={{ color: 'var(--forest-deep)' }}>
+        <div className="continue-node-kicker">Siguiente nodo</div>
+        <div className="font-heading font-bold text-base truncate" style={{ color: 'var(--forest-deep)' }}>
           {courseTitle}
         </div>
         {nextScenarioTitle && (
@@ -31,13 +36,13 @@ export default function ContinueBanner({
             Siguiente: {nextScenarioTitle}
           </div>
         )}
-        <div className="text-xs mt-1" style={{ color: 'var(--leaf-muted)' }}>
-          {progressPct}% completado
+        <div className="continue-node-rail" aria-label={`${progressPct}% completado`}>
+          <span />
         </div>
       </div>
       <button
         onClick={onContinue}
-        className="vibrant-btn min-h-[44px] font-bold flex items-center"
+        className="vibrant-btn min-h-[44px] font-bold flex items-center shrink-0"
       >
         Continuar <ArrowRight className="ml-2 h-4 w-4" />
       </button>

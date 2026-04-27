@@ -314,6 +314,10 @@ export default function Escenario() {
     <BotanicalPage
       title={scenario.title}
       subtitle={`Semilla ${scenarioIndex + 1} de ${scenarios.length}`}
+      eyebrow="Nodo activo"
+      zoneLabel="Escenario del Sendero"
+      zoneHint="Resuelve la decision, confirma que recuerdas y gana monedas del jardin."
+      zoneItems={["Decision", "Memoria", "Recompensa"]}
     >
 
       <button
