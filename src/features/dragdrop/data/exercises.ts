@@ -1,3 +1,14 @@
+/*
+ * CONTENT_REVIEW — tasas de interés en ejercicio "Prioriza tus deudas"
+ * Las tasas deben ser ≥40% CAT para tarjetas de crédito (requisito de precisión
+ * del contenido). Fuente rangos: CNBV comparativo de CAT — verificar semestralmente.
+ *   Tarjeta banco:       ~60 % CAT  (rango real: 50–90 %)
+ *   Tarjeta tienda/dept: ~55 % CAT  (rango real: 50–90 %)
+ *   Crédito personal:    ~25 % anual (rango real: 18–36 %)
+ *   Crédito auto:        ~10 % anual (rango real: 8–14 %)
+ *   Hipoteca:            ~10 % anual (rango real: 8–12 % TIIE+spread)
+ * valid_until: verificar semestralmente (enero y julio)
+ */
 import type { DragDropExercise } from '../types'
 
 export const EXERCISES: readonly DragDropExercise[] = [
@@ -32,12 +43,17 @@ export const EXERCISES: readonly DragDropExercise[] = [
     domain: 'credito',
     prompt: 'Prioriza tus deudas: arrastra cada deuda a la columna según la urgencia de pagarla.',
     items: [
-      { id: 'tarjeta-30', label: 'Tarjeta de crédito 30% interés', emoji: '💳' },
-      { id: 'credito-auto', label: 'Crédito auto 8% interés', emoji: '🚗' },
+      /* CONTENT_REVIEW — figura: 60% CAT tarjeta banco — fuente: CNBV CAT promedio — valid_until: verificar semestralmente */
+      { id: 'tarjeta-banco-60', label: 'Tarjeta de crédito banco ~60% CAT', emoji: '💳' },
+      /* CONTENT_REVIEW — figura: 10% crédito auto — fuente: CNBV / bancos grandes — valid_until: verificar semestralmente */
+      { id: 'credito-auto', label: 'Crédito auto ~10% interés anual', emoji: '🚗' },
       { id: 'prestamo-amigo', label: 'Préstamo a un amigo sin interés', emoji: '🤝' },
-      { id: 'hipoteca', label: 'Hipoteca 6% interés', emoji: '🏡' },
-      { id: 'credito-personal-18', label: 'Crédito personal 18% interés', emoji: '📄' },
-      { id: 'tarjeta-tienda-24', label: 'Tarjeta tienda 24% interés', emoji: '🏪' },
+      /* CONTENT_REVIEW — figura: 10% hipoteca — fuente: Banxico / CNBV TIIE + spread — valid_until: verificar semestralmente */
+      { id: 'hipoteca', label: 'Hipoteca ~10% interés anual', emoji: '🏡' },
+      /* CONTENT_REVIEW — figura: 25% crédito personal — fuente: CNBV — valid_until: verificar semestralmente */
+      { id: 'credito-personal-25', label: 'Crédito personal ~25% interés anual', emoji: '📄' },
+      /* CONTENT_REVIEW — figura: 55% CAT tarjeta tienda — fuente: CNBV CAT promedio — valid_until: verificar semestralmente */
+      { id: 'tarjeta-tienda-55', label: 'Tarjeta tienda departamental ~55% CAT', emoji: '🏪' },
     ],
     zones: [
       { id: 'alta', label: '🔴 Alta prioridad' },
@@ -45,9 +61,9 @@ export const EXERCISES: readonly DragDropExercise[] = [
       { id: 'baja', label: '🟢 Baja prioridad' },
     ],
     correctMapping: {
-      'tarjeta-30': 'alta',
-      'tarjeta-tienda-24': 'alta',
-      'credito-personal-18': 'alta',
+      'tarjeta-banco-60': 'alta',
+      'tarjeta-tienda-55': 'alta',
+      'credito-personal-25': 'alta',
       'credito-auto': 'media',
       hipoteca: 'baja',
       'prestamo-amigo': 'baja',

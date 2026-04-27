@@ -7,6 +7,7 @@ import type { SkillDomain } from '../types'
 
 const DOMAIN_TIPS: Record<SkillDomain, string[]> = {
   control: [
+    /* CONTENT_REVIEW — figura: 63% — fuente: ENIF 2021 (CNBV/INEGI) — valid_until: verificar cuando se publique ENIF 2024/2025 */
     '¿Sabías que el 63% de mexicanos no tiene presupuesto? (ENIF 2021)',
     'La regla de las 24 horas: espera un día antes de cualquier compra de +$500',
     'Los gastos hormiga pueden sumar hasta $3,000 al mes sin que te des cuenta',
@@ -18,6 +19,7 @@ const DOMAIN_TIPS: Record<SkillDomain, string[]> = {
   ],
   proteccion: [
     'El IMSS solo cubre gastos médicos si cotizas activamente',
+    /* CONTENT_REVIEW — figura: 89% — fuente: NO CITADA — valid_until: reemplazar con fuente verificable (CONDUSEF / CNBV / literatura académica) antes de siguiente release */
     'Un fondo de emergencia de 3 meses protege del 89% de crisis personales',
     'El seguro de gastos médicos mayores puede salvarte de perder todo tu patrimonio',
   ],

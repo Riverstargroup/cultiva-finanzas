@@ -15,7 +15,12 @@ export const PRODUCTOS = [
   { id: '1', product: 'Tortillas 1kg', emoji: '🫓', price2020: 19, price2025: 28 },
   /* CONTENT_REVIEW — figura: $18.50→$24 (30%) — fuente: CRE / PROFECO precios gasolina Magna — valid_until: verificar trimestralmente */
   { id: '2', product: 'Gasolina 1L', emoji: '⛽', price2020: 18.5, price2025: 24 },
-  /* CONTENT_REVIEW — figura: $123→$278 (126%) — fuente: CONASAMI decretos 2020 y 2025 ✓ verificado — valid_until: enero 2026 */
+  /* CONTENT_REVIEW — figura: $123→$278 (126%) — fuente: CONASAMI decretos 2020 y 2025 ✓ verificado
+     ⚠️ REVISIÓN PENDIENTE (OVERDUE): valid_until era enero 2026; hoy es abril 2026.
+     El decreto CONASAMI para 2026 debió publicarse en diciembre 2025 / enero 2026.
+     Verificar en conasami.gob.mx y actualizar price2025 al salario mínimo 2026 vigente.
+     La cifra $278 corresponde a 2025 (zona general); la zona frontera norte era $419.88.
+     Hasta actualizar, se mantiene el valor de 2025 como aproximación conservadora. */
   { id: '3', product: 'Salario mínimo/día', emoji: '💵', price2020: 123, price2025: 278 },
   /* CONTENT_REVIEW — figura: $35→$58 (66%) — fuente: SNIIM precio promedio consumidor — valid_until: verificar trimestralmente (precio estacional) */
   { id: '4', product: 'Aguacate 1kg', emoji: '🥑', price2020: 35, price2025: 58 },

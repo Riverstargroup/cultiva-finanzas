@@ -2,8 +2,8 @@
 
 > **Propósito:** Registro central de todas las cifras financieras del app, sus fuentes, y cuándo deben revisarse.
 > **Responsable:** Equipo de contenido (Enactus ITESM)
-> **Última actualización:** 2026-04-24
-> **Próxima revisión completa:** 2026-07-24 (trimestral)
+> **Última actualización:** 2026-04-27
+> **Próxima revisión completa:** 2026-07-27 (trimestral)
 
 ---
 
@@ -11,6 +11,12 @@
 
 | Fecha | Qué se corrigió | Migración/Archivo | Motivo |
 |-------|----------------|-------------------|--------|
+| 2026-04-27 | Escenario 3 opt_b: **24 meses → ~47 meses**; **$8,640 → ~$11,000** en intereses; **$16,640 → ~$19,000** costo real | `20260427000001_fix_scenario3_math.sql` | Error aritmético: con $400/mes sobre $8,000 al 52% CAT nominal, n=47.5 meses, no 24 |
+| 2026-04-27 | Escenario 3 opt_a: **$430 → ~$690** en intereses; **2 → 3 meses** para liquidar; **$7,600 → +$10,000** ahorro vs mínimo | `20260427000001_fix_scenario3_math.sql` | Corrección consistente con opt_b corregido |
+| 2026-04-27 | Escenario 3 opt_c: **$3,800 → ~$3,000** en intereses (snapshot 12 meses) | `20260427000001_fix_scenario3_math.sql` | FV annuity con $6,500 balance @ 4.333%/mes × 12 meses da ~$3,000 |
+| 2026-04-27 | DragDrop "Prioriza Deudas": tarjeta banco **30% → 60% CAT**, tienda **24% → 55% CAT**, personal **18% → 25%** | `src/features/dragdrop/data/exercises.ts` | Tasas <40% incumplen mandato de precisión; CAT real tarjetas MX: 50–90% (CNBV) |
+| 2026-04-27 | Salario mínimo 2025 en InflacionChallenge: **marcado como OVERDUE** (valid_until era enero 2026) | `InflacionChallenge/data.ts` | Decreto CONASAMI 2026 debió publicarse en dic-2025; pendiente verificar |
+| 2026-04-27 | ENIF "63%" y "89% crisis": **añadidos CONTENT_REVIEW comments** sin fuente confirmada | `PolinizacionSession.tsx` | Estadísticas sin cita adecuada identificadas en auditoría |
 | 2026-04-24 | CETES 28d: 10.1 % → **8.25 %** en escenarios 2, 4, 5, 7 y flashcards seed 000004 | `20260424000001_cetes_rate_correction.sql` | Ciclo de recortes Banxico; tasa pico fue ~11.25 % (ago-2023), hoy ~8.25 % |
 | 2026-04-24 | INPC: 4.5 % → **3.9 %** en escenarios 5, 7 y flashcards seed 000004 | `20260424000001_cetes_rate_correction.sql` | INEGI dato mensual actualizado |
 | 2026-04-24 | Inflación acum. 2020-2025: ~40 % → **~32 %** en flashcard; $700 → **$660** | `20260424000001_cetes_rate_correction.sql` | INPC acumulado real (2020-2024) ≈ 31.7 % |
@@ -148,6 +154,43 @@
 
 ---
 
+## 9a. Auditoría 2026-04-27 — Hallazgos de precisión matemática
+
+### Error crítico corregido: Escenario 3 (Tarjeta de crédito)
+
+La migración `20260423000001_scenario_numerical_consequences.sql` contenía errores aritméticos
+materiales en las consecuencias del escenario de tarjeta de crédito ($8,000 @ 52% CAT):
+
+| Opción | Figura anterior | Figura corregida | Impacto pedagógico |
+|--------|----------------|-----------------|-------------------|
+| opt_b meses | 24 meses | **~47 meses** | Subestimaba en 96 % el tiempo real |
+| opt_b intereses | $8,640 | **~$11,000** | Subestimaba el costo en $2,360 |
+| opt_b costo total | $16,640 | **~$19,000** | Subestimaba en 14 % |
+| opt_a intereses | $430 | **~$690** | No correspondía al cálculo |
+| opt_a meses | 2 | **3** | Corregido por consistencia |
+| opt_a ahorro vs mínimo | $7,600 | **>$10,000** | Ahora reflejan comparación real |
+| opt_c intereses 12 meses | $3,800 | **~$3,000** | Overstated 27 % |
+
+**Método de cálculo aplicado** (nominal 52%/12 = 4.333%/mes):
+- n = −ln(1 − r×PV/PMT) / ln(1+r) con r=0.04333, PV=8000, PMT=400 → **n ≈ 47.5 meses**
+- Este es el único correcto para comparar con el CAT nominal 52 % usado en el resto del contenido
+
+### Datos identificados sin fuente verificable
+
+| Dato | Archivo | Acción tomada |
+|------|---------|---------------|
+| "63 % mexicanos sin presupuesto (ENIF 2021)" | `PolinizacionSession.tsx` | `CONTENT_REVIEW` añadido — ENIF 2021 es la fuente pero se necesita ENIF 2024 si ya se publicó |
+| "89 % de crisis protege fondo de emergencia" | `PolinizacionSession.tsx` | `CONTENT_REVIEW` añadido — fuente NO encontrada; debe citarse o reemplazarse antes de siguiente release |
+
+### Tasas irrealistas en DragDrop corregidas
+
+El ejercicio "Prioriza tus deudas" usaba tasas de interés (30%, 24%, 18%) por debajo del
+CAT real del mercado mexicano. Actualizado a tasas realistas (60%, 55%, 25%) que cumplen
+el mandato: CAT ≥ 40% para tarjetas de crédito. La priorización relativa (mayor tasa = mayor
+urgencia) se mantiene igual.
+
+---
+
 ## 9. Contenidos Pendientes (brechas identificadas)
 
 Issues creados en Linear (proyecto "Cultiva Finanzas — Garden Gamification", equipo Delivery):
@@ -158,9 +201,15 @@ Issues creados en Linear (proyecto "Cultiva Finanzas — Garden Gamification", e
 | [DLV-106](https://linear.app/riverstar/issue/DLV-106) | AFORE / Retiro: SAR, subcuentas, rendimientos | **Alta** | Backlog |
 | [DLV-107](https://linear.app/riverstar/issue/DLV-107) | Impuestos: SAT, RESICO, declaración anual | Normal | Backlog |
 | [DLV-108](https://linear.app/riverstar/issue/DLV-108) | Crédito hipotecario: Infonavit, CAT hipotecario | Normal | Backlog |
+| [DLV-116](https://linear.app/riverstar/issue/DLV-116) | Salario mínimo 2026 — dato vencido en InflacionChallenge | **Alta** | Backlog |
+| [DLV-117](https://linear.app/riverstar/issue/DLV-117) | ENIF 63% — verificar edición 2024, citar tabla exacta | Normal | Backlog |
+| [DLV-118](https://linear.app/riverstar/issue/DLV-118) | "89% de crisis" — sin fuente; reemplazar o citar | **Alta** | Backlog |
+| [DLV-119](https://linear.app/riverstar/issue/DLV-119) | AFORE flashcards — contenido retiro no existe (≥4 cards) | **Alta** | Backlog |
 
 - ❌ **Seguros** (DLV-105): IMSS, ISSSTE, seguro de vida, cómo contratar GMM — **High priority**
-- ❌ **AFORE / Retiro** (DLV-106): SAR (patrón 5.15 % + empleado 1.125 % + cuota social), subcuentas, rendimientos históricos — **High priority**
+- ❌ **AFORE / Retiro** (DLV-106 + DLV-119): SAR (patrón 5.15 % + empleado 1.125 % + cuota social), subcuentas, rendimientos históricos, flashcards — **High priority**
 - ❌ **Impuestos** (DLV-107): SAT, RESICO, declaración anual para asalariados, ISR freelance — Normal
 - ❌ **Crédito hipotecario** (DLV-108): Infonavit, fovissste, enganche, CAT hipotecario (~15–20 %) — Normal
-- ⚠️ **ENIF**: La estadística "63 % sin presupuesto" cita ENIF 2021 — necesita actualización si hay ENIF 2024 (sin issue por ahora — verificar disponibilidad del dato)
+- ⚠️ **Salario mínimo 2026** (DLV-116): dato $278/día en InflacionChallenge vencido desde enero 2026 — **High priority, overdue**
+- ⚠️ **ENIF 63 %** (DLV-117): cita ENIF 2021, verificar si hay edición 2024; identificar tabla exacta — Normal
+- ⚠️ **"89 % de crisis"** (DLV-118): estadística sin fuente citada en PolinizacionSession — **High priority**
