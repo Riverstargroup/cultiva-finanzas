@@ -5,6 +5,54 @@
 
 ---
 
+## UPDATE 2026-04-26 - Home Cleanup: Sendero First Impact
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/home-cleanup-sendero`
+
+### Summary
+
+Started implementation of the Sendero Semilla rebrand. The Home/Jardin page is being cleaned so the learning path becomes the first-impact experience instead of appearing below the decorative garden dashboard.
+
+### Changes In This Branch
+
+- `src/pages/Jardin.tsx`
+  - Removed the decorative backyard from the primary Home render.
+  - Removed the economy banner, garden toolbar, inventory drawer, and weekly retos from first impact.
+  - Kept the top HUD with streak, coins, and level.
+  - Kept shop access through the Sendero node action.
+  - Converted Nopalito from a permanent full-width panel into a floating assistant button that opens the existing guide/chat sheet.
+
+- `src/features/garden/components/GardenAdventureMap.tsx`
+  - Removed the right-side dashboard column from the map.
+  - Centered the living path as the main experience.
+  - Kept selected node details below the path.
+  - Renamed visible map label from "Ruta viva" to "Sendero Semilla".
+
+### Product Intent
+
+This is not a deletion of courses, games, profile, rewards, or Nopalito. It is a cleanup pass to stop Home from feeling like multiple products stacked together.
+
+### Still Pending
+
+- Tune the path spacing and node visual style after live preview.
+- Replace oversized pixel sprites that still show square image backgrounds.
+- Add a true onboarding/prologue entry point instead of only the standard overlay.
+- Map real course lessons, games, reviews, chests, and boss encounters from data instead of static nodes.
+- Decide whether the old decorative backyard survives as a future "Casita" or gets fully retired.
+
+### Validation Target
+
+Before merge:
+
+```bash
+npm run lint
+npm run build
+```
+
+---
+
 ## 🗺️ ÍNDICE RÁPIDO
 
 | Sección | Descripción |
