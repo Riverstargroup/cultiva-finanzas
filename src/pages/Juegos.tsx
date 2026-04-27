@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Gamepad2, Clock, BarChart2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 import BotanicalPage from '@/components/layout/BotanicalPage';
 import { PresupuestoRapido } from '@/features/minigames/games/PresupuestoRapido';
@@ -86,11 +86,20 @@ type CategoryFilter = GameCategory | 'Todos';
 
 export default function Juegos() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const reduced = useReducedMotion();
-  const [activeView, setActiveView] = useState<View>('lobby');
+  const requestedGame = searchParams.get('game') as GameId | null;
+  const initialView: View = GAME_CARDS.some((card) => card.id === requestedGame) ? requestedGame : 'lobby';
+  const [activeView, setActiveView] = useState<View>(initialView);
   const [gameKey, setGameKey] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('Todos');
   const stats = useGameStats();
+
+  useEffect(() => {
+    if (requestedGame && GAME_CARDS.some((card) => card.id === requestedGame)) {
+      setActiveView(requestedGame);
+    }
+  }, [requestedGame]);
 
   const availableCategories = useMemo<GameCategory[]>(() => {
     const seen = new Set<GameCategory>();
