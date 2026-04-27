@@ -5,6 +5,52 @@
 
 ---
 
+## UPDATE 2026-04-27 - Sendero Visual Asset Cleanup
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/sendero-visual-fix`
+
+### Summary
+
+Fixed the first set of visual issues from live review: plantamigos had square baked backgrounds, some UI still used emoji coins, and Sendero nodes looked too flat.
+
+### Changes In This Branch
+
+- `src/assets/pixel/optimized/*`
+  - Re-exported plantamigo, Gasto Hormiga, and coin assets from the transparent PNG sources.
+  - Restored alpha transparency for Nopalito and the other plantamigos.
+
+- `src/features/onboarding/components/OnboardingOverlay.tsx`
+  - Keeps onboarding sprites as contained transparent sprites over the garden background.
+
+- `src/features/garden/components/GardenAdventureMap.tsx`
+  - Uses deeper 2D node treatment with inner surface, pixel node base, and bottom depth.
+  - Replaces the Gasto Hormiga pill with a transparent sprite marker and compact health bar.
+  - Fixes the unlock modal course CTA to use the selected node action instead of a removed callback.
+
+- `src/pages/Jardin.tsx`
+  - Enlarges the floating Nopalito guide button and renders Nopalito as a contained transparent sprite.
+  - Wires Nopalito to the calculator route.
+
+- `src/components/AnimatedCoinCounter.tsx`
+  - Replaces coin emoji with the Semilla coin asset for course completion rewards.
+
+- `src/features/garden/components/PlantShopDrawer.tsx`
+- `src/features/garden/components/ShopItemCard.tsx`
+  - Replaces shop coin emoji with the Semilla coin asset.
+
+- `src/features/garden/components/NopalitoGuide.tsx`
+  - Adds a calculator guidance action for compound interest and debt strategies.
+
+### Still Pending
+
+- Extend the same coin-asset treatment to retos, simulators, and older decorative garden components.
+- Decide whether the full app shell should become a continuous garden world across Cursos/Juegos/Perfil.
+- Replace or redesign remaining emoji-based shop cosmetics when custom assets are ready.
+
+---
+
 ## UPDATE 2026-04-27 - Sendero Curriculum Metadata
 
 Status: IN PROGRESS

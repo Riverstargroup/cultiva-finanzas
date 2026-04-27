@@ -119,7 +119,7 @@ export function OnboardingOverlay({ onComplete }: OnboardingOverlayProps) {
               <img
                 src={current.image}
                 alt={current.imageAlt}
-                className="relative max-h-56 w-full object-contain drop-shadow-[0_12px_22px_rgba(43,79,53,0.24)]"
+                className="relative max-h-56 w-[82%] object-contain drop-shadow-[0_12px_22px_rgba(43,79,53,0.24)]"
                 style={{ imageRendering: 'pixelated' }}
               />
             </div>

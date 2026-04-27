@@ -18,6 +18,7 @@ import nopalitoIdle from '@/assets/pixel/optimized/plantamigo-nopalito-idle.webp
 import gastoHormigaIdle from '@/assets/pixel/optimized/enemy-gasto-hormiga-idle.webp'
 import gastoHormigaWeakened from '@/assets/pixel/optimized/enemy-gasto-hormiga-weakened.webp'
 import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
+import pathNodeBase from '@/assets/pixel/optimized/ui-path-node.webp'
 import {
   SENDERO_PHASE_ONE_TITLE,
   type SenderoNode,
@@ -104,7 +105,7 @@ export function GardenAdventureMap({
           onClose={() => setUnlockModalOpen(false)}
           onStartCourse={() => {
             setUnlockModalOpen(false)
-            onOpenCourses()
+            selectedNode.onAction?.()
           }}
         />
       )}
@@ -180,23 +181,7 @@ function LivingPathMap({
           transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
         />
 
-        <div className="absolute left-[5%] top-[68%] flex items-center gap-2 rounded-full border bg-white/78 px-3 py-2 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.55)' }}>
-          <img
-            src={bossPower < 55 ? gastoHormigaWeakened : gastoHormigaIdle}
-            alt=""
-            className="h-9 w-9 rounded-full object-cover"
-            style={{ imageRendering: 'pixelated' }}
-            aria-hidden="true"
-          />
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#8A4B22' }}>
-              Gasto Hormiga
-            </p>
-            <div className="mt-1 h-1.5 w-20 overflow-hidden rounded-full bg-red-100">
-              <div className="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400" style={{ width: `${bossPower}%` }} />
-            </div>
-          </div>
-        </div>
+        <GastoHormigaMarker bossPower={bossPower} />
 
         <div className="absolute bottom-4 left-4 right-4 rounded-2xl border bg-[#FEFBF6]/88 p-3 shadow-[0_10px_30px_rgba(43,79,53,0.14)] backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.55)' }}>
           <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
@@ -266,24 +251,46 @@ function LivingNodeButton({
     <motion.button
       type="button"
       onClick={onSelect}
-      className="absolute flex aspect-square w-[17.5%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-center transition active:scale-95"
+      className="absolute flex aspect-square w-[18.8%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-center transition active:scale-95"
       style={{
         left: `${node.position.x}%`,
         top: `${node.position.y}%`,
         borderColor: selected ? palette.border : 'rgba(255,255,255,0.9)',
-        background: palette.background,
+        background: palette.surface,
         color: palette.color,
         boxShadow: selected
-          ? `0 0 0 4px ${palette.ring}, 0 10px 20px rgba(43,79,53,0.22)`
-          : '0 8px 16px rgba(43,79,53,0.16)',
+          ? `0 0 0 4px ${palette.ring}, 0 16px 24px rgba(43,79,53,0.25), inset 0 4px 0 rgba(255,255,255,0.68)`
+          : '0 12px 18px rgba(43,79,53,0.18), inset 0 4px 0 rgba(255,255,255,0.58)',
       }}
       aria-label={`${node.title}: ${node.description}`}
       animate={node.status === 'next' ? { y: [0, -4, 0] } : undefined}
       transition={node.status === 'next' ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : undefined}
     >
-      {locked ? <LockKeyhole className="h-[34%] w-[34%]" /> : <Icon className="h-[36%] w-[36%]" />}
+      <span
+        className="absolute inset-x-[9%] bottom-[-8%] h-[24%] rounded-full"
+        style={{ background: palette.depth, filter: 'blur(0.2px)' }}
+        aria-hidden="true"
+      />
+      <img
+        src={pathNodeBase}
+        alt=""
+        className="absolute inset-[-4%] h-[108%] w-[108%] object-contain opacity-45"
+        style={{ imageRendering: 'pixelated' }}
+        aria-hidden="true"
+        draggable={false}
+      />
+      <span
+        className="absolute inset-[14%] rounded-full"
+        style={{ background: palette.inner, boxShadow: 'inset 0 3px 0 rgba(255,255,255,0.72)' }}
+        aria-hidden="true"
+      />
+      {locked ? (
+        <LockKeyhole className="relative z-10 h-[34%] w-[34%]" />
+      ) : (
+        <Icon className="relative z-10 h-[36%] w-[36%]" />
+      )}
       {node.status === 'completed' && (
-        <span className="absolute -bottom-2 flex gap-0.5">
+        <span className="absolute -bottom-3 z-20 flex gap-0.5">
           {[0, 1, 2].map((star) => (
             <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-500" />
           ))}
@@ -301,7 +308,9 @@ function LivingNodeButton({
 function getNodePalette(node: AdventureNode) {
   if (node.status === 'locked') {
     return {
-      background: 'linear-gradient(180deg, #D8D0BE, #B9AD97)',
+      surface: 'linear-gradient(180deg, #D8D0BE, #B9AD97)',
+      inner: 'linear-gradient(180deg, #EDE7DB, #C2B6A1)',
+      depth: '#8E816D',
       border: '#9B907E',
       ring: 'rgba(155,144,126,0.2)',
       color: '#6F6658',
@@ -310,7 +319,9 @@ function getNodePalette(node: AdventureNode) {
 
   if (node.status === 'boss') {
     return {
-      background: 'linear-gradient(180deg, #F6C6B8, #D87057)',
+      surface: 'linear-gradient(180deg, #F6C6B8, #D87057)',
+      inner: 'linear-gradient(180deg, #FAD9CF, #E78A74)',
+      depth: '#A8412F',
       border: '#BF4E39',
       ring: 'rgba(216,112,87,0.26)',
       color: '#7F1D1D',
@@ -319,7 +330,9 @@ function getNodePalette(node: AdventureNode) {
 
   if (node.type === 'game') {
     return {
-      background: 'linear-gradient(180deg, #CBEFBB, #7FC25D)',
+      surface: 'linear-gradient(180deg, #CBEFBB, #7FC25D)',
+      inner: 'linear-gradient(180deg, #E9F7DA, #93D071)',
+      depth: '#4F8A34',
       border: '#5B9E3D',
       ring: 'rgba(91,158,61,0.22)',
       color: '#1B3B26',
@@ -328,7 +341,9 @@ function getNodePalette(node: AdventureNode) {
 
   if (node.type === 'review') {
     return {
-      background: 'linear-gradient(180deg, #D3F0E8, #8BC7BA)',
+      surface: 'linear-gradient(180deg, #D3F0E8, #8BC7BA)',
+      inner: 'linear-gradient(180deg, #F1FBF6, #A8D9CE)',
+      depth: '#4E9487',
       border: '#5FA99A',
       ring: 'rgba(95,169,154,0.22)',
       color: '#17413B',
@@ -337,7 +352,9 @@ function getNodePalette(node: AdventureNode) {
 
   if (node.type === 'chest' || node.status === 'completed') {
     return {
-      background: 'linear-gradient(180deg, #FFE4A3, #E8B64A)',
+      surface: 'linear-gradient(180deg, #FFE4A3, #E8B64A)',
+      inner: 'linear-gradient(180deg, #FFF4CA, #F0C760)',
+      depth: '#B67C22',
       border: '#CB922E',
       ring: 'rgba(203,146,46,0.24)',
       color: '#6B4B12',
@@ -345,11 +362,36 @@ function getNodePalette(node: AdventureNode) {
   }
 
   return {
-    background: 'linear-gradient(180deg, #FDF7E8, #A9D98F)',
+    surface: 'linear-gradient(180deg, #FDF7E8, #A9D98F)',
+    inner: 'linear-gradient(180deg, #FFF9E8, #BEE5A4)',
+    depth: '#73A951',
     border: '#7DB95B',
     ring: 'rgba(125,185,91,0.22)',
     color: '#1B3B26',
   }
+}
+
+function GastoHormigaMarker({ bossPower }: { bossPower: number }) {
+  const isWeakened = bossPower < 55
+
+  return (
+    <div className="absolute left-[5%] top-[67%] w-[20%] max-w-[112px]">
+      <img
+        src={isWeakened ? gastoHormigaWeakened : gastoHormigaIdle}
+        alt="Gasto Hormiga"
+        className="mx-auto w-full drop-shadow-[0_10px_16px_rgba(82,41,24,0.24)]"
+        style={{ imageRendering: 'pixelated' }}
+        draggable={false}
+      />
+      <div
+        className="mx-auto -mt-2 h-2 w-[72%] overflow-hidden rounded-full border bg-[#F8D8CF]"
+        style={{ borderColor: 'rgba(138,75,34,0.35)' }}
+        aria-label={`Poder del Gasto Hormiga ${bossPower}%`}
+      >
+        <div className="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400" style={{ width: `${bossPower}%` }} />
+      </div>
+    </div>
+  )
 }
 
 function NodeDetailPanel({ node }: { node: AdventureNode }) {
@@ -424,7 +466,7 @@ function PlantamigoUnlockModal({
           <img
             src={nopalitoIdle}
             alt={plantamigoName}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
             style={{ imageRendering: 'pixelated' }}
           />
         </div>
