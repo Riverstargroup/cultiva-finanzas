@@ -107,7 +107,14 @@ export default function Cursos() {
   const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
   return (
-    <BotanicalPage title="Cursos" subtitle="Explora y avanza en tu jardín financiero.">
+    <BotanicalPage
+      title="Cursos"
+      subtitle="Explora y avanza en tu jardin financiero."
+      eyebrow="Invernadero de lecciones"
+      zoneLabel="Zona de aprendizaje"
+      zoneHint="Aqui se cultivan las semillas que desbloquean nodos del Sendero."
+      zoneItems={["Aprender", "Repasar", "Dominar"]}
+    >
       {inProgressCourse && (
         <ContinueBanner
           courseId={inProgressCourse.id}

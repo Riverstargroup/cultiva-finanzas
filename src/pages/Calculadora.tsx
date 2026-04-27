@@ -162,7 +162,14 @@ export default function Calculadora() {
   ];
 
   return (
-    <BotanicalPage title="Calculadora" subtitle="Simula el crecimiento de tu dinero o tu plan de salida de deudas.">
+    <BotanicalPage
+      title="Calculadora"
+      subtitle="Simula el crecimiento de tu dinero o tu plan de salida de deudas."
+      eyebrow="Herramientas del jardin"
+      zoneLabel="Mesa de estrategia"
+      zoneHint="Nopalito puede usar estas herramientas para explicar interes compuesto y deuda."
+      zoneItems={["Interes", "Deuda", "Plan"]}
+    >
       {/* Tabs */}
       <div className="flex gap-2 mb-4">
         {tabs.map((t) => (

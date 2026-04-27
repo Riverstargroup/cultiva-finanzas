@@ -22,7 +22,14 @@ export default function Logros() {
   const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
   return (
-    <BotanicalPage title="Logros" subtitle={isLoading ? "Cargando tus insignias..." : `${unlockedIds.length} de ${BADGES.length} insignias desbloqueadas.`}>
+    <BotanicalPage
+      title="Logros"
+      subtitle={isLoading ? "Cargando tus insignias..." : `${unlockedIds.length} de ${BADGES.length} insignias desbloqueadas.`}
+      eyebrow="Album del Sendero"
+      zoneLabel="Zona de dominio"
+      zoneHint="Las insignias muestran que no solo completaste: tambien regresaste y dominaste."
+      zoneItems={["Logros", "Racha", "Maestria"]}
+    >
       <div
         className="organic-card inline-flex items-center gap-2 px-4 py-2"
         style={{ background: "color-mix(in srgb, var(--clay-soft) 50%, transparent)", borderColor: "color-mix(in srgb, var(--leaf-fresh) 20%, transparent)" }}

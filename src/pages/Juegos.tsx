@@ -126,7 +126,14 @@ export default function Juegos() {
   const activeGame = GAME_CARDS.find((g) => g.id === activeView);
 
   return (
-    <BotanicalPage title="Mini-Juegos" subtitle="Aprende jugando">
+    <BotanicalPage
+      title="Mini-Juegos"
+      subtitle="Aprende jugando"
+      eyebrow="Campo de retos"
+      zoneLabel="Zona de practica"
+      zoneHint="Retos cortos que se desbloquean desde los modulos y quedan disponibles para repasar."
+      zoneItems={["Retos", "Memoria", "Jefes"]}
+    >
       <AnimatePresence mode="wait">
         {activeView === 'lobby' ? (
           <motion.div

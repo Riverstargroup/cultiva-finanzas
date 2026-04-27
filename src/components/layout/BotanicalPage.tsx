@@ -1,11 +1,15 @@
 import type { ReactNode } from "react";
 import PageTransition from "@/components/PageTransition";
+import { Map, Sprout } from "lucide-react";
 
 interface BotanicalPageProps {
   title: string;
   subtitle: string;
   children: ReactNode;
   eyebrow?: string;
+  zoneLabel?: string;
+  zoneHint?: string;
+  zoneItems?: readonly string[];
 }
 
 export default function BotanicalPage({
@@ -13,6 +17,9 @@ export default function BotanicalPage({
   subtitle,
   children,
   eyebrow = "Sendero Semilla",
+  zoneLabel,
+  zoneHint,
+  zoneItems = [],
 }: BotanicalPageProps) {
   return (
     <PageTransition>
@@ -37,6 +44,29 @@ export default function BotanicalPage({
               </p>
             )}
           </header>
+          {(zoneLabel || zoneItems.length > 0) && (
+            <section className="zone-compass" aria-label="Zona actual del Sendero">
+              <div className="zone-compass-main">
+                <span className="zone-compass-mark" aria-hidden="true">
+                  <Map className="h-4 w-4" />
+                </span>
+                <div className="min-w-0">
+                  {zoneLabel && <p className="zone-compass-label">{zoneLabel}</p>}
+                  {zoneHint && <p className="zone-compass-hint">{zoneHint}</p>}
+                </div>
+              </div>
+              {zoneItems.length > 0 && (
+                <div className="zone-compass-steps" aria-hidden="true">
+                  {zoneItems.map((item, index) => (
+                    <span key={`${item}-${index}`} className={index === 0 ? "is-active" : ""}>
+                      <Sprout className="h-3.5 w-3.5" />
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
           {children}
         </div>
       </div>

@@ -56,7 +56,14 @@ export default function Perfil() {
   const inputClass = "w-full rounded-lg px-3 py-2.5 text-sm border outline-none focus:ring-2 focus:ring-[var(--leaf-bright)]/30 transition-colors";
 
   return (
-    <BotanicalPage title="Perfil" subtitle={user?.email || "Tu invernadero personal"}>
+    <BotanicalPage
+      title="Perfil"
+      subtitle={user?.email || "Tu invernadero personal"}
+      eyebrow="Bitacora del viajero"
+      zoneLabel="Zona personal"
+      zoneHint="Tu avance, herramientas y logros viven dentro del mismo recorrido."
+      zoneItems={["Perfil", "Herramientas", "Logros"]}
+    >
       {/* Avatar + Info */}
       <div className="organic-card p-6">
         <div className="flex flex-col sm:flex-row items-center gap-4">

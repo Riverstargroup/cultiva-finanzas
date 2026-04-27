@@ -31,15 +31,8 @@ export function CoursePathMap({
   onScenarioClick,
 }: CoursePathMapProps) {
   return (
-    <section
-      className="overflow-hidden rounded-lg border"
-      style={{
-        borderColor: 'color-mix(in srgb, var(--clay-soft) 75%, transparent)',
-        background: 'linear-gradient(145deg, rgba(254,251,246,0.96), rgba(232,220,196,0.62))',
-        boxShadow: '0 14px 36px rgba(93,49,54,0.1)',
-      }}
-    >
-      <div className="border-b p-4" style={{ borderColor: 'var(--clay-soft)' }}>
+    <section className="path-zone-surface">
+      <div className="border-b p-4" style={{ borderColor: 'rgba(212, 172, 117, 0.34)' }}>
         <div className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
           Ruta del curso
         </div>
@@ -50,11 +43,7 @@ export function CoursePathMap({
 
       <div className="relative p-4 md:p-5">
         <div
-          className="absolute left-8 right-8 top-1/2 hidden h-2 rounded-full md:block"
-          style={{
-            background:
-              'linear-gradient(90deg, color-mix(in srgb, var(--leaf-bright) 55%, white), color-mix(in srgb, var(--coin-gold, #E5B84B) 70%, white), rgba(91,122,58,0.24))',
-          }}
+          className="path-zone-rail"
           aria-hidden="true"
         />
 
@@ -73,14 +62,16 @@ export function CoursePathMap({
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.04, duration: 0.2 }}
-                className="relative flex min-h-[210px] flex-col justify-between rounded-lg border p-3"
+                className="path-node-card relative flex min-h-[210px] flex-col justify-between p-3"
                 style={{
                   borderColor: isNext
                     ? 'var(--leaf-bright)'
                     : isDone
                       ? 'color-mix(in srgb, var(--forest-deep) 35%, var(--clay-soft))'
                       : 'var(--clay-soft)',
-                  background: disabled ? 'rgba(255,255,255,0.42)' : 'rgba(255,255,255,0.78)',
+                  background: disabled
+                    ? 'linear-gradient(180deg, rgba(255,255,255,0.54), rgba(239,229,204,0.38))'
+                    : 'linear-gradient(180deg, rgba(255,253,247,0.96), rgba(255,244,218,0.86))',
                   boxShadow: isNext ? '0 0 0 3px color-mix(in srgb, var(--leaf-bright) 16%, transparent)' : 'none',
                 }}
               >

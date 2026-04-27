@@ -5,6 +5,51 @@
 
 ---
 
+## UPDATE 2026-04-27 - Zone Surfaces Pass
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/zone-surfaces`
+
+### Summary
+
+Started the second app-wide cohesion pass after the world shell merge. The goal is to make Cursos, Juegos, Perfil, Calculadora, Logros, course detail, and active scenarios read as zones inside the same Sendero Semilla world instead of isolated utility pages.
+
+### Changes In This Branch
+
+- `src/components/layout/BotanicalPage.tsx`
+  - Adds optional zone metadata: label, hint, and compact step chips.
+  - Keeps the page wrapper backward-compatible for older surfaces.
+
+- `src/components/courses/ContinueBanner.tsx`
+  - Converts the generic sticky course banner into a "Siguiente nodo" surface.
+  - Uses existing pixel node and Semilla coin assets instead of plain text-only progress.
+
+- `src/components/courses/CoursePathMap.tsx`
+  - Moves from flat card framing to a deeper path-zone surface.
+  - Adds reusable CSS depth for course scenario nodes.
+
+- `src/pages/Cursos.tsx`
+- `src/pages/Juegos.tsx`
+- `src/pages/Perfil.tsx`
+- `src/pages/Calculadora.tsx`
+- `src/pages/Logros.tsx`
+- `src/pages/CursoDetalle.tsx`
+- `src/pages/Escenario.tsx`
+  - Adds route-specific zone language so each page feels like part of the same map.
+
+### Product Intent
+
+This is a cohesion layer, not a content rewrite. It preserves the current learning, game, profile, and calculator behavior while making every page feel connected to the garden-world narrative.
+
+### Still Pending
+
+- Replace older emoji/text reward surfaces that still do not use Semilla assets.
+- Tune zone copy after live review if it feels too explanatory.
+- Add the true Gasto Hormiga boss flow once the first module map is finalized.
+
+---
+
 ## UPDATE 2026-04-27 - Unified World Shell
 
 Status: IN PROGRESS
