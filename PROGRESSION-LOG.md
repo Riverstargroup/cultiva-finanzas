@@ -5,6 +5,76 @@
 
 ---
 
+## UPDATE 2026-04-26 - Sendero Semilla Product Direction
+
+Status: ACTIVE
+Author: Codex
+Branch: `codex/sendero-game-plan`
+
+### Summary
+
+The product direction has shifted from "decorative garden + learning app" to **Sendero Semilla**: a unified financial learning world where Home is the learning path and every lesson, review, game, mission, chest, shop, and boss encounter is represented as a node.
+
+Internal legacy term: `Ruta Viva`
+User-facing term: **Sendero Semilla**
+
+### Strategic Decisions
+
+- The decorative/Tamagotchi-style garden is no longer core to the Home experience.
+- Home should become the Sendero Semilla path, not a dashboard.
+- Existing courses, games, flashcards, achievements, and progress systems should be preserved and wrapped into the new world model.
+- Nopalito becomes the mascot/guide for the whole platform.
+- Essential financial literacy remains free; monetization should be healthy and avoid blocking adult-functional basics.
+
+### New Documentation
+
+- `docs/SENDERO_SEMILLA_GAME_PLAN.md`
+- `docs/AGENT_HANDOFF_STATUS.md`
+
+### Recently Completed Before This Update
+
+- PR #41 merged to `main`: first living path visual experiment.
+- Supabase function `nopalito-chat` deployed.
+- New world assets added under `src/assets/world/`.
+
+### Known Issues After PR #41
+
+- Home still feels like stacked dashboard sections.
+- The path is still embedded inside the old Home experience.
+- Nopalito guide is too large and should become a floating assistant.
+- Decorative backyard, toolbar, economy banner, and weekly challenges compete with the Sendero Semilla first impression.
+
+### Recommended Next PR
+
+Branch:
+
+`codex/home-cleanup-sendero`
+
+Title:
+
+`Home cleanup: make Sendero Semilla the primary experience`
+
+Scope:
+
+- Remove decorative backyard from Home first impact.
+- Remove `GardenToolbar`, `GardenEconomyBanner`, and `WeeklyRetos` from Home first impact.
+- Convert `NopalitoGuide` into a floating guide button/sheet.
+- Keep courses/games/profile logic intact.
+- Keep all visible node actions real.
+
+### Validation Standard
+
+Before merge:
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+npm run test
+```
+
+---
+
 ## 🗺️ ÍNDICE RÁPIDO
 
 | Sección | Descripción |
