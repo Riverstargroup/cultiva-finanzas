@@ -5,6 +5,40 @@
 
 ---
 
+## UPDATE 2026-04-26 - Sendero Node Action Map
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/sendero-node-map`
+
+### Summary
+
+Started replacing generic Sendero navigation callbacks with node-level routing intent.
+
+### Changes In This Branch
+
+- `src/features/sendero/senderoNodes.ts`
+  - Replaced broad action names with explicit node intents: `lesson`, `course`, `review`, `game`, and `shop`.
+  - Keeps phase-one nodes product-readable while making routing behavior easier to extend.
+
+- `src/features/garden/components/GardenAdventureMap.tsx`
+  - Emits the selected node to the page instead of deciding navigation internally.
+  - Removes hardcoded course/game/flashcard callback wiring from the visual map component.
+
+- `src/pages/Jardin.tsx`
+  - Centralizes Sendero node routing in `openSenderoNode`.
+  - Sends lesson and boss-prep nodes to the resolved next scenario.
+  - Sends course/chest nodes to the resolved course detail.
+  - Sends review nodes to flashcards, game nodes to a direct game route, and shop nodes to the shop drawer.
+
+### Still Pending
+
+- Add exact scenario metadata per lesson node once the first module content order is finalized.
+- Replace the placeholder course/chest behavior with a real reward claim flow.
+- Add a dedicated boss encounter route for Gasto Hormiga.
+
+---
+
 ## UPDATE 2026-04-26 - Sendero Progress State
 
 Status: IN PROGRESS

@@ -21,7 +21,6 @@ import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
 import {
   SENDERO_PHASE_ONE_TITLE,
   type SenderoNode,
-  type SenderoNodeAction,
 } from '@/features/sendero/senderoNodes'
 import { useSenderoProgress } from '@/features/sendero/useSenderoProgress'
 
@@ -32,10 +31,7 @@ type AdventureNode = SenderoNode & {
 
 interface GardenAdventureMapProps {
   totalMastery: number
-  onOpenCourses: () => void
-  onOpenGames: (gameId?: string) => void
-  onOpenFlashcards: () => void
-  onOpenShop: () => void
+  onOpenNode: (node: SenderoNode) => void
 }
 
 interface RecentSeedReward {
@@ -49,10 +45,7 @@ interface RecentSeedReward {
 
 export function GardenAdventureMap({
   totalMastery,
-  onOpenCourses,
-  onOpenGames,
-  onOpenFlashcards,
-  onOpenShop,
+  onOpenNode,
 }: GardenAdventureMapProps) {
   const [recentReward, setRecentReward] = useState<RecentSeedReward | null>(null)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
@@ -87,15 +80,9 @@ export function GardenAdventureMap({
         ...node,
         reward: node.status === 'boss' ? `poder ${bossPower}%` : node.reward,
         icon: getNodeIcon(node.type),
-        onAction: getNodeAction(node.action, {
-          gameId: node.gameId,
-          onOpenCourses,
-          onOpenFlashcards,
-          onOpenGames,
-          onOpenShop,
-        }),
+        onAction: () => onOpenNode(node),
       })),
-    [bossPower, onOpenCourses, onOpenFlashcards, onOpenGames, onOpenShop, senderoProgress.nodes],
+    [bossPower, onOpenNode, senderoProgress.nodes],
   )
 
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? nodes[0]
@@ -260,22 +247,6 @@ function getNodeIcon(type: SenderoNode['type']) {
   }
 
   return icons[type]
-}
-
-function getNodeAction(
-  action: SenderoNodeAction,
-  handlers: {
-    gameId?: string
-    onOpenCourses: () => void
-    onOpenFlashcards: () => void
-    onOpenGames: (gameId?: string) => void
-    onOpenShop: () => void
-  },
-) {
-  if (action === 'courses') return handlers.onOpenCourses
-  if (action === 'flashcards') return handlers.onOpenFlashcards
-  if (action === 'shop') return handlers.onOpenShop
-  return () => handlers.onOpenGames(handlers.gameId)
 }
 
 function LivingNodeButton({
