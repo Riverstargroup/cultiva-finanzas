@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Trophy, Target } from 'lucide-react'
 import { ShareScoreButton } from '@/features/minigames/components/ShareScoreButton'
+import { RewardToast } from '@/components/RewardToast'
 import type { Gasto, Zone } from './data'
 
 const ZONE_LABEL: Record<Zone, string> = {
@@ -20,11 +21,12 @@ interface Props {
   score: number
   total: number
   won: boolean
+  coinsEarned?: number
   onBack: () => void
   onRestart: () => void
 }
 
-export function ResultsView({ items, placements, score, total, won, onBack, onRestart }: Props) {
+export function ResultsView({ items, placements, score, total, won, coinsEarned = 0, onBack, onRestart }: Props) {
   const correctCount = items.filter((g) => placements[g.id] === g.correct).length
 
   return (
@@ -46,7 +48,12 @@ export function ResultsView({ items, placements, score, total, won, onBack, onRe
           {correctCount} de {total} correctos
         </p>
         {won && (
-          <p className="text-xs text-green-600 font-medium">🌱 Tu planta de control ha crecido</p>
+          <>
+            <p className="text-xs font-medium" style={{ color: 'var(--leaf-bright)' }}>🌱 Tu planta de control ha crecido</p>
+            {coinsEarned > 0 && (
+              <RewardToast coins={coinsEarned} visible={true} autoClose={0} />
+            )}
+          </>
         )}
       </div>
 

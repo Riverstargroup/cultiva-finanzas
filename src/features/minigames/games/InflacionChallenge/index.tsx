@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useMinigameSession } from '../../hooks/useMinigameSession'
 import { useInflacionGame } from './useInflacionGame'
+import { RewardToast } from '@/components/RewardToast'
 
 export function InflacionChallenge({ onBack }: { onBack: () => void }) {
   const {
@@ -42,7 +43,7 @@ export function InflacionChallenge({ onBack }: { onBack: () => void }) {
           {correctCount} de {total} estimados correctos
         </h3>
         {awardedCoins && (
-          <p className="text-sm text-yellow-600 font-medium">+30 monedas ganadas</p>
+          <RewardToast coins={30} visible={true} autoClose={0} />
         )}
         <p className="text-xs text-muted-foreground max-w-xs mx-auto">
           La inflación acumulada en México entre 2020 y 2025 fue de aproximadamente 40%.

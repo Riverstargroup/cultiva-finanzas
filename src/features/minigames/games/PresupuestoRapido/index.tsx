@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PresupuestoRapidoIllustration } from '@/features/minigames/assets'
 import {
@@ -10,6 +10,8 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { useGrowPlant } from '@/features/garden/hooks/useGarden'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/integrations/supabase/client'
 import { useMinigameSession } from '../../hooks/useMinigameSession'
 import { DraggableItem } from '@/features/dragdrop/components/DraggableItem'
 import { ZONES, type Gasto, type Zone } from './data'
@@ -38,8 +40,10 @@ export function PresupuestoRapido({ onBack }: { onBack: () => void }) {
   } = usePresupuestoGame()
 
   const growPlant = useGrowPlant()
+  const { user } = useAuth()
   const { saveSession } = useMinigameSession()
   const triggeredRef = useRef(false)
+  const [coinsEarned, setCoinsEarned] = useState(0)
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
@@ -56,6 +60,17 @@ export function PresupuestoRapido({ onBack }: { onBack: () => void }) {
       saveSession('presupuesto_rapido', score)
       if (score >= PASS_THRESHOLD) {
         growPlant.mutate({ domain: 'control', masteryDelta: 0.04 })
+        const coins = 20
+        setCoinsEarned(coins)
+        if (user?.id) {
+          supabase
+            .rpc('award_coins' as any, {
+              p_user_id: user.id,
+              p_amount: coins,
+              p_reason: 'presupuesto_rapido_win',
+            })
+            .catch(() => { /* non-critical */ })
+        }
       }
     }
   }, [gameState]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -108,6 +123,7 @@ export function PresupuestoRapido({ onBack }: { onBack: () => void }) {
         score={score}
         total={total}
         won={score >= PASS_THRESHOLD}
+        coinsEarned={coinsEarned}
         onBack={onBack}
         onRestart={handleRestart}
       />
