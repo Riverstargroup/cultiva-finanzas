@@ -15,10 +15,6 @@ import {
 import { motion } from 'framer-motion'
 import livingPathBase from '@/assets/world/living-path-base.webp'
 import nopalitoIdle from '@/assets/pixel/optimized/plantamigo-nopalito-idle.webp'
-import helechoIdle from '@/assets/pixel/optimized/plantamigo-helecho-sabio-idle.webp'
-import lirioIdle from '@/assets/pixel/optimized/plantamigo-lirio-guardian-idle.webp'
-import giraIdle from '@/assets/pixel/optimized/plantamigo-gira-compas-idle.webp'
-import doradoIdle from '@/assets/pixel/optimized/plantamigo-brotin-dorado-idle.webp'
 import gastoHormigaIdle from '@/assets/pixel/optimized/enemy-gasto-hormiga-idle.webp'
 import gastoHormigaWeakened from '@/assets/pixel/optimized/enemy-gasto-hormiga-weakened.webp'
 import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
@@ -34,14 +30,6 @@ interface AdventureNode {
   actionLabel: string
   position: { x: number; y: number }
   onAction?: () => void
-}
-
-interface PlantBuddy {
-  id: string
-  name: string
-  role: string
-  unlock: string
-  image: string
 }
 
 interface GardenAdventureMapProps {
@@ -60,44 +48,6 @@ interface RecentSeedReward {
   unlockedPlantamigo: string | null
   completedAt: string
 }
-
-const PLANT_BUDDIES: readonly PlantBuddy[] = [
-  {
-    id: 'nopalito',
-    name: 'Nopalito',
-    role: 'Detecta fugas de gasto y mantiene tu presupuesto vivo.',
-    unlock: 'Completa tu primera semilla de Control.',
-    image: nopalitoIdle,
-  },
-  {
-    id: 'helecho-sabio',
-    name: 'Helecho Sabio',
-    role: 'Lee intereses, fechas de corte y deuda antes de que crezcan.',
-    unlock: 'Supera 2 nodos de credito.',
-    image: helechoIdle,
-  },
-  {
-    id: 'lirio-guardian',
-    name: 'Lirio Guardian',
-    role: 'Protege tu racha, tu fondo de emergencia y tus decisiones riesgosas.',
-    unlock: 'Activa una mision de proteccion.',
-    image: lirioIdle,
-  },
-  {
-    id: 'gira-compas',
-    name: 'Gira Compas',
-    role: 'Convierte ahorro constante en crecimiento visible.',
-    unlock: 'Gana una partida de ahorro o inversion.',
-    image: giraIdle,
-  },
-  {
-    id: 'brotin-dorado',
-    name: 'Brotin Dorado',
-    role: 'Genera monedas pasivas cuando vuelves al jardin.',
-    unlock: 'Compralo en la tienda con monedas.',
-    image: doradoIdle,
-  },
-] as const
 
 export function GardenAdventureMap({
   totalMastery,
@@ -248,8 +198,8 @@ export function GardenAdventureMap({
         <RewardImpactBanner reward={recentReward} bossPower={bossPower} onDismiss={dismissReward} />
       )}
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(360px,0.74fr)_minmax(320px,0.46fr)]">
-        <div className="mx-auto w-full max-w-[560px]">
+      <div className="mx-auto w-full max-w-[560px] space-y-4">
+        <div className="w-full">
           <LivingPathMap
             nodes={nodes}
             selectedNode={selectedNode}
@@ -258,11 +208,7 @@ export function GardenAdventureMap({
           />
         </div>
 
-        <div className="space-y-4">
-          <NodeDetailPanel node={selectedNode} />
-          <BossCard power={bossPower} />
-          <PlantBuddyRoster compact />
-        </div>
+        <NodeDetailPanel node={selectedNode} />
       </div>
     </section>
   )
@@ -356,7 +302,7 @@ function WorldMapHeader() {
     <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-2">
       <div className="rounded-full border bg-[#FEFBF6]/86 px-3 py-2 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
         <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
-          Ruta viva
+          Sendero Semilla
         </p>
         <p className="font-heading text-sm font-bold" style={{ color: 'var(--forest-deep)' }}>
           Finanzas basicas
@@ -641,112 +587,3 @@ function RewardImpactBanner({
   )
 }
 
-function BossCard({ power }: { power: number }) {
-  const isWeakened = power < 55
-
-  return (
-    <aside
-      className="rounded-[22px] border p-4"
-      style={{
-        borderColor: 'rgba(127,29,29,0.18)',
-        background: 'linear-gradient(160deg, #FEFBF6, rgba(255,237,213,0.76))',
-        boxShadow: '0 14px 34px rgba(127,29,29,0.1)',
-      }}
-    >
-      <div className="flex items-start gap-3">
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl" style={{ background: 'rgba(239,68,68,0.1)', color: '#991B1B' }}>
-          <img
-            src={isWeakened ? gastoHormigaWeakened : gastoHormigaIdle}
-            alt="Gasto Hormiga"
-            className="h-full w-full object-cover"
-            style={{ imageRendering: 'pixelated' }}
-          />
-        </div>
-        <div>
-          <div className="text-xs font-bold uppercase tracking-wider" style={{ color: '#991B1B' }}>
-            Enemigo de la ruta
-          </div>
-          <h2 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
-            Gasto Hormiga
-          </h2>
-          <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
-            Se alimenta de compras pequenas y decisiones automaticas.
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <div className="mb-1 flex justify-between text-xs font-bold" style={{ color: 'var(--forest-deep)' }}>
-          <span>Poder actual</span>
-          <span>{power}%</span>
-        </div>
-        <div className="h-3 overflow-hidden rounded-full" style={{ background: 'rgba(127,29,29,0.12)' }}>
-          <div className="h-full rounded-full transition-all" style={{ width: `${power}%`, background: 'linear-gradient(90deg, #EF4444, #F59E0B)' }} />
-        </div>
-      </div>
-    </aside>
-  )
-}
-
-function PlantBuddyRoster({ compact = false }: { compact?: boolean }) {
-  const buddies = compact ? PLANT_BUDDIES.slice(0, 3) : PLANT_BUDDIES
-
-  return (
-    <div
-      className="rounded-[22px] border p-4"
-      style={{
-        borderColor: 'rgba(212,172,117,0.58)',
-        background: 'rgba(254,251,246,0.88)',
-      }}
-    >
-      <div className="mb-4 flex items-end justify-between gap-3">
-        <div>
-          <div className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
-            Plantamigos
-          </div>
-          <h2 className="font-heading text-xl font-bold" style={{ color: 'var(--forest-deep)' }}>
-            Companeros vivos
-          </h2>
-        </div>
-      </div>
-
-      <div className={compact ? 'grid grid-cols-3 gap-2' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-5'}>
-        {buddies.map((buddy) => (
-          <article key={buddy.id} className="rounded-2xl border bg-white/70 p-2" style={{ borderColor: 'var(--clay-soft)' }}>
-            <div className="flex justify-center">
-              <PixelSprite src={buddy.image} alt={buddy.name} compact={compact} />
-            </div>
-            <h3 className="mt-2 text-center font-heading text-xs font-bold leading-tight" style={{ color: 'var(--forest-deep)' }}>
-              {buddy.name}
-            </h3>
-            {!compact && (
-              <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
-                {buddy.role}
-              </p>
-            )}
-          </article>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function PixelSprite({ src, alt, compact }: { src: string; alt: string; compact?: boolean }) {
-  return (
-    <div
-      className={compact ? 'relative h-16 w-16 overflow-hidden rounded-xl' : 'relative h-28 w-28 overflow-hidden rounded-lg'}
-      style={{
-        imageRendering: 'pixelated',
-        background: 'linear-gradient(145deg, rgba(91,122,58,0.16), rgba(229,184,75,0.12))',
-      }}
-    >
-      <img
-        src={src}
-        alt={alt}
-        draggable={false}
-        className="h-full w-full select-none object-cover"
-        style={{ imageRendering: 'pixelated' }}
-      />
-    </div>
-  )
-}

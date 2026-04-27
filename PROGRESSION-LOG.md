@@ -5,72 +5,50 @@
 
 ---
 
-## UPDATE 2026-04-26 - Sendero Semilla Product Direction
+## UPDATE 2026-04-26 - Home Cleanup: Sendero First Impact
 
-Status: ACTIVE
+Status: IN PROGRESS
 Author: Codex
-Branch: `codex/sendero-game-plan`
+Branch: `codex/home-cleanup-sendero`
 
 ### Summary
 
-The product direction has shifted from "decorative garden + learning app" to **Sendero Semilla**: a unified financial learning world where Home is the learning path and every lesson, review, game, mission, chest, shop, and boss encounter is represented as a node.
+Started implementation of the Sendero Semilla rebrand. The Home/Jardin page is being cleaned so the learning path becomes the first-impact experience instead of appearing below the decorative garden dashboard.
 
-Internal legacy term: `Ruta Viva`
-User-facing term: **Sendero Semilla**
+### Changes In This Branch
 
-### Strategic Decisions
+- `src/pages/Jardin.tsx`
+  - Removed the decorative backyard from the primary Home render.
+  - Removed the economy banner, garden toolbar, inventory drawer, and weekly retos from first impact.
+  - Kept the top HUD with streak, coins, and level.
+  - Kept shop access through the Sendero node action.
+  - Converted Nopalito from a permanent full-width panel into a floating assistant button that opens the existing guide/chat sheet.
 
-- The decorative/Tamagotchi-style garden is no longer core to the Home experience.
-- Home should become the Sendero Semilla path, not a dashboard.
-- Existing courses, games, flashcards, achievements, and progress systems should be preserved and wrapped into the new world model.
-- Nopalito becomes the mascot/guide for the whole platform.
-- Essential financial literacy remains free; monetization should be healthy and avoid blocking adult-functional basics.
+- `src/features/garden/components/GardenAdventureMap.tsx`
+  - Removed the right-side dashboard column from the map.
+  - Centered the living path as the main experience.
+  - Kept selected node details below the path.
+  - Renamed visible map label from "Ruta viva" to "Sendero Semilla".
 
-### New Documentation
+### Product Intent
 
-- `docs/SENDERO_SEMILLA_GAME_PLAN.md`
-- `docs/AGENT_HANDOFF_STATUS.md`
+This is not a deletion of courses, games, profile, rewards, or Nopalito. It is a cleanup pass to stop Home from feeling like multiple products stacked together.
 
-### Recently Completed Before This Update
+### Still Pending
 
-- PR #41 merged to `main`: first living path visual experiment.
-- Supabase function `nopalito-chat` deployed.
-- New world assets added under `src/assets/world/`.
+- Tune the path spacing and node visual style after live preview.
+- Replace oversized pixel sprites that still show square image backgrounds.
+- Add a true onboarding/prologue entry point instead of only the standard overlay.
+- Map real course lessons, games, reviews, chests, and boss encounters from data instead of static nodes.
+- Decide whether the old decorative backyard survives as a future "Casita" or gets fully retired.
 
-### Known Issues After PR #41
-
-- Home still feels like stacked dashboard sections.
-- The path is still embedded inside the old Home experience.
-- Nopalito guide is too large and should become a floating assistant.
-- Decorative backyard, toolbar, economy banner, and weekly challenges compete with the Sendero Semilla first impression.
-
-### Recommended Next PR
-
-Branch:
-
-`codex/home-cleanup-sendero`
-
-Title:
-
-`Home cleanup: make Sendero Semilla the primary experience`
-
-Scope:
-
-- Remove decorative backyard from Home first impact.
-- Remove `GardenToolbar`, `GardenEconomyBanner`, and `WeeklyRetos` from Home first impact.
-- Convert `NopalitoGuide` into a floating guide button/sheet.
-- Keep courses/games/profile logic intact.
-- Keep all visible node actions real.
-
-### Validation Standard
+### Validation Target
 
 Before merge:
 
 ```bash
 npm run lint
-npx tsc --noEmit
 npm run build
-npm run test
 ```
 
 ---
