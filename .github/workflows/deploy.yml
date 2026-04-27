@@ -64,26 +64,37 @@ jobs:
 
       - name: Find PR associated with this commit
         id: find-pr
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           result-encoding: string
           script: |
-            const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: context.sha,
-            });
-            const merged = prs.data.find(pr => pr.state === 'closed' && pr.merged_at);
-            return merged ? String(merged.number) : '';
+            try {
+              const prs = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+              });
+              const merged = prs.data.find(pr => pr.state === 'closed' && pr.merged_at);
+              return merged ? String(merged.number) : '';
+            } catch (error) {
+              core.warning(`Could not resolve merged PR for ${context.sha}: ${error.message}`);
+              return '';
+            }
 
       - name: Comment deploy URL on merged PR
         if: steps.find-pr.outputs.result != ''
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |
-            github.rest.issues.createComment({
-              issue_number: Number('${{ steps.find-pr.outputs.result }}'),
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '🚀 Deployed to production: https://rsdemo3.site\n\nCloudFront cache invalidated — changes are live within ~60 seconds.'
-            });
+            try {
+              await github.rest.issues.createComment({
+                issue_number: Number('${{ steps.find-pr.outputs.result }}'),
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: 'Deployed to production: https://rsdemo3.site\n\nCloudFront cache invalidated; changes are live within ~60 seconds.'
+              });
+            } catch (error) {
+              core.warning(`Deploy succeeded, but PR comment failed: ${error.message}`);
+            }
