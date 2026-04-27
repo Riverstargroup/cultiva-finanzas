@@ -102,7 +102,7 @@ export default function Jardin() {
       <button
         type="button"
         onClick={() => setGuideOpen(true)}
-        className="fixed bottom-24 right-4 z-[120] flex h-16 w-16 items-center justify-center rounded-full border shadow-[0_14px_34px_rgba(43,79,53,0.24)] transition active:scale-95 md:right-8"
+        className="fixed bottom-24 right-4 z-[120] flex h-[72px] w-[72px] items-center justify-center rounded-full border shadow-[0_14px_34px_rgba(43,79,53,0.24)] transition active:scale-95 md:right-8"
         style={{
           borderColor: 'rgba(212,172,117,0.72)',
           background: 'linear-gradient(145deg, #FEFBF6, #EAF4D8)',
@@ -112,7 +112,7 @@ export default function Jardin() {
         <img
           src={nopalitoIdle}
           alt=""
-          className="h-12 w-12 rounded-full object-cover"
+          className="h-[62px] w-[62px] object-contain"
           style={{ imageRendering: 'pixelated' }}
           aria-hidden="true"
         />
@@ -138,6 +138,7 @@ export default function Jardin() {
               onOpenCourses={openFirstLesson}
               onOpenGames={() => navigate('/juegos')}
               onOpenFlashcards={() => navigate('/flashcards')}
+              onOpenCalculator={() => navigate('/calculadora')}
             />
           </div>
         </div>

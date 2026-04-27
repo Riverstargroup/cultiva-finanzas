@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import { animate, useMotionValue, useTransform } from 'framer-motion'
+import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
 
 interface AnimatedCoinCounterProps {
   value: number
@@ -22,8 +23,15 @@ export function AnimatedCoinCounter({ value, className }: AnimatedCoinCounterPro
   }, [count, value])
 
   return (
-    <span className={className}>
-      🪙 {display}
+    <span className={`inline-flex items-center gap-1 ${className ?? ''}`}>
+      <img
+        src={coinSprout}
+        alt=""
+        className="h-5 w-5"
+        style={{ imageRendering: 'pixelated' }}
+        aria-hidden="true"
+      />
+      {display}
     </span>
   )
 }

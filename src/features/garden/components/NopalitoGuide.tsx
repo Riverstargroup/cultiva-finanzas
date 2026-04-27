@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from 'react'
-import { BookOpen, Gamepad2, HelpCircle, Loader2, MessageCircle, Send, Sparkles } from 'lucide-react'
+import { BookOpen, Calculator, Gamepad2, HelpCircle, Loader2, MessageCircle, Send, Sparkles } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import nopalitoIdle from '@/assets/pixel/optimized/plantamigo-nopalito-idle.webp'
 import nopalitoCelebrating from '@/assets/pixel/optimized/plantamigo-nopalito-celebrating.webp'
@@ -9,6 +9,7 @@ interface NopalitoGuideProps {
   onOpenCourses: () => void
   onOpenGames: () => void
   onOpenFlashcards: () => void
+  onOpenCalculator?: () => void
 }
 
 interface GuideAction {
@@ -30,6 +31,7 @@ export function NopalitoGuide({
   onOpenCourses,
   onOpenGames,
   onOpenFlashcards,
+  onOpenCalculator,
 }: NopalitoGuideProps) {
   const [activeId, setActiveId] = useState('next')
   const [question, setQuestion] = useState('')
@@ -81,8 +83,17 @@ export function NopalitoGuide({
         cta: 'Repasar',
         onClick: onOpenFlashcards,
       },
+      {
+        id: 'tools',
+        label: 'Usar calculadoras',
+        icon: Calculator,
+        reply:
+          'En Herramientas tienes calculadoras para interes compuesto y deuda. Te sirven para comparar estrategias avalancha y snowball antes de decidir como atacar tus pagos.',
+        cta: 'Abrir calculadora',
+        onClick: onOpenCalculator ?? onOpenCourses,
+      },
     ],
-    [masteryLabel, onOpenCourses, onOpenFlashcards, onOpenGames],
+    [masteryLabel, onOpenCalculator, onOpenCourses, onOpenFlashcards, onOpenGames],
   )
 
   const active = actions.find((action) => action.id === activeId) ?? actions[0]
