@@ -66,7 +66,7 @@ export default function Jardin() {
           <GardenAdventureMap
             totalMastery={garden.totalMastery}
             onOpenCourses={() => navigate('/cursos')}
-            onOpenGames={() => navigate('/juegos')}
+            onOpenGames={(gameId) => navigate(gameId ? `/juegos?game=${gameId}` : '/juegos')}
             onOpenFlashcards={() => navigate('/flashcards')}
             onOpenShop={() => setShopOpen(true)}
           />

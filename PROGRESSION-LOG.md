@@ -30,6 +30,13 @@ Started implementation of the Sendero Semilla rebrand. The Home/Jardin page is b
   - Kept selected node details below the path.
   - Renamed visible map label from "Ruta viva" to "Sendero Semilla".
 
+- `src/features/sendero/senderoNodes.ts`
+  - Added the first Sendero Semilla node configuration outside the visual component.
+  - Defined node type, status, action, reward, game link, and position as reusable product data.
+
+- `src/pages/Juegos.tsx`
+  - Added support for launching a specific game from the Sendero with `?game=...`.
+
 ### Product Intent
 
 This is not a deletion of courses, games, profile, rewards, or Nopalito. It is a cleanup pass to stop Home from feeling like multiple products stacked together.

@@ -18,24 +18,22 @@ import nopalitoIdle from '@/assets/pixel/optimized/plantamigo-nopalito-idle.webp
 import gastoHormigaIdle from '@/assets/pixel/optimized/enemy-gasto-hormiga-idle.webp'
 import gastoHormigaWeakened from '@/assets/pixel/optimized/enemy-gasto-hormiga-weakened.webp'
 import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
+import {
+  SENDERO_PHASE_ONE_NODES,
+  SENDERO_PHASE_ONE_TITLE,
+  type SenderoNode,
+  type SenderoNodeAction,
+} from '@/features/sendero/senderoNodes'
 
-interface AdventureNode {
-  id: string
-  title: string
-  description: string
-  reward: string
-  status: 'completed' | 'next' | 'available' | 'locked' | 'boss'
-  type: 'lesson' | 'review' | 'game' | 'chest' | 'home' | 'shop' | 'boss'
+type AdventureNode = SenderoNode & {
   icon: LucideIcon
-  actionLabel: string
-  position: { x: number; y: number }
   onAction?: () => void
 }
 
 interface GardenAdventureMapProps {
   totalMastery: number
   onOpenCourses: () => void
-  onOpenGames: () => void
+  onOpenGames: (gameId?: string) => void
   onOpenFlashcards: () => void
   onOpenShop: () => void
 }
@@ -83,91 +81,19 @@ export function GardenAdventureMap({
   }, [recentReward?.bossDamage, totalMastery])
 
   const nodes = useMemo<AdventureNode[]>(
-    () => [
-      {
-        id: 'first-seed',
-        title: 'Primera semilla',
-        description: 'Empieza Finanzas Basicas y gana tu primer companero.',
-        reward: '+40 monedas',
-        status: 'next',
-        type: 'lesson',
-        icon: BookOpen,
-        actionLabel: 'Empezar leccion',
-        position: { x: 51, y: 12.5 },
-        onAction: onOpenCourses,
-      },
-      {
-        id: 'market-memory',
-        title: 'Memoria de mercado',
-        description: 'Un juego corto para reconocer decisiones de gasto.',
-        reward: 'entrenamiento',
-        status: 'available',
-        type: 'game',
-        icon: Gamepad2,
-        actionLabel: 'Jugar',
-        position: { x: 60, y: 25.5 },
-        onAction: onOpenGames,
-      },
-      {
-        id: 'flash-review',
-        title: 'Repaso express',
-        description: 'Refuerza conceptos antes de que el camino se bloquee.',
-        reward: 'racha y memoria',
-        status: 'available',
-        type: 'review',
-        icon: RotateCcw,
-        actionLabel: 'Repasar',
-        position: { x: 40, y: 36.5 },
-        onAction: onOpenFlashcards,
-      },
-      {
-        id: 'seed-chest',
-        title: 'Cofre de semillas',
-        description: 'Recompensas por mantener el ritmo del aprendizaje.',
-        reward: 'monedas bonus',
-        status: 'available',
-        type: 'chest',
-        icon: Sparkles,
-        actionLabel: 'Ver recompensa',
-        position: { x: 58, y: 47.8 },
-        onAction: onOpenCourses,
-      },
-      {
-        id: 'garden-home',
-        title: 'Casita del jardin',
-        description: 'Aqui viven tus plantamigos y sus estadisticas.',
-        reward: 'coleccion',
-        status: 'locked',
-        type: 'home',
-        icon: Home,
-        actionLabel: 'Pronto',
-        position: { x: 47, y: 60.3 },
-      },
-      {
-        id: 'shop-gate',
-        title: 'Tienda botanica',
-        description: 'Compra cosmeticos para tu viajero y plantamigos.',
-        reward: 'desbloqueos',
-        status: 'available',
-        type: 'shop',
-        icon: ShoppingBag,
-        actionLabel: 'Abrir tienda',
-        position: { x: 58, y: 73.2 },
-        onAction: onOpenShop,
-      },
-      {
-        id: 'boss-gasto',
-        title: 'Gasto Hormiga',
-        description: 'Un bloqueo que se debilita con lecciones, repasos y juegos.',
-        reward: `poder ${bossPower}%`,
-        status: 'boss',
-        type: 'boss',
-        icon: Trophy,
-        actionLabel: 'Prepararme',
-        position: { x: 49, y: 88 },
-        onAction: onOpenCourses,
-      },
-    ],
+    () =>
+      SENDERO_PHASE_ONE_NODES.map((node) => ({
+        ...node,
+        reward: node.status === 'boss' ? `poder ${bossPower}%` : node.reward,
+        icon: getNodeIcon(node.type),
+        onAction: getNodeAction(node.action, {
+          gameId: node.gameId,
+          onOpenCourses,
+          onOpenFlashcards,
+          onOpenGames,
+          onOpenShop,
+        }),
+      })),
     [bossPower, onOpenCourses, onOpenFlashcards, onOpenGames, onOpenShop],
   )
 
@@ -305,7 +231,7 @@ function WorldMapHeader() {
           Sendero Semilla
         </p>
         <p className="font-heading text-sm font-bold" style={{ color: 'var(--forest-deep)' }}>
-          Finanzas basicas
+          {SENDERO_PHASE_ONE_TITLE}
         </p>
       </div>
       <div className="flex items-center gap-1 rounded-full border bg-[#FEFBF6]/86 px-2 py-1.5 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
@@ -316,6 +242,36 @@ function WorldMapHeader() {
       </div>
     </div>
   )
+}
+
+function getNodeIcon(type: SenderoNode['type']) {
+  const icons: Record<SenderoNode['type'], LucideIcon> = {
+    lesson: BookOpen,
+    review: RotateCcw,
+    game: Gamepad2,
+    chest: Sparkles,
+    home: Home,
+    shop: ShoppingBag,
+    boss: Trophy,
+  }
+
+  return icons[type]
+}
+
+function getNodeAction(
+  action: SenderoNodeAction,
+  handlers: {
+    gameId?: string
+    onOpenCourses: () => void
+    onOpenFlashcards: () => void
+    onOpenGames: (gameId?: string) => void
+    onOpenShop: () => void
+  },
+) {
+  if (action === 'courses') return handlers.onOpenCourses
+  if (action === 'flashcards') return handlers.onOpenFlashcards
+  if (action === 'shop') return handlers.onOpenShop
+  return () => handlers.onOpenGames(handlers.gameId)
 }
 
 function LivingNodeButton({
