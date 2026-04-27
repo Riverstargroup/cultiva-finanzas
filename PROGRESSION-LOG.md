@@ -39,6 +39,37 @@ Started converting Sendero Semilla from a static visual path into a progress-awa
 
 ---
 
+## UPDATE 2026-04-26 - Sendero Node Routing
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/sendero-node-routing`
+
+### Summary
+
+Started routing Sendero Semilla nodes into real learning content instead of generic course listing pages.
+
+### Changes In This Branch
+
+- `src/features/sendero/useSenderoEntryRoute.ts`
+  - Resolves the first published course.
+  - Resolves the next uncompleted scenario for that course.
+  - Returns a direct route to `/cursos/:courseId/escenario/:scenarioId`.
+  - Falls back to `/cursos` if course/scenario data is unavailable.
+
+- `src/pages/Jardin.tsx`
+  - The first Sendero lesson action now opens the resolved first scenario.
+  - The final prologue CTA now opens the resolved first scenario.
+  - Nopalito's course CTA uses the same entry route.
+
+### Still Pending
+
+- Add explicit `courseSlug`/module metadata to Sendero nodes once course taxonomy stabilizes.
+- Make later lesson nodes route to specific scenarios instead of only the current next scenario.
+- Add boss encounter routing.
+
+---
+
 ## UPDATE 2026-04-26 - Home Cleanup: Sendero First Impact
 
 Status: IN PROGRESS

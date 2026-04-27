@@ -14,6 +14,7 @@ import { NopalitoGuide } from '@/features/garden/components/NopalitoGuide'
 import { useUserLevel } from '@/hooks/useUserLevel'
 import { LevelUpNotification } from '@/components/LevelUpNotification'
 import { OnboardingOverlay } from '@/features/onboarding'
+import { useSenderoEntryRoute } from '@/features/sendero/useSenderoEntryRoute'
 import nopalitoIdle from '@/assets/pixel/optimized/plantamigo-nopalito-idle.webp'
 
 export default function Jardin() {
@@ -21,6 +22,7 @@ export default function Jardin() {
   const userLevel = useUserLevel()
   const garden = useGarden()
   const { data: streakDays = 0 } = useStreak()
+  const senderoEntry = useSenderoEntryRoute()
   const initGarden = useInitGarden()
   const tick = useGardenTick()
 
@@ -38,6 +40,8 @@ export default function Jardin() {
   }, [garden.isLoading, garden.plots.length])
 
   if (garden.isLoading) return <JardinSkeleton />
+
+  const openFirstLesson = () => navigate(senderoEntry.data?.firstLessonRoute ?? '/cursos')
 
   if (isNewUser) {
     return (
@@ -58,14 +62,14 @@ export default function Jardin() {
   return (
     <PageTransition>
       <LevelUpNotification level={userLevel.level} isLoading={userLevel.isLoading} />
-      <OnboardingOverlay onComplete={() => navigate('/cursos')} />
+      <OnboardingOverlay onComplete={openFirstLesson} />
       <div className="dashboard-skin botanical-bg -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-28 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
         <div className="mx-auto max-w-3xl space-y-4">
           <BackyardSkyHeader coins={garden.coins} streakDays={streakDays} level={userLevel.isLoading ? undefined : userLevel.level} />
 
           <GardenAdventureMap
             totalMastery={garden.totalMastery}
-            onOpenCourses={() => navigate('/cursos')}
+            onOpenCourses={openFirstLesson}
             onOpenGames={(gameId) => navigate(gameId ? `/juegos?game=${gameId}` : '/juegos')}
             onOpenFlashcards={() => navigate('/flashcards')}
             onOpenShop={() => setShopOpen(true)}
@@ -109,7 +113,7 @@ export default function Jardin() {
             </button>
             <NopalitoGuide
               totalMastery={garden.totalMastery}
-              onOpenCourses={() => navigate('/cursos')}
+              onOpenCourses={openFirstLesson}
               onOpenGames={() => navigate('/juegos')}
               onOpenFlashcards={() => navigate('/flashcards')}
             />
