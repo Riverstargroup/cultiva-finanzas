@@ -15,6 +15,7 @@ import { useUserLevel } from '@/hooks/useUserLevel'
 import { LevelUpNotification } from '@/components/LevelUpNotification'
 import { OnboardingOverlay } from '@/features/onboarding'
 import { useSenderoEntryRoute } from '@/features/sendero/useSenderoEntryRoute'
+import type { SenderoNode } from '@/features/sendero/senderoNodes'
 import nopalitoIdle from '@/assets/pixel/optimized/plantamigo-nopalito-idle.webp'
 
 export default function Jardin() {
@@ -43,6 +44,30 @@ export default function Jardin() {
 
   const openFirstLesson = () => navigate(senderoEntry.data?.firstLessonRoute ?? '/cursos')
 
+  const openSenderoNode = (node: SenderoNode) => {
+    if (node.action === 'lesson') {
+      navigate(senderoEntry.data?.firstLessonRoute ?? '/cursos')
+      return
+    }
+
+    if (node.action === 'course') {
+      navigate(senderoEntry.data?.courseRoute ?? '/cursos')
+      return
+    }
+
+    if (node.action === 'review') {
+      navigate('/flashcards')
+      return
+    }
+
+    if (node.action === 'game') {
+      navigate(node.gameId ? `/juegos?game=${node.gameId}` : '/juegos')
+      return
+    }
+
+    setShopOpen(true)
+  }
+
   if (isNewUser) {
     return (
       <PageTransition>
@@ -69,10 +94,7 @@ export default function Jardin() {
 
           <GardenAdventureMap
             totalMastery={garden.totalMastery}
-            onOpenCourses={openFirstLesson}
-            onOpenGames={(gameId) => navigate(gameId ? `/juegos?game=${gameId}` : '/juegos')}
-            onOpenFlashcards={() => navigate('/flashcards')}
-            onOpenShop={() => setShopOpen(true)}
+            onOpenNode={openSenderoNode}
           />
         </div>
       </div>

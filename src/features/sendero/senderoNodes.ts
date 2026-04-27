@@ -2,7 +2,7 @@ import type { GameId } from '@/features/minigames'
 
 export type SenderoNodeStatus = 'completed' | 'next' | 'available' | 'locked' | 'boss'
 export type SenderoNodeType = 'lesson' | 'review' | 'game' | 'chest' | 'home' | 'shop' | 'boss'
-export type SenderoNodeAction = 'courses' | 'flashcards' | 'games' | 'shop'
+export type SenderoNodeAction = 'lesson' | 'course' | 'review' | 'game' | 'shop'
 
 export interface SenderoNode {
   id: string
@@ -29,7 +29,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     status: 'next',
     type: 'lesson',
     actionLabel: 'Empezar leccion',
-    action: 'courses',
+    action: 'lesson',
     position: { x: 51, y: 12.5 },
   },
   {
@@ -40,7 +40,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     status: 'available',
     type: 'game',
     actionLabel: 'Jugar',
-    action: 'games',
+    action: 'game',
     gameId: 'presupuesto-rapido',
     requiredCompletedScenarios: 1,
     position: { x: 60, y: 25.5 },
@@ -53,7 +53,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     status: 'available',
     type: 'review',
     actionLabel: 'Repasar',
-    action: 'flashcards',
+    action: 'review',
     requiredCompletedScenarios: 1,
     position: { x: 40, y: 36.5 },
   },
@@ -65,7 +65,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     status: 'available',
     type: 'chest',
     actionLabel: 'Ver recompensa',
-    action: 'courses',
+    action: 'course',
     requiredCompletedScenarios: 2,
     position: { x: 58, y: 47.8 },
   },
@@ -77,7 +77,7 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     status: 'locked',
     type: 'home',
     actionLabel: 'Pronto',
-    action: 'courses',
+    action: 'course',
     requiredCompletedScenarios: 3,
     position: { x: 47, y: 60.3 },
   },
@@ -100,8 +100,8 @@ export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
     reward: 'jefe de fase',
     status: 'boss',
     type: 'boss',
-    actionLabel: 'Prepararme',
-    action: 'courses',
+    actionLabel: 'Seguir entrenando',
+    action: 'lesson',
     requiredCompletedScenarios: 3,
     position: { x: 49, y: 88 },
   },
