@@ -12,7 +12,22 @@ import { JardinWelcome } from '@/features/garden/components/JardinWelcome'
 import { GardenAdventureMap } from '@/features/garden/components/GardenAdventureMap'
 import { NopalitoGuide } from '@/features/garden/components/NopalitoGuide'
 import { useUserLevel } from '@/hooks/useUserLevel'
+import type { UserLevelInfo } from '@/hooks/useUserLevel'
 import { LevelUpNotification } from '@/components/LevelUpNotification'
+
+function getLevelHint(info: UserLevelInfo): string | undefined {
+  if (info.level === 'Maestro del Jardín') return undefined
+  if (info.level === 'Semilla') {
+    const needed = Math.max(0, 2 - info.completedScenarios)
+    return needed > 0 ? `${needed} escenario${needed !== 1 ? 's' : ''} más → Brote` : 'Sube tu nivel → Brote'
+  }
+  if (info.level === 'Brote') {
+    const needed = Math.max(0, 5 - info.completedScenarios)
+    return needed > 0 ? `${needed} escenarios más → Jardinero` : 'Mejora tu maestría → Jardinero'
+  }
+  if (info.level === 'Jardinero') return 'Completa todos con 80% maestría → Maestro'
+  return undefined
+}
 import { OnboardingOverlay } from '@/features/onboarding'
 import { useSenderoEntryRoute } from '@/features/sendero/useSenderoEntryRoute'
 import type { SenderoNode } from '@/features/sendero/senderoNodes'
@@ -90,7 +105,12 @@ export default function Jardin() {
       <OnboardingOverlay onComplete={openFirstLesson} />
       <div className="dashboard-skin world-shell -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-32 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
         <div className="world-shell-content mx-auto max-w-3xl space-y-4">
-          <BackyardSkyHeader coins={garden.coins} streakDays={streakDays} level={userLevel.isLoading ? undefined : userLevel.level} />
+          <BackyardSkyHeader
+            coins={garden.coins}
+            streakDays={streakDays}
+            level={userLevel.isLoading ? undefined : userLevel.level}
+            levelHint={userLevel.isLoading ? undefined : getLevelHint(userLevel)}
+          />
 
           <GardenAdventureMap
             totalMastery={garden.totalMastery}

@@ -12,8 +12,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserLevel } from "@/hooks/useUserLevel";
+import type { UserLevelInfo } from "@/hooks/useUserLevel";
 import { LevelBadge } from "@/components/LevelBadge";
 import { LevelUpNotification } from "@/components/LevelUpNotification";
+
+function getNextLevelHint(info: UserLevelInfo): string | undefined {
+  if (info.level === 'Maestro del Jardín') return undefined;
+  if (info.level === 'Semilla') {
+    const needed = Math.max(0, 2 - info.completedScenarios);
+    return needed > 0 ? `${needed} escenario${needed !== 1 ? 's' : ''} más → Brote` : 'Sube tu nivel → Brote';
+  }
+  if (info.level === 'Brote') {
+    const needed = Math.max(0, 5 - info.completedScenarios);
+    return needed > 0 ? `${needed} escenarios más → Jardinero` : 'Mejora tu maestría → Jardinero';
+  }
+  if (info.level === 'Jardinero') {
+    return 'Completa todos con 80% maestría → Maestro del Jardín';
+  }
+  return undefined;
+}
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -113,11 +130,17 @@ export default function Dashboard() {
                   {greeting} 🌱
                 </h1>
               </div>
-              <div className="mt-2 flex items-center gap-3">
+              <div className="mt-2 space-y-1.5">
                 <p className="text-xs font-medium uppercase tracking-widest" style={{ color: "var(--leaf-muted)" }}>
                   {getFormattedDate()}
                 </p>
-                {!userLevel.isLoading && <LevelBadge level={userLevel.level} size="sm" />}
+                {!userLevel.isLoading && (
+                  <LevelBadge
+                    level={userLevel.level}
+                    size="md"
+                    hint={getNextLevelHint(userLevel)}
+                  />
+                )}
               </div>
             </div>
             <div className="hidden items-center gap-3 md:flex">

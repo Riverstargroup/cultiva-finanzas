@@ -7,16 +7,17 @@ interface BackyardSkyHeaderProps {
   coins: number
   streakDays: number
   level?: UserLevel
+  levelHint?: string
 }
 
-export function BackyardSkyHeader({ coins, streakDays, level }: BackyardSkyHeaderProps) {
+export function BackyardSkyHeader({ coins, streakDays, level, levelHint }: BackyardSkyHeaderProps) {
   return (
     <div className="flex items-center justify-between">
       <div className="space-y-1">
         <h1 className="font-heading text-2xl font-bold md:text-3xl" style={{ color: 'var(--forest-deep)' }}>
           Mi Jardín
         </h1>
-        {level && <LevelBadge level={level} size="sm" />}
+        {level && <LevelBadge level={level} size="md" hint={levelHint} />}
       </div>
       <div className="flex items-center gap-3">
         {streakDays > 0 && (
