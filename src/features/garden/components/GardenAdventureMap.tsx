@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   BookOpen,
   Gamepad2,
@@ -10,6 +10,7 @@ import {
   Star,
   Trophy,
   X,
+  ChevronRight,
   type LucideIcon,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -19,8 +20,10 @@ import gastoHormigaWeakened from '@/assets/pixel/optimized/enemy-gasto-hormiga-w
 import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
 import pathNodeBase from '@/assets/pixel/optimized/ui-path-node.webp'
 import {
+  SENDERO_MODULE_PREVIEWS,
   SENDERO_PHASE_ONE_TITLE,
   type SenderoNode,
+  type SenderoModulePreview,
 } from '@/features/sendero/senderoNodes'
 import { useSenderoProgress } from '@/features/sendero/useSenderoProgress'
 
@@ -50,6 +53,8 @@ export function GardenAdventureMap({
   const [recentReward, setRecentReward] = useState<RecentSeedReward | null>(null)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
   const [selectedNodeId, setSelectedNodeId] = useState('first-seed')
+  const [demoEventNode, setDemoEventNode] = useState<AdventureNode | null>(null)
+  const [claimedNodeIds, setClaimedNodeIds] = useState<string[]>([])
   const senderoProgress = useSenderoProgress()
 
   useEffect(() => {
@@ -68,21 +73,50 @@ export function GardenAdventureMap({
     }
   }, [])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = window.localStorage.getItem('cf.demo.claimedSenderoNodes')
+      setClaimedNodeIds(raw ? JSON.parse(raw) as string[] : [])
+    } catch {
+      setClaimedNodeIds([])
+    }
+  }, [])
+
   const bossPower = useMemo(() => {
     const masteryDamage = Math.min(28, Math.round(totalMastery * 16))
     const rewardDamage = recentReward?.bossDamage ?? 0
     return Math.max(18, 72 - masteryDamage - rewardDamage)
   }, [recentReward?.bossDamage, totalMastery])
 
+  const activateNode = useCallback((node: AdventureNode) => {
+    if (node.status === 'locked' || node.type === 'chest' || node.type === 'home' || node.type === 'boss') {
+      setDemoEventNode(node)
+      return
+    }
+
+    onOpenNode(node)
+  }, [onOpenNode])
+
   const nodes = useMemo<AdventureNode[]>(
     () =>
-      senderoProgress.nodes.map((node) => ({
-        ...node,
-        reward: node.status === 'boss' ? `poder ${bossPower}%` : node.reward,
-        icon: getNodeIcon(node.type),
-        onAction: () => onOpenNode(node),
-      })),
-    [bossPower, onOpenNode, senderoProgress.nodes],
+      senderoProgress.nodes.map((node) => {
+        const adventureNode: AdventureNode = {
+          ...node,
+          reward: claimedNodeIds.includes(node.id)
+            ? 'reclamado'
+            : node.status === 'boss'
+              ? `poder ${bossPower}%`
+              : node.reward,
+          status: claimedNodeIds.includes(node.id) && node.type === 'chest' ? 'completed' : node.status,
+          icon: getNodeIcon(node.type),
+        }
+
+        adventureNode.onAction = () => activateNode(adventureNode)
+
+        return adventureNode
+      }),
+    [activateNode, bossPower, claimedNodeIds, senderoProgress.nodes],
   )
 
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? nodes[0]
@@ -92,6 +126,16 @@ export function GardenAdventureMap({
     setRecentReward(null)
     try {
       window.localStorage.removeItem('cf.recentSeedReward')
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  const claimNodeReward = (node: AdventureNode) => {
+    const next = Array.from(new Set([...claimedNodeIds, node.id]))
+    setClaimedNodeIds(next)
+    try {
+      window.localStorage.setItem('cf.demo.claimedSenderoNodes', JSON.stringify(next))
     } catch {
       // ignore storage errors
     }
@@ -122,12 +166,36 @@ export function GardenAdventureMap({
             bossPower={bossPower}
             completedScenarios={senderoProgress.completedScenarios}
             onSelectNode={setSelectedNodeId}
-            onActivateNode={onOpenNode}
+            onActivateNode={activateNode}
           />
         </div>
 
         <NodeDetailPanel node={selectedNode} />
+        <ModuleBranchPreview />
       </div>
+
+      {demoEventNode && (
+        <SenderoDemoEventModal
+          node={demoEventNode}
+          claimed={claimedNodeIds.includes(demoEventNode.id)}
+          onClose={() => setDemoEventNode(null)}
+          onClaim={() => claimNodeReward(demoEventNode)}
+          onOpenPrimary={() => {
+            setDemoEventNode(null)
+            onOpenNode(demoEventNode)
+          }}
+          onOpenReview={() => {
+            const reviewNode = nodes.find((node) => node.action === 'review') ?? demoEventNode
+            setDemoEventNode(null)
+            onOpenNode(reviewNode)
+          }}
+          onOpenGame={() => {
+            const gameNode = nodes.find((node) => node.action === 'game') ?? demoEventNode
+            setDemoEventNode(null)
+            onOpenNode(gameNode)
+          }}
+        />
+      )}
     </section>
   )
 }
@@ -544,6 +612,192 @@ function NodeDetailPanel({ node }: { node: AdventureNode }) {
       </button>
     </div>
   )
+}
+
+function ModuleBranchPreview() {
+  return (
+    <section className="sendero-branch-panel" aria-label="Siguientes rutas del Sendero">
+      <div>
+        <p className="sendero-branch-kicker">Mapa de crecimiento</p>
+        <h2 className="font-heading text-lg font-bold leading-tight" style={{ color: 'var(--forest-deep)' }}>
+          Despues de Finanzas Basicas eliges tu siguiente ruta.
+        </h2>
+      </div>
+      <div className="mt-3 grid gap-2">
+        {SENDERO_MODULE_PREVIEWS.map((module) => (
+          <ModuleBranchRow key={module.id} module={module} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function ModuleBranchRow({ module }: { module: SenderoModulePreview }) {
+  const label = module.status === 'active' ? 'Actual' : module.status === 'choice' ? 'Elegible despues' : 'Pronto'
+
+  return (
+    <div className="sendero-branch-row" data-tone={module.tone} data-status={module.status}>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="sendero-branch-dot" aria-hidden="true" />
+          <h3 className="truncate text-sm font-black" style={{ color: 'var(--forest-deep)' }}>
+            {module.title}
+          </h3>
+        </div>
+        <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
+          {module.description}
+        </p>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <span className="hidden rounded-full px-2 py-1 text-[10px] font-black uppercase tracking-wide sm:inline-flex">
+          {label}
+        </span>
+        <ChevronRight className="h-4 w-4" style={{ color: 'var(--leaf-muted)' }} />
+      </div>
+    </div>
+  )
+}
+
+function SenderoDemoEventModal({
+  node,
+  claimed,
+  onClose,
+  onClaim,
+  onOpenPrimary,
+  onOpenReview,
+  onOpenGame,
+}: {
+  node: AdventureNode
+  claimed: boolean
+  onClose: () => void
+  onClaim: () => void
+  onOpenPrimary: () => void
+  onOpenReview: () => void
+  onOpenGame: () => void
+}) {
+  const Icon = node.icon
+  const copy = getDemoEventCopy(node, claimed)
+
+  return (
+    <div className="fixed inset-0 z-[230] flex items-end bg-black/42 px-3 pb-3 backdrop-blur-sm md:items-center md:justify-center md:p-6">
+      <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sendero-demo-event-title"
+        initial={{ opacity: 0, y: 16, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="sendero-event-modal w-full max-w-lg overflow-hidden"
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border bg-white/86 shadow-sm"
+          style={{ borderColor: 'rgba(212,172,117,0.58)', color: 'var(--forest-deep)' }}
+          aria-label="Cerrar evento del Sendero"
+        >
+          <X className="h-4 w-4" />
+        </button>
+
+        <div className="flex items-start gap-4 p-5">
+          <div className="sendero-event-token">
+            <Icon className="h-8 w-8" />
+          </div>
+          <div className="min-w-0 flex-1 pr-8">
+            <p className="sendero-branch-kicker">{copy.kicker}</p>
+            <h2 id="sendero-demo-event-title" className="font-heading text-2xl font-black leading-tight" style={{ color: 'var(--forest-deep)' }}>
+              {copy.title}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
+              {copy.body}
+            </p>
+          </div>
+        </div>
+
+        <div className="border-t p-4" style={{ borderColor: 'rgba(212,172,117,0.38)' }}>
+          <div className="rounded-2xl px-3 py-2 text-sm font-bold" style={{ background: 'rgba(229,184,75,0.14)', color: '#6B4B12' }}>
+            Recompensa demo: {copy.reward}
+          </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            {node.type === 'chest' && (
+              <button type="button" onClick={onClaim} disabled={claimed} className="sendero-event-primary disabled:opacity-60">
+                {claimed ? 'Cofre reclamado' : 'Reclamar cofre'}
+              </button>
+            )}
+            {node.type === 'boss' && (
+              <>
+                <button type="button" onClick={onOpenGame} className="sendero-event-primary">
+                  Entrenar con juego
+                </button>
+                <button type="button" onClick={onOpenReview} className="sendero-event-secondary">
+                  Repasar antes
+                </button>
+              </>
+            )}
+            {node.type === 'home' && (
+              <>
+                <button type="button" onClick={onOpenReview} className="sendero-event-primary">
+                  Subir dominio
+                </button>
+                <button type="button" onClick={onOpenPrimary} className="sendero-event-secondary">
+                  Ver ruta
+                </button>
+              </>
+            )}
+            {node.status === 'locked' && node.type !== 'home' && (
+              <>
+                <button type="button" onClick={onOpenPrimary} className="sendero-event-primary">
+                  Avanzar requisito
+                </button>
+                <button type="button" onClick={onOpenReview} className="sendero-event-secondary">
+                  Repasar
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  )
+}
+
+function getDemoEventCopy(node: AdventureNode, claimed: boolean) {
+  if (node.type === 'chest') {
+    return {
+      kicker: claimed ? 'Cofre abierto' : 'Cofre de ruta',
+      title: claimed ? 'Ya guardaste esta recompensa.' : 'Tu constancia deja semillas extra.',
+      body: claimed
+        ? 'Este cofre queda marcado para que el demo muestre que las recompensas pueden persistir entre visitas.'
+        : 'Los cofres aparecen despues de hitos cortos. Sirven para reforzar el ciclo: aprender, recibir monedas y volver al camino.',
+      reward: claimed ? 'monedas reclamadas' : '+25 monedas demo',
+    }
+  }
+
+  if (node.type === 'boss') {
+    return {
+      kicker: 'Jefe de fase',
+      title: 'El Gasto Hormiga bloquea la salida.',
+      body: 'Para derrotarlo, el usuario practica decisiones: juega un reto, repasa conceptos o termina una leccion. El jefe baja poder con cada accion educativa.',
+      reward: 'desbloquear siguiente ruta',
+    }
+  }
+
+  if (node.type === 'home') {
+    return {
+      kicker: node.status === 'locked' ? 'Casita bloqueada' : 'Casita del jardin',
+      title: 'Aqui viviran tus plantamigos.',
+      body: node.status === 'locked'
+        ? 'En el demo, la casita se desbloquea al completar mas semillas. Despues mostrara plantamigo principal, apoyo, nivel y cosmeticos.'
+        : 'La casita sera el hogar de Nopalito y los plantamigos desbloqueados durante la aventura.',
+      reward: 'coleccion y companeros',
+    }
+  }
+
+  return {
+    kicker: 'Nodo bloqueado',
+    title: 'Este paso necesita una semilla previa.',
+    body: 'El camino se mantiene lineal para que el usuario sepa que hacer despues, sin perder libertad para repasar y jugar.',
+    reward: node.reward,
+  }
 }
 
 function PlantamigoUnlockModal({
