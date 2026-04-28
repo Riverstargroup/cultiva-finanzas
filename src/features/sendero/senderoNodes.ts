@@ -3,6 +3,7 @@ import type { GameId } from '@/features/minigames'
 export type SenderoNodeStatus = 'completed' | 'next' | 'available' | 'locked' | 'boss'
 export type SenderoNodeType = 'lesson' | 'review' | 'game' | 'chest' | 'home' | 'shop' | 'boss'
 export type SenderoNodeAction = 'lesson' | 'course' | 'review' | 'game' | 'shop'
+export type SenderoModuleStatus = 'active' | 'choice' | 'locked'
 
 export interface SenderoNode {
   id: string
@@ -24,6 +25,50 @@ export interface SenderoNode {
 
 export const SENDERO_PHASE_ONE_TITLE = 'Finanzas basicas'
 export const SENDERO_PHASE_ONE_COURSE_SLUG = 'raices-control-sin-dolor'
+
+export interface SenderoModulePreview {
+  id: string
+  title: string
+  description: string
+  status: SenderoModuleStatus
+  reward: string
+  tone: 'control' | 'credito' | 'proteccion' | 'crecimiento'
+}
+
+export const SENDERO_MODULE_PREVIEWS: readonly SenderoModulePreview[] = [
+  {
+    id: 'control-basico',
+    title: 'Finanzas basicas',
+    description: 'Controla fugas, arma tu presupuesto y derrota al Gasto Hormiga.',
+    status: 'active',
+    reward: 'Nopalito + monedas',
+    tone: 'control',
+  },
+  {
+    id: 'credito-sin-miedo',
+    title: 'Credito sin miedo',
+    description: 'Aprende a usar tu primera tarjeta sin caer en intereses.',
+    status: 'choice',
+    reward: 'Lirio Guardian',
+    tone: 'credito',
+  },
+  {
+    id: 'proteccion-adulta',
+    title: 'Proteccion adulta',
+    description: 'IMSS, GMM, seguro de vida y decisiones para cubrir riesgos reales.',
+    status: 'choice',
+    reward: 'Helecho Sabio',
+    tone: 'proteccion',
+  },
+  {
+    id: 'crecimiento-afore',
+    title: 'Crecimiento y Afore',
+    description: 'Interes compuesto, retiro y primeros pasos para invertir mejor.',
+    status: 'locked',
+    reward: 'Brotin Dorado',
+    tone: 'crecimiento',
+  },
+] as const
 
 export const SENDERO_PHASE_ONE_NODES: readonly SenderoNode[] = [
   {

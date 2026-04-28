@@ -5,6 +5,42 @@
 
 ---
 
+## UPDATE 2026-04-28 - Sendero Demo V1
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/sendero-demo-v1`
+
+### Summary
+
+Started the end-of-day demo pass. The goal is to make the current Sendero feel playable, not merely visual, by giving special nodes clear demo behavior and showing the next module branches without building the full curriculum system yet.
+
+### Changes In This Branch
+
+- `src/features/sendero/senderoNodes.ts`
+  - Adds `SENDERO_MODULE_PREVIEWS` for the visible module roadmap: Finanzas Basicas, Credito sin miedo, Proteccion adulta, and Crecimiento/Afore.
+
+- `src/features/garden/components/GardenAdventureMap.tsx`
+  - Adds local demo event modals for cofres, locked nodes, casita, and Gasto Hormiga.
+  - Adds local persisted demo reward claiming for the chest node.
+  - Adds primary/secondary actions from boss and locked-node modals into games, flashcards, or the relevant route.
+  - Adds a compact module branch preview below the active map.
+
+- `src/index.css`
+  - Adds reusable styling for module branch rows and Sendero event modals.
+
+### Product Intent
+
+For the demo, the user should understand the loop in under one minute: follow the Sendero, complete lessons, train through games/repasos, claim rewards, weaken the boss, then choose the next route.
+
+### Still Pending
+
+- Replace local demo reward persistence with real Supabase reward/inventory state.
+- Build actual boss challenge outcome logic.
+- Convert branch preview into real selectable module paths once modules are fully mapped.
+
+---
+
 ## UPDATE 2026-04-27 - Huashu Wow Pass
 
 Status: IN PROGRESS
