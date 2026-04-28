@@ -32,12 +32,17 @@ export const EXERCISES: readonly DragDropExercise[] = [
     domain: 'credito',
     prompt: 'Prioriza tus deudas: arrastra cada deuda a la columna según la urgencia de pagarla.',
     items: [
-      { id: 'tarjeta-30', label: 'Tarjeta de crédito 30% interés', emoji: '💳' },
-      { id: 'credito-auto', label: 'Crédito auto 8% interés', emoji: '🚗' },
+      /* CONTENT_REVIEW — figura: 60% CAT tarjeta crédito — fuente: CNBV comparativo de CAT, bancos grandes México — valid_until: verificar semestralmente */
+      { id: 'tarjeta-30', label: 'Tarjeta de crédito (60% CAT)', emoji: '💳' },
+      /* CONTENT_REVIEW — figura: 14% anual crédito auto — fuente: CNBV / bancos grandes México — valid_until: verificar semestralmente */
+      { id: 'credito-auto', label: 'Crédito automotriz (14% anual)', emoji: '🚗' },
       { id: 'prestamo-amigo', label: 'Préstamo a un amigo sin interés', emoji: '🤝' },
-      { id: 'hipoteca', label: 'Hipoteca 6% interés', emoji: '🏡' },
-      { id: 'credito-personal-18', label: 'Crédito personal 18% interés', emoji: '📄' },
-      { id: 'tarjeta-tienda-24', label: 'Tarjeta tienda 24% interés', emoji: '🏪' },
+      /* CONTENT_REVIEW — figura: 9% anual hipoteca — fuente: Banxico / CNBV hipotecas mercado — valid_until: verificar semestralmente */
+      { id: 'hipoteca', label: 'Hipoteca (9% anual)', emoji: '🏡' },
+      /* CONTENT_REVIEW — figura: 24% anual crédito personal — fuente: CNBV bancos grandes México — valid_until: verificar semestralmente */
+      { id: 'credito-personal-18', label: 'Crédito personal (24% anual)', emoji: '📄' },
+      /* CONTENT_REVIEW — figura: 80% CAT tarjeta departamental — fuente: CNBV / CONDUSEF tarjetas tienda (Coppel, Elektra) — valid_until: verificar semestralmente */
+      { id: 'tarjeta-tienda-24', label: 'Tarjeta departamental (80% CAT)', emoji: '🏪' },
     ],
     zones: [
       { id: 'alta', label: '🔴 Alta prioridad' },

@@ -2,8 +2,8 @@
 
 > **Propósito:** Registro central de todas las cifras financieras del app, sus fuentes, y cuándo deben revisarse.
 > **Responsable:** Equipo de contenido (Enactus ITESM)
-> **Última actualización:** 2026-04-24
-> **Próxima revisión completa:** 2026-07-24 (trimestral)
+> **Última actualización:** 2026-04-28
+> **Próxima revisión completa:** 2026-07-28 (trimestral)
 
 ---
 
@@ -15,6 +15,11 @@
 | 2026-04-24 | INPC: 4.5 % → **3.9 %** en escenarios 5, 7 y flashcards seed 000004 | `20260424000001_cetes_rate_correction.sql` | INEGI dato mensual actualizado |
 | 2026-04-24 | Inflación acum. 2020-2025: ~40 % → **~32 %** en flashcard; $700 → **$660** | `20260424000001_cetes_rate_correction.sql` | INPC acumulado real (2020-2024) ≈ 31.7 % |
 | 2026-04-24 | Metro CDMX 2025: $7 → **$5** (tarifa no aumentó 2012-2025) | `InflacionChallenge/data.ts` | STC Metro tarifa subsidiada sin variación; dato $7 era incorrecto |
+| 2026-04-28 | Dragdrop 'prioriza-deudas': tasas irrealistas → corregidas (tarjeta 30%→60% CAT, tienda 24%→80% CAT, auto 8%→14%, hipoteca 6%→9%) | `exercises.ts` | CNBV comparativo de CAT y tasas hipotecarias — DLV-120 |
+| 2026-04-28 | Scenario 1 CETES FV: **$3,025 → ~$3,052** (recalculado a 8.25 %) | `20260428000002_scenario_content_fixes.sql` | FV anualidad 6 meses, $500/mes, r=8.25 %/12 |
+| 2026-04-28 | Scenario 1: "52% CAT mensual" → **"52% CAT anual"** + $2,600 → **~$2,608** | `20260428000002_scenario_content_fixes.sql` | CAT es siempre anual (CNBV definición); 52%/12=4.33%/mes |
+| 2026-04-28 | Scenario 6: "45% anual" → **"tasa nominal 45% ≈ CAT ~55%"** | `20260428000002_scenario_content_fixes.sql` | CNBV diferencia tasa nominal vs CAT; CAT incluye comisiones/seguros |
+| 2026-04-28 | 8 nuevas flashcards v3: AFORE (fc-025, fc-026), Seguros de vida (fc-027, fc-028), ISR (fc-029, fc-030), Infonavit (fc-031), SMART saving (fc-032) | `20260428000001_seed_flashcards_v3.sql` | LSS art. 168; LFT art. 136; Ley ISR art. 113-E |
 | 2026-04-24 | MemoriaMercado CETES descriptor: ~10.5 % → **~8.25 %** | `MemoriaMercado/data.ts` | Consistencia con tasa Banxico actual |
 | 2026-04-24 | Montos recalculados: $3,303→**$3,248**; $4,888→**$4,459**; $7,707→**$7,578**; $30,120→**$29,900** | `20260424000001_cetes_rate_correction.sql` | FV recalculado con 8.25 % en lugar de 10.1 % |
 
@@ -33,6 +38,16 @@
 | Salario mínimo diario | $278.80 (2025) | $123.22 (2020) | CONASAMI decreto enero 2025 | **Anual** (enero) | `InflacionChallenge/data.ts` |
 | Tarifa Metro CDMX | $5 (sin variación 2012-2025) | $7 (incorrecto) → corregido 2026-04-24 | STC Metro CDMX | **Anual** (enero) | `InflacionChallenge/data.ts` |
 | CETES descriptor (minijuego) | ~8.25 % anual | ~10.5 % (incorrecto) → corregido 2026-04-24 | Banxico | Trimestral | `MemoriaMercado/data.ts` |
+| AFORE contribución patronal 2026 | ~8.635 % SBC | n/a (nueva cifra) | Reforma LSS 2020 art. 168 | **Anual** (escalada hasta 2030) | flashcard fc-025 |
+| AFORE contribución empleado | 1.125 % SBC | n/a | Ley del Seguro Social | Estable | flashcard fc-025 |
+| Infonavit contribución patronal | 5 % SBC | n/a | LFT art. 136 | Estable | flashcard fc-031 |
+| RESICO tasa mínima | 1 % (hasta $25k/mes) | n/a | Ley ISR art. 113-E | **Anual** (enero) | flashcard fc-030 |
+| RESICO tasa máxima | 2.5 % (hasta $291k/mes) | n/a | Ley ISR art. 113-E | **Anual** (enero) | flashcard fc-030 |
+| Infonavit crédito para $15k/mes | $600k–$1,200k estimado | n/a | Infonavit precalificación | **Anual** | flashcard fc-031 |
+| Tarjeta crédito dragdrop | 60 % CAT | 30 % (incorrecto) → corregido 2026-04-28 | CNBV comparativo CAT | **Semestral** | `exercises.ts` |
+| Tarjeta departamental dragdrop | 80 % CAT | 24 % (incorrecto) → corregido 2026-04-28 | CNBV / CONDUSEF | **Semestral** | `exercises.ts` |
+| Crédito auto dragdrop | 14 % anual | 8 % (incorrecto) → corregido 2026-04-28 | CNBV bancos grandes | **Semestral** | `exercises.ts` |
+| Hipoteca dragdrop | 9 % anual | 6 % (incorrecto) → corregido 2026-04-28 | Banxico / CNBV | **Semestral** | `exercises.ts` |
 
 ---
 
@@ -135,6 +150,21 @@
 
 ---
 
+## 7b. Flashcards v3 (nuevas — migration 20260428000001)
+
+| ID | Dominio | Figura Clave | Fuente | Revisión |
+|----|---------|-------------|--------|----------|
+| fc…025 | Retiro/AFORE | Patrón ~8.6 % SBC (2026); empleado 1.125 % | Reforma LSS 2020 art. 168 | **Anual** (escala hasta 2030) |
+| fc…026 | Retiro/AFORE | $500/mes×45 años@7–8% = $1.9M–$2.6M | FV matemático + CONSAR | Atemporal (matemática); rendimiento **Trimestral** |
+| fc…027 | Seguros GMM | Cirugía grave $400k–$800k; prima ~$6k–$18k/año | Referencia editorial mercado | **Anual** |
+| fc…028 | Seguros de vida | Dependientes = necesario; sin dep. = no urgente | Principio | Atemporal; precios **Anual** |
+| fc…029 | ISR empleado | Tasa efectiva ~8–12 % @ $10k/mes; ~15–20 % @ $20k/mes | SAT tabla retención | **Anual** (enero) |
+| fc…030 | SAT/RESICO | Tasa 1–2.5 % mensual; límite $3.5M/año | Ley ISR art. 113-E | **Anual** (enero) |
+| fc…031 | Infonavit | Patrón 5 % SBC; 1,080 puntos para crédito | LFT art. 136 | **Anual** |
+| fc…032 | Ahorro SMART | Principio conceptual SMART | Principio | Atemporal |
+
+---
+
 ## 8. Calendario de Revisiones
 
 | Cadencia | Qué revisar | Fuente |
@@ -145,6 +175,7 @@
 | **Semestral** (enero y julio) | CAT promedio tarjetas; tasas préstamos | cnbv.gob.mx → Banca Múltiple; banxico.org.mx |
 | **Anual** (enero) | Salario mínimo (decreto CONASAMI), precios InflacionChallenge, tarifa Metro CDMX | conasami.gob.mx, STC Metro |
 | **Inmediato (RESUELTO 2026-04-24)** | Metro CDMX: tarifa $5 sin cambio 2012-2025; corregido en `InflacionChallenge/data.ts` | stcmetro.cdmx.gob.mx |
+| **Inmediato (RESUELTO 2026-04-28)** | Dragdrop rates, Scenario 1 FV+CAT label, Scenario 6 nominal vs CAT | `exercises.ts`, `20260428000002_*` |
 
 ---
 
@@ -152,15 +183,27 @@
 
 Issues creados en Linear (proyecto "Cultiva Finanzas — Garden Gamification", equipo Delivery):
 
-| Issue | Dominio | Prioridad | Estado |
-|-------|---------|-----------|--------|
-| [DLV-105](https://linear.app/riverstar/issue/DLV-105) | Seguros: IMSS, GMM, seguro de vida | **Alta** | Backlog |
-| [DLV-106](https://linear.app/riverstar/issue/DLV-106) | AFORE / Retiro: SAR, subcuentas, rendimientos | **Alta** | Backlog |
-| [DLV-107](https://linear.app/riverstar/issue/DLV-107) | Impuestos: SAT, RESICO, declaración anual | Normal | Backlog |
-| [DLV-108](https://linear.app/riverstar/issue/DLV-108) | Crédito hipotecario: Infonavit, CAT hipotecario | Normal | Backlog |
+| Issue | Dominio | Prioridad | Estado | Nota |
+|-------|---------|-----------|--------|------|
+| [DLV-105](https://linear.app/riverstar/issue/DLV-105) | Seguros: IMSS, GMM, seguro de vida | **Alta** | Backlog | ⚠️ Parcialmente atendido: flashcards fc-027, fc-028 añadidas (2026-04-28) |
+| [DLV-106](https://linear.app/riverstar/issue/DLV-106) | AFORE / Retiro: SAR, subcuentas, rendimientos | **Alta** | Backlog | ⚠️ Parcialmente atendido: flashcards fc-025, fc-026 añadidas (2026-04-28) |
+| [DLV-107](https://linear.app/riverstar/issue/DLV-107) | Impuestos: SAT, RESICO, declaración anual | Normal | Backlog | ⚠️ Parcialmente atendido: flashcards fc-029, fc-030 añadidas (2026-04-28) |
+| [DLV-108](https://linear.app/riverstar/issue/DLV-108) | Crédito hipotecario: Infonavit, CAT hipotecario | Normal | Backlog | ⚠️ Parcialmente atendido: flashcard fc-031 añadida (2026-04-28) |
+| [DLV-112](https://linear.app/riverstar/issue/DLV-112) | Fuente: "fondo de emergencia 89% de crisis" | **Alta** | Backlog | No puede corregirse sin modificar componente (ver mandato) |
+| [DLV-113](https://linear.app/riverstar/issue/DLV-113) | ENIF: 63% sin presupuesto → actualización | Normal | Backlog | Pendiente verificación ENIF 2024 |
+| [DLV-115](https://linear.app/riverstar/issue/DLV-115) | Fuente "89% de crisis" | Normal | Backlog | Duplicado de DLV-112 |
+| [DLV-116](https://linear.app/riverstar/issue/DLV-116) | Salario mínimo 2026 CONASAMI | **Alta** | Backlog | El juego muestra datos 2020→2025 — el precio2025=$278 es correcto para el rango del juego; actualizar si el juego migra a 2020→2026 |
+| [DLV-117](https://linear.app/riverstar/issue/DLV-117) | ENIF 63% | Normal | Backlog | Duplicado de DLV-113 |
+| [DLV-118](https://linear.app/riverstar/issue/DLV-118) | Fuente "89% de crisis" | **Alta** | Backlog | Duplicado de DLV-112 |
+| [DLV-119](https://linear.app/riverstar/issue/DLV-119) | Flashcards AFORE / SAR | **Alta** | Backlog | ✅ Atendido: fc-025 y fc-026 añadidas en v3 (2026-04-28) |
+| [DLV-120](https://linear.app/riverstar/issue/DLV-120) | Dragdrop tasas irrealistas para México | **Alta** | Backlog | ✅ Corregido en `exercises.ts` (2026-04-28) |
 
-- ❌ **Seguros** (DLV-105): IMSS, ISSSTE, seguro de vida, cómo contratar GMM — **High priority**
-- ❌ **AFORE / Retiro** (DLV-106): SAR (patrón 5.15 % + empleado 1.125 % + cuota social), subcuentas, rendimientos históricos — **High priority**
-- ❌ **Impuestos** (DLV-107): SAT, RESICO, declaración anual para asalariados, ISR freelance — Normal
-- ❌ **Crédito hipotecario** (DLV-108): Infonavit, fovissste, enganche, CAT hipotecario (~15–20 %) — Normal
-- ⚠️ **ENIF**: La estadística "63 % sin presupuesto" cita ENIF 2021 — necesita actualización si hay ENIF 2024 (sin issue por ahora — verificar disponibilidad del dato)
+### Notas sobre los "89% de crisis" (DLV-112/115/118)
+
+El tip en `PolinizacionSession.tsx` no puede modificarse según el mandato actual (no tocar componentes). El siguiente paso es:
+1. Reemplazar la cifra por "protege de la mayoría de emergencias financieras" sin porcentaje ficticio
+2. O citar la ENIF / una fuente académica verificada
+
+### Nota sobre DLV-116 (salario mínimo 2026)
+
+El juego `InflacionChallenge` muestra comparación **2020 → 2025**. El precio2025 de $278.80 es correcto para la fecha señalada (CONASAMI decreto enero 2025). Si el juego se actualiza a 2020→2026, usar el decreto CONASAMI de enero 2026.
