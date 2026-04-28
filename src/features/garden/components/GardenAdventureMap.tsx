@@ -13,7 +13,6 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import livingPathBase from '@/assets/world/living-path-base.webp'
 import nopalitoIdle from '@/assets/pixel/optimized/plantamigo-nopalito-idle.webp'
 import gastoHormigaIdle from '@/assets/pixel/optimized/enemy-gasto-hormiga-idle.webp'
 import gastoHormigaWeakened from '@/assets/pixel/optimized/enemy-gasto-hormiga-weakened.webp'
@@ -121,6 +120,7 @@ export function GardenAdventureMap({
             bossPower={bossPower}
             completedScenarios={senderoProgress.completedScenarios}
             onSelectNode={setSelectedNodeId}
+            onActivateNode={onOpenNode}
           />
         </div>
 
@@ -136,12 +136,14 @@ function LivingPathMap({
   bossPower,
   completedScenarios,
   onSelectNode,
+  onActivateNode,
 }: {
   nodes: AdventureNode[]
   selectedNode: AdventureNode
   bossPower: number
   completedScenarios: number
   onSelectNode: (nodeId: string) => void
+  onActivateNode: (node: SenderoNode) => void
 }) {
   return (
     <div
@@ -153,13 +155,7 @@ function LivingPathMap({
       }}
     >
       <div className="relative aspect-[941/1672] w-full">
-        <img
-          src={livingPathBase}
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover"
-          aria-hidden="true"
-          draggable={false}
-        />
+        <SenderoBackdrop />
 
         <WorldMapHeader completedScenarios={completedScenarios} />
 
@@ -168,7 +164,10 @@ function LivingPathMap({
             key={node.id}
             node={node}
             selected={selectedNode.id === node.id}
-            onSelect={() => onSelectNode(node.id)}
+            onSelect={() => {
+              onSelectNode(node.id)
+              if (node.status !== 'locked') onActivateNode(node)
+            }}
           />
         ))}
 
@@ -195,6 +194,87 @@ function LivingPathMap({
           </p>
         </div>
       </div>
+    </div>
+  )
+}
+
+function SenderoBackdrop() {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-[#EAF4C7]" aria-hidden="true">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(120,169,75,0.24),transparent_8rem),radial-gradient(circle_at_82%_20%,rgba(120,169,75,0.22),transparent_7rem),radial-gradient(circle_at_16%_72%,rgba(91,122,58,0.18),transparent_8rem),linear-gradient(180deg,#FFF2C7_0%,#EAF4C7_34%,#DDEEB9_100%)]" />
+      <svg
+        className="absolute inset-0 h-full w-full"
+        viewBox="0 0 100 178"
+        preserveAspectRatio="none"
+        focusable="false"
+      >
+        <path
+          d="M50 0 C72 18 34 30 49 45 C65 60 34 72 48 88 C66 108 36 121 49 139 C62 155 42 165 50 178"
+          fill="none"
+          stroke="#D8B47A"
+          strokeWidth="17"
+          strokeLinecap="round"
+          opacity="0.28"
+        />
+        <path
+          d="M50 0 C72 18 34 30 49 45 C65 60 34 72 48 88 C66 108 36 121 49 139 C62 155 42 165 50 178"
+          fill="none"
+          stroke="#FFF0CA"
+          strokeWidth="14"
+          strokeLinecap="round"
+        />
+        <path
+          d="M50 0 C72 18 34 30 49 45 C65 60 34 72 48 88 C66 108 36 121 49 139 C62 155 42 165 50 178"
+          fill="none"
+          stroke="#FFE5B5"
+          strokeWidth="11"
+          strokeLinecap="round"
+          opacity="0.72"
+        />
+      </svg>
+
+      <div className="absolute left-[5%] top-[18%] h-24 w-24 rounded-full bg-[#86B85F]/30 blur-sm" />
+      <div className="absolute right-[4%] top-[26%] h-28 w-24 rounded-full bg-[#6FA14D]/22 blur-sm" />
+      <div className="absolute left-[8%] top-[54%] h-28 w-28 rounded-full bg-[#7CB557]/26 blur-sm" />
+      <div className="absolute right-[8%] bottom-[12%] h-24 w-28 rounded-full bg-[#6C9D49]/24 blur-sm" />
+
+      <GardenPot className="left-[8%] top-[8%]" />
+      <GardenPot className="right-[7%] top-[42%]" />
+      <GardenPot className="left-[10%] bottom-[12%]" />
+      <CoinCluster className="right-[10%] bottom-[22%]" />
+      <CoinCluster className="left-[7%] top-[70%]" />
+    </div>
+  )
+}
+
+function GardenPot({ className }: { className: string }) {
+  return (
+    <div className={`absolute ${className} h-16 w-16`}>
+      <div className="absolute left-[35%] top-1 h-8 w-3 rounded-full bg-[#5B8E45]" />
+      <div className="absolute left-[18%] top-2 h-7 w-5 rounded-full bg-[#7CB557]" style={{ transform: 'rotate(-35deg)' }} />
+      <div className="absolute right-[20%] top-0 h-7 w-5 rounded-full bg-[#8FC665]" style={{ transform: 'rotate(35deg)' }} />
+      <div className="absolute bottom-0 left-[18%] h-9 w-10 rounded-b-xl rounded-t-md bg-[#C77A3B] shadow-[inset_0_-5px_0_rgba(106,75,36,0.18)]" />
+      <div className="absolute bottom-8 left-[14%] h-3 w-12 rounded-full bg-[#D8914C]" />
+    </div>
+  )
+}
+
+function CoinCluster({ className }: { className: string }) {
+  return (
+    <div className={`absolute ${className} h-12 w-16`}>
+      {[0, 1, 2].map((coin) => (
+        <img
+          key={coin}
+          src={coinSprout}
+          alt=""
+          className="absolute h-7 w-7"
+          style={{
+            left: `${coin * 17}px`,
+            top: `${coin % 2 === 0 ? 8 : 0}px`,
+            imageRendering: 'pixelated',
+          }}
+        />
+      ))}
     </div>
   )
 }
@@ -262,7 +342,7 @@ function LivingNodeButton({
           ? `0 0 0 4px ${palette.ring}, 0 16px 24px rgba(43,79,53,0.25), inset 0 4px 0 rgba(255,255,255,0.68)`
           : '0 12px 18px rgba(43,79,53,0.18), inset 0 4px 0 rgba(255,255,255,0.58)',
       }}
-      aria-label={`${node.title}: ${node.description}`}
+      aria-label={locked ? `${node.title}: bloqueado. ${node.description}` : `Abrir ${node.title}: ${node.description}`}
       animate={node.status === 'next' ? { y: [0, -4, 0] } : undefined}
       transition={node.status === 'next' ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : undefined}
     >
