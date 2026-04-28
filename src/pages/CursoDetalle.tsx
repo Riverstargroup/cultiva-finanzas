@@ -99,7 +99,7 @@ export default function CursoDetalle() {
       eyebrow="Mapa del modulo"
       zoneLabel="Ruta de semillas"
       zoneHint="Cada nodo mezcla decision, memoria, practica y recompensa."
-      zoneItems={["Semilla", "Repaso", "Dominio"]}
+      zoneItems={["Aprende", "Practica", "Domina"]}
     >
       {showContinueBanner && nextScenario && (
         <ContinueBanner

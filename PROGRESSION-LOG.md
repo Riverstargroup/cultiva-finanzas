@@ -5,6 +5,48 @@
 
 ---
 
+## UPDATE 2026-04-27 - Sendero Core Interaction Pass
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/sendero-core`
+
+### Summary
+
+Started turning Sendero Semilla from a visual map into the actual navigation surface of the app. This pass focuses on the two highest-friction issues from live review: Home nodes felt inactive, and Flashcards still looked like a separate module instead of a garden-world zone.
+
+### Changes In This Branch
+
+- `src/features/garden/components/GardenAdventureMap.tsx`
+  - Replaces the baked path image with a React/CSS/SVG Sendero backdrop so node positions are no longer fighting a fixed background asset.
+  - Makes visible nodes actionable directly from the map. Locked nodes still select and explain their state instead of opening dead routes.
+  - Keeps the existing Nopalito, Gasto Hormiga, node status, reward, and progress data wiring.
+
+- `src/pages/Flashcards.tsx`
+  - Rebrands Flashcards as `Vivero de Memoria`.
+  - Moves the page into the shared `BotanicalPage` world shell.
+  - Replaces emoji domain markers with lucide icons and Semilla pixel assets.
+  - Adds a memory-zone hero and deeper botanical cards.
+
+- `src/pages/CursoDetalle.tsx`
+  - Renames ambiguous zone chips from `Semilla / Repaso / Dominio` to `Aprende / Practica / Domina`.
+
+- `src/index.css`
+  - Adds reusable memory-zone surfaces for Flashcards.
+
+### Product Intent
+
+The route map should feel like the app's spine, not a preview card inside the app. This pass does not yet build the full multi-branch curriculum, plantamigo capture system, or boss flow; it removes the immediate friction that made the Sendero feel decorative.
+
+### Still Pending
+
+- Build the full module map: Finanzas Basicas first, then branch choice across credito, proteccion, crecimiento, SAT/RFC, hipoteca, etc.
+- Add real chest claim and boss encounter flows.
+- Add plantamigo inventory, active companion, capture/unlock mechanics, and cosmetics shop.
+- Continue re-skinning older modules that still feel outside the world.
+
+---
+
 ## UPDATE 2026-04-27 - Zone Surfaces Pass
 
 Status: IN PROGRESS
