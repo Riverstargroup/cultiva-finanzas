@@ -16,6 +16,7 @@ interface OnboardingStep {
   dialogue: string
   image: string
   imageAlt: string
+  imageKind: 'sprite' | 'place'
 }
 
 const STEPS: OnboardingStep[] = [
@@ -27,6 +28,7 @@ const STEPS: OnboardingStep[] = [
       'Shh... llegaste justo cuando el Gasto Hormiga encontro la entrada. Se alimenta de compras chiquitas que nadie nota.',
     image: gastoHormigaIdle,
     imageAlt: 'Gasto Hormiga',
+    imageKind: 'sprite',
   },
   {
     icon: Sprout,
@@ -36,6 +38,7 @@ const STEPS: OnboardingStep[] = [
       'Soy Nopalito. Puedo ayudarte a detectar fugas de dinero, pero necesito que completes tu primera semilla.',
     image: nopalitoIdle,
     imageAlt: 'Nopalito',
+    imageKind: 'sprite',
   },
   {
     icon: BookOpen,
@@ -45,6 +48,7 @@ const STEPS: OnboardingStep[] = [
       'Ahi no vienes a leer por leer. Cada nodo te pone una decision real y hace crecer este mundo.',
     image: greenhousePoi,
     imageAlt: 'Invernadero de cursos',
+    imageKind: 'place',
   },
   {
     icon: Gamepad2,
@@ -54,6 +58,7 @@ const STEPS: OnboardingStep[] = [
       'Cursos, repasos, rachas y juegos bajan su poder. Si dudas, preguntame. Yo te guio por el jardin.',
     image: nopalitoCelebrating,
     imageAlt: 'Nopalito celebrando',
+    imageKind: 'sprite',
   },
   {
     icon: Home,
@@ -63,6 +68,7 @@ const STEPS: OnboardingStep[] = [
       'Alla viven tus plantamigos. Vamos juntos: toma la primera semilla y recuperemos el camino.',
     image: gardenHomePoi,
     imageAlt: 'Casita del jardin',
+    imageKind: 'place',
   },
 ]
 
@@ -92,7 +98,7 @@ export function OnboardingOverlay({ onComplete }: OnboardingOverlayProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="onboarding-title"
-        className="w-full max-w-2xl overflow-hidden rounded-lg border"
+        className="onboarding-story-panel w-full max-w-2xl overflow-hidden rounded-[24px] border"
         style={{
           borderColor: 'color-mix(in srgb, var(--leaf-bright) 36%, var(--clay-soft))',
           background: 'linear-gradient(145deg, #FEFBF6, rgba(232,220,196,0.94))',
@@ -119,7 +125,7 @@ export function OnboardingOverlay({ onComplete }: OnboardingOverlayProps) {
               <img
                 src={current.image}
                 alt={current.imageAlt}
-                className="relative max-h-56 w-[82%] object-contain drop-shadow-[0_12px_22px_rgba(43,79,53,0.24)]"
+                className={`relative max-h-56 w-[82%] object-contain drop-shadow-[0_12px_22px_rgba(43,79,53,0.24)] ${current.imageKind === 'sprite' ? 'sprite-clean' : ''}`}
                 style={{ imageRendering: 'pixelated' }}
               />
             </div>

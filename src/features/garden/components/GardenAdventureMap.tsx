@@ -86,6 +86,7 @@ export function GardenAdventureMap({
   )
 
   const selectedNode = nodes.find((node) => node.id === selectedNodeId) ?? nodes[0]
+  const selectedNodeIndex = Math.max(0, nodes.findIndex((node) => node.id === selectedNode.id))
 
   const dismissReward = () => {
     setRecentReward(null)
@@ -117,6 +118,7 @@ export function GardenAdventureMap({
           <LivingPathMap
             nodes={nodes}
             selectedNode={selectedNode}
+            selectedNodeIndex={selectedNodeIndex}
             bossPower={bossPower}
             completedScenarios={senderoProgress.completedScenarios}
             onSelectNode={setSelectedNodeId}
@@ -133,6 +135,7 @@ export function GardenAdventureMap({
 function LivingPathMap({
   nodes,
   selectedNode,
+  selectedNodeIndex,
   bossPower,
   completedScenarios,
   onSelectNode,
@@ -140,6 +143,7 @@ function LivingPathMap({
 }: {
   nodes: AdventureNode[]
   selectedNode: AdventureNode
+  selectedNodeIndex: number
   bossPower: number
   completedScenarios: number
   onSelectNode: (nodeId: string) => void
@@ -147,7 +151,7 @@ function LivingPathMap({
 }) {
   return (
     <div
-      className="relative overflow-hidden rounded-[28px] border"
+      className="sendero-map-shell relative overflow-hidden rounded-[28px] border"
       style={{
         borderColor: 'rgba(212,172,117,0.58)',
         background: '#F8EBCB',
@@ -157,7 +161,11 @@ function LivingPathMap({
       <div className="relative aspect-[941/1672] w-full">
         <SenderoBackdrop />
 
-        <WorldMapHeader completedScenarios={completedScenarios} />
+        <WorldMapHeader
+          completedScenarios={completedScenarios}
+          selectedNodeIndex={selectedNodeIndex}
+          totalNodes={nodes.length}
+        />
 
         {nodes.map((node) => (
           <LivingNodeButton
@@ -174,7 +182,7 @@ function LivingPathMap({
         <motion.img
           src={nopalitoIdle}
           alt="Nopalito"
-          className="absolute right-[7%] top-[33%] w-[22%] max-w-[128px] drop-shadow-[0_10px_18px_rgba(43,79,53,0.24)]"
+          className="sprite-clean absolute right-[7%] top-[33%] w-[22%] max-w-[128px] drop-shadow-[0_10px_18px_rgba(43,79,53,0.24)]"
           style={{ imageRendering: 'pixelated' }}
           animate={{ y: [0, -6, 0] }}
           transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
@@ -279,18 +287,34 @@ function CoinCluster({ className }: { className: string }) {
   )
 }
 
-function WorldMapHeader({ completedScenarios }: { completedScenarios: number }) {
+function WorldMapHeader({
+  completedScenarios,
+  selectedNodeIndex,
+  totalNodes,
+}: {
+  completedScenarios: number
+  selectedNodeIndex: number
+  totalNodes: number
+}) {
+  const progress = totalNodes > 1 ? Math.round((selectedNodeIndex / (totalNodes - 1)) * 100) : 0
+
   return (
-    <div className="absolute left-4 right-4 top-4 flex items-center justify-between gap-2">
-      <div className="rounded-full border bg-[#FEFBF6]/86 px-3 py-2 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
+    <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-2">
+      <div className="min-w-0 flex-1 rounded-[18px] border bg-[#FEFBF6]/90 px-3 py-2 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
         <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
           Sendero Semilla
         </p>
         <p className="font-heading text-sm font-bold" style={{ color: 'var(--forest-deep)' }}>
           {SENDERO_PHASE_ONE_TITLE}
         </p>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E8D2A9]" aria-hidden="true">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-[#78A94B] to-[#E5B84B]"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
-      <div className="flex items-center gap-1 rounded-full border bg-[#FEFBF6]/86 px-2 py-1.5 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
+      <div className="flex shrink-0 items-center gap-1 rounded-full border bg-[#FEFBF6]/90 px-2 py-1.5 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
         <img src={coinSprout} alt="" className="h-6 w-6" style={{ imageRendering: 'pixelated' }} aria-hidden="true" />
         <span className="text-xs font-bold" style={{ color: 'var(--forest-deep)' }}>
           {completedScenarios} semillas
@@ -331,7 +355,7 @@ function LivingNodeButton({
     <motion.button
       type="button"
       onClick={onSelect}
-      className="absolute flex aspect-square w-[18.8%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-center transition active:scale-95"
+      className="sendero-node-button absolute flex aspect-square w-[18.8%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-center transition active:scale-95"
       style={{
         left: `${node.position.x}%`,
         top: `${node.position.y}%`,
@@ -343,6 +367,10 @@ function LivingNodeButton({
           : '0 12px 18px rgba(43,79,53,0.18), inset 0 4px 0 rgba(255,255,255,0.58)',
       }}
       aria-label={locked ? `${node.title}: bloqueado. ${node.description}` : `Abrir ${node.title}: ${node.description}`}
+      data-status={node.status}
+      data-type={node.type}
+      whileHover={locked ? undefined : { y: -3 }}
+      whileTap={locked ? undefined : { scale: 0.94 }}
       animate={node.status === 'next' ? { y: [0, -4, 0] } : undefined}
       transition={node.status === 'next' ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : undefined}
     >

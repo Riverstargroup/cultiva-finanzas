@@ -155,7 +155,7 @@ export function NopalitoGuide({
             <img
               src={active.id === 'boss' ? nopalitoCelebrating : nopalitoIdle}
               alt="Nopalito"
-              className="h-full w-full object-contain"
+              className="sprite-clean h-full w-full object-contain"
               style={{ imageRendering: 'pixelated' }}
             />
             <span
