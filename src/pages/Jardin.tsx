@@ -112,7 +112,7 @@ export default function Jardin() {
         <img
           src={nopalitoIdle}
           alt=""
-          className="h-[62px] w-[62px] object-contain"
+          className="sprite-clean h-[62px] w-[62px] object-contain"
           style={{ imageRendering: 'pixelated' }}
           aria-hidden="true"
         />

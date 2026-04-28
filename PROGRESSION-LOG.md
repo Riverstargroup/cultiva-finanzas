@@ -5,6 +5,51 @@
 
 ---
 
+## UPDATE 2026-04-27 - Huashu Wow Pass
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/sendero-wow-pass`
+
+### Summary
+
+Applied a Huashu-inspired 80/20 visual pass: keep the existing Semilla personality, but remove the collage feeling from the first impression. This pass focuses on recognition, depth, and continuity instead of adding new systems.
+
+### Changes In This Branch
+
+- `src/features/garden/components/BackyardSkyHeader.tsx`
+  - Reframes Home as `Sendero Semilla` instead of the old decorative garden label.
+  - Adds a sticky botanical HUD treatment for phase, level, streak, and coins.
+
+- `src/features/garden/components/GardenAdventureMap.tsx`
+  - Adds route progress context to the map header.
+  - Adds richer node depth and hover/tap feel without changing the underlying node data model.
+  - Applies sprite cleanup styling to Nopalito so the character reads more like an integrated companion.
+
+- `src/features/onboarding/components/OnboardingOverlay.tsx`
+  - Adds per-step image type metadata.
+  - Applies sprite cleanup only to characters/enemies, preserving place assets.
+  - Upgrades the story panel framing for a more cohesive prologue.
+
+- `src/features/garden/components/NopalitoGuide.tsx`
+- `src/pages/Jardin.tsx`
+  - Applies the same sprite cleanup to Nopalito surfaces so the assistant feels consistent across the app.
+
+- `src/index.css`
+  - Adds reusable Sendero HUD, map, node-depth, sprite-cleanup, and onboarding story classes.
+
+### Product Intent
+
+This is the small polish layer meant to make the current rebuild feel intentional while the larger systems are still being built: one world, one mascot, one progression spine.
+
+### Still Pending
+
+- Build a true custom Sendero art/layout system for exact node placement.
+- Replace temporary sprite cleanup with fully transparent production-ready character exports if needed.
+- Continue unifying older course/game/profile surfaces around the Sendero.
+
+---
+
 ## UPDATE 2026-04-27 - Sendero Core Interaction Pass
 
 Status: IN PROGRESS
