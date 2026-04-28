@@ -18,7 +18,7 @@ export function AnimatedCoinCounter({ value, className }: AnimatedCoinCounterPro
   }, [rounded])
 
   useEffect(() => {
-    const controls = animate(count, value, { duration: 1.2, ease: 'easeOut' })
+    const controls = animate(count, value, { duration: 0.8, ease: 'easeOut' })
     return controls.stop
   }, [count, value])
 

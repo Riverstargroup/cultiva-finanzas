@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ArrowRight, Trophy, Loader2 } from "lucide-react";
 import { BonusGamePrompt } from "@/features/minigames/components/BonusGamePrompt";
 import { EmbeddedGame } from "@/features/minigames/components/EmbeddedGame";
@@ -27,7 +27,12 @@ import { usePrediction } from "@/features/simulators/hooks/usePrediction";
 import { PredictionModal } from "@/features/simulators/components/PredictionModal";
 import { OutcomeReveal } from "@/features/simulators/components/OutcomeReveal";
 import { RewardToast } from "@/components/RewardToast";
+import { LevelBadge } from "@/components/LevelBadge";
+import { useUserLevel } from "@/hooks/useUserLevel";
+import { ParticleEffect } from "@/features/garden/components/ParticleEffect";
+import { stageUpgradeConfig } from "@/features/garden/constants/particles";
 import type { ScenarioOption } from "@/types/learning";
+import type { UserLevel } from "@/hooks/useUserLevel";
 
 function ScenarioSkeleton() {
   return (
@@ -68,6 +73,26 @@ export default function Escenario() {
   const [predictionReady, setPredictionReady] = useState(false);
   const [predResolved, setPredResolved] = useState(false);
   const [revealResult, setRevealResult] = useState<{ wasCorrect: boolean; coinsEarned: number } | null>(null);
+
+  const userLevel = useUserLevel();
+  const levelBeforeRef = useRef<UserLevel | null>(null);
+  const [levelUpTo, setLevelUpTo] = useState<UserLevel | null>(null);
+
+  // Track level before scenario so we can detect upgrade after completion
+  useEffect(() => {
+    if (!userLevel.isLoading && levelBeforeRef.current === null) {
+      levelBeforeRef.current = userLevel.level;
+    }
+  }, [userLevel.isLoading, userLevel.level]);
+
+  // Detect level-up after done step re-queries
+  useEffect(() => {
+    if (step === 'done' && !userLevel.isLoading && levelBeforeRef.current !== null) {
+      if (levelBeforeRef.current !== userLevel.level) {
+        setLevelUpTo(userLevel.level);
+      }
+    }
+  }, [step, userLevel.level, userLevel.isLoading]);
 
   const [step, setStep] = useState<Step>("decision");
   const [selectedOption, setSelectedOption] = useState<ScenarioOption | null>(null);
@@ -236,6 +261,7 @@ export default function Escenario() {
       queryClient.invalidateQueries({ queryKey: ["user-skills"] });
       queryClient.invalidateQueries({ queryKey: ["user-mission"] });
       queryClient.invalidateQueries({ queryKey: ["garden"] });
+      queryClient.invalidateQueries({ queryKey: ["user-level"] });
 
       // Reveal prediction outcome (non-critical, guard against double-call)
       if (predictionId && predictedValue !== null && !predResolved) {
@@ -397,6 +423,26 @@ export default function Escenario() {
                 Puntaje: {Math.round(finalScore * 100)}%
               </p>
               <RewardToast coins={scenarioCoinsEarned} streak={streak ?? 0} visible={scenarioCoinsEarned > 0} />
+
+              <AnimatePresence>
+                {levelUpTo && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8, y: 12 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -8 }}
+                    transition={{ type: 'spring', stiffness: 360, damping: 22, delay: 0.4 }}
+                    className="relative overflow-visible rounded-2xl px-5 py-4"
+                    style={{ background: 'color-mix(in srgb, var(--leaf-bright) 12%, var(--clay-soft))' }}
+                  >
+                    <ParticleEffect config={stageUpgradeConfig} active={!!levelUpTo} onComplete={() => {}} />
+                    <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--leaf-muted)' }}>
+                      ¡Subiste de nivel!
+                    </p>
+                    <LevelBadge level={levelUpTo} size="lg" animated />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <button
                 onClick={handleNext}
                 disabled={saving}
