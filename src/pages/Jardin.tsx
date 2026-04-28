@@ -11,6 +11,7 @@ import { JardinSkeleton } from '@/features/garden/components/JardinSkeleton'
 import { JardinWelcome } from '@/features/garden/components/JardinWelcome'
 import { GardenAdventureMap } from '@/features/garden/components/GardenAdventureMap'
 import { NopalitoGuide } from '@/features/garden/components/NopalitoGuide'
+import { SenderoDemoGuide } from '@/features/garden/components/SenderoDemoGuide'
 import { useUserLevel } from '@/hooks/useUserLevel'
 import { LevelUpNotification } from '@/components/LevelUpNotification'
 import { OnboardingOverlay } from '@/features/onboarding'
@@ -95,6 +96,12 @@ export default function Jardin() {
           <GardenAdventureMap
             totalMastery={garden.totalMastery}
             onOpenNode={openSenderoNode}
+          />
+
+          <SenderoDemoGuide
+            onOpenFirstLesson={openFirstLesson}
+            onOpenGame={() => navigate('/juegos?game=presupuesto-rapido')}
+            onOpenReview={() => navigate('/flashcards')}
           />
         </div>
       </div>

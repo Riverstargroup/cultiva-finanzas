@@ -5,6 +5,42 @@
 
 ---
 
+## UPDATE 2026-04-28 - Guided Demo Route
+
+Status: IN PROGRESS
+Author: Codex
+Branch: `codex/demo-guided-route`
+
+### Summary
+
+Added an in-product demo checklist so validation sessions can follow the intended five-minute loop without improvising: prologue, first lesson, game, review, chest, and boss.
+
+### Changes In This Branch
+
+- `src/features/garden/components/SenderoDemoGuide.tsx`
+  - Adds a persistent local checklist for the guided demo flow.
+  - Adds direct CTAs into the first lesson, budget game, and flashcards.
+  - Adds a prologue replay action by resetting onboarding storage and reloading.
+  - Adds reset control for local demo checklist/chest state.
+
+- `src/pages/Jardin.tsx`
+  - Places the guided demo panel under the Sendero map on Home.
+
+- `src/index.css`
+  - Adds botanical styling for the demo guide panel, steps, progress bar, and actions.
+
+### Product Intent
+
+This is for end-of-day validation: a tester should know exactly what to try, and the team should observe the same loop every time.
+
+### Still Pending
+
+- Add a lightweight feedback capture form after the demo loop.
+- Track demo step completion in analytics or Supabase instead of localStorage.
+- Replace the reload-based prologue replay with a controlled onboarding reset API.
+
+---
+
 ## UPDATE 2026-04-28 - Sendero Demo V1
 
 Status: IN PROGRESS
