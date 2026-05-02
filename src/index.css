@@ -325,6 +325,15 @@
     mask-image: radial-gradient(ellipse 58% 58% at 50% 52%, #000 70%, rgba(0, 0, 0, 0.86) 78%, transparent 100%);
   }
 
+  @keyframes bounce-slow {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-6px); }
+  }
+
+  .animate-bounce-slow {
+    animation: bounce-slow 2s ease-in-out infinite;
+  }
+
   .onboarding-story-panel {
     background:
       radial-gradient(circle at 18% 18%, rgba(120, 169, 75, 0.18), transparent 12rem),

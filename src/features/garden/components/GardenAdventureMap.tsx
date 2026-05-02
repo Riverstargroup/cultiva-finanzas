@@ -18,7 +18,6 @@ import nopalitoIdle from '@/assets/pixel/optimized/plantamigo-nopalito-idle.webp
 import gastoHormigaIdle from '@/assets/pixel/optimized/enemy-gasto-hormiga-idle.webp'
 import gastoHormigaWeakened from '@/assets/pixel/optimized/enemy-gasto-hormiga-weakened.webp'
 import coinSprout from '@/assets/pixel/optimized/ui-coin-sprout.webp'
-import pathNodeBase from '@/assets/pixel/optimized/ui-path-node.webp'
 import {
   SENDERO_MODULE_PREVIEWS,
   SENDERO_PHASE_ONE_TITLE,
@@ -94,7 +93,6 @@ export function GardenAdventureMap({
       setDemoEventNode(node)
       return
     }
-
     onOpenNode(node)
   }, [onOpenNode])
 
@@ -111,9 +109,7 @@ export function GardenAdventureMap({
           status: claimedNodeIds.includes(node.id) && node.type === 'chest' ? 'completed' : node.status,
           icon: getNodeIcon(node.type),
         }
-
         adventureNode.onAction = () => activateNode(adventureNode)
-
         return adventureNode
       }),
     [activateNode, bossPower, claimedNodeIds, senderoProgress.nodes],
@@ -158,17 +154,15 @@ export function GardenAdventureMap({
       )}
 
       <div className="mx-auto w-full max-w-[560px] space-y-4">
-        <div className="w-full">
-          <LivingPathMap
-            nodes={nodes}
-            selectedNode={selectedNode}
-            selectedNodeIndex={selectedNodeIndex}
-            bossPower={bossPower}
-            completedScenarios={senderoProgress.completedScenarios}
-            onSelectNode={setSelectedNodeId}
-            onActivateNode={activateNode}
-          />
-        </div>
+        <LivingPathMap
+          nodes={nodes}
+          selectedNode={selectedNode}
+          selectedNodeIndex={selectedNodeIndex}
+          bossPower={bossPower}
+          completedScenarios={senderoProgress.completedScenarios}
+          onSelectNode={setSelectedNodeId}
+          onActivateNode={activateNode}
+        />
 
         <NodeDetailPanel node={selectedNode} />
         <ModuleBranchPreview />
@@ -200,6 +194,8 @@ export function GardenAdventureMap({
   )
 }
 
+// ─── Pixel art path map ───────────────────────────────────────────────────────
+
 function LivingPathMap({
   nodes,
   selectedNode,
@@ -217,29 +213,183 @@ function LivingPathMap({
   onSelectNode: (nodeId: string) => void
   onActivateNode: (node: SenderoNode) => void
 }) {
+  const totalNodes = nodes.length
+  const progressPct = totalNodes > 1 ? Math.round((selectedNodeIndex / (totalNodes - 1)) * 100) : 0
+  const activeNode = nodes.find((n) => n.status === 'next') ?? nodes[0]
+
   return (
     <div
-      className="sendero-map-shell relative overflow-hidden rounded-[28px] border"
+      className="overflow-hidden"
       style={{
-        borderColor: 'rgba(212,172,117,0.58)',
-        background: '#F8EBCB',
-        boxShadow: '0 18px 48px rgba(43,79,53,0.16)',
+        background: '#F5E6C8',
+        border: '3px solid #8B6914',
+        borderRadius: 4,
+        boxShadow: '4px 4px 0 #5a4010',
       }}
     >
-      <div className="relative aspect-[941/1672] w-full">
-        <SenderoBackdrop />
+      {/* ── HUD superior pixel art ── */}
+      <div
+        className="flex items-stretch gap-2 p-3"
+        style={{ borderBottom: '2px solid #8B6914' }}
+      >
+        <div className="flex-1 min-w-0">
+          <p
+            className="text-[9px] font-black uppercase"
+            style={{ color: '#5a4010', letterSpacing: '0.18em' }}
+          >
+            SENDERO SEMILLA
+          </p>
+          <p
+            className="font-heading text-base font-black leading-tight"
+            style={{ color: '#1b2e1f' }}
+          >
+            {SENDERO_PHASE_ONE_TITLE}
+          </p>
+          <div
+            className="mt-1.5 h-2 overflow-hidden rounded-sm"
+            style={{ background: '#C8B89A' }}
+            aria-label={`Progreso ${progressPct}%`}
+          >
+            <div
+              className="h-full rounded-sm transition-all duration-500"
+              style={{ background: '#4CAF50', width: `${progressPct}%` }}
+            />
+          </div>
+        </div>
 
-        <WorldMapHeader
-          completedScenarios={completedScenarios}
-          selectedNodeIndex={selectedNodeIndex}
-          totalNodes={nodes.length}
-        />
+        <div
+          className="flex items-center gap-1.5 px-3 shrink-0 rounded-sm"
+          style={{ background: '#E8D5A8', border: '2px solid #8B6914' }}
+        >
+          <img
+            src={coinSprout}
+            alt=""
+            aria-hidden="true"
+            className="w-5 h-5"
+            style={{ imageRendering: 'pixelated' }}
+          />
+          <span className="font-black text-sm" style={{ color: '#5a4010' }}>
+            {completedScenarios} semillas
+          </span>
+        </div>
+      </div>
 
+      {/* ── Path container: aspect-ratio fijo garantiza alineación ── */}
+      <div
+        className="relative mx-auto w-full overflow-hidden"
+        style={{ maxWidth: 420, aspectRatio: '9/16' }}
+      >
+        {/* Fondo: cielo + césped */}
+        <div className="absolute inset-0" aria-hidden="true">
+          {/* Cielo */}
+          <div
+            className="absolute inset-x-0 top-0"
+            style={{
+              height: '18%',
+              background: 'linear-gradient(180deg, #87CEEB 0%, #b8e0f7 100%)',
+            }}
+          >
+            <div
+              className="absolute top-2 rounded-full opacity-95"
+              style={{ left: '8%', width: 56, height: 18, background: 'white' }}
+            />
+            <div
+              className="absolute rounded-full opacity-90"
+              style={{ left: '14%', top: 4, width: 36, height: 14, background: 'white' }}
+            />
+            <div
+              className="absolute top-3 rounded-full opacity-95"
+              style={{ right: '18%', width: 72, height: 18, background: 'white' }}
+            />
+            <div
+              className="absolute rounded-full opacity-80"
+              style={{ right: '28%', top: 6, width: 44, height: 14, background: 'white' }}
+            />
+          </div>
+
+          {/* Césped */}
+          <div
+            className="absolute inset-x-0 bottom-0"
+            style={{
+              top: '18%',
+              background: 'linear-gradient(180deg, #4a9e3f 0%, #3d8a32 100%)',
+            }}
+          />
+
+          {/* Textura de pasto — SVG ligero */}
+          <svg
+            className="absolute inset-0 w-full h-full opacity-25"
+            viewBox="0 0 420 747"
+            preserveAspectRatio="none"
+            focusable="false"
+          >
+            {Array.from({ length: 28 }).map((_, i) => {
+              const x = i * 15 + 6
+              const dir = i % 3 === 0 ? -3 : i % 3 === 1 ? 3 : 0
+              return (
+                <line
+                  key={i}
+                  x1={x}
+                  y1={170}
+                  x2={x + dir}
+                  y2={148}
+                  stroke="#2d6a1a"
+                  strokeWidth="2"
+                />
+              )
+            })}
+          </svg>
+        </div>
+
+        {/* ── Path SVG (adoquines) — viewBox 9×16 = same ratio as container ── */}
+        {/*    preserveAspectRatio="none" + matching aspect ratios = no distortion */}
+        {/*    SVG coordinate (x, y) maps to (x/9 * 100%, y/16 * 100%) of container */}
+        {/*    Node position.x/100*9, position.y/100*16 gives the SVG coords */}
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 9 16"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          {/* Base gris del camino */}
+          <path
+            d="M4.59,0 C4.59,0.7 4.59,1.3 4.59,2.0 C4.59,2.8 5.8,3.3 5.4,4.08 C5.15,4.7 3.4,5.3 3.6,5.84 C3.72,6.4 5.4,7.1 5.22,7.65 C5.1,8.2 4.1,9.2 4.23,9.65 C4.35,10.1 5.5,11.0 5.22,11.71 C5.0,12.3 4.45,13.5 4.41,14.08 C4.41,14.8 4.41,15.5 4.41,16.5"
+            fill="none"
+            stroke="#A0A0A0"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* Borde oscuro para profundidad */}
+          <path
+            d="M4.59,0 C4.59,0.7 4.59,1.3 4.59,2.0 C4.59,2.8 5.8,3.3 5.4,4.08 C5.15,4.7 3.4,5.3 3.6,5.84 C3.72,6.4 5.4,7.1 5.22,7.65 C5.1,8.2 4.1,9.2 4.23,9.65 C4.35,10.1 5.5,11.0 5.22,11.71 C5.0,12.3 4.45,13.5 4.41,14.08 C4.41,14.8 4.41,15.5 4.41,16.5"
+            fill="none"
+            stroke="#787878"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeDasharray="0.6 0.22"
+            opacity="0.55"
+          />
+          {/* Adoquines: líneas transversales simuladas */}
+          <path
+            d="M4.59,0 C4.59,0.7 4.59,1.3 4.59,2.0 C4.59,2.8 5.8,3.3 5.4,4.08 C5.15,4.7 3.4,5.3 3.6,5.84 C3.72,6.4 5.4,7.1 5.22,7.65 C5.1,8.2 4.1,9.2 4.23,9.65 C4.35,10.1 5.5,11.0 5.22,11.71 C5.0,12.3 4.45,13.5 4.41,14.08 C4.41,14.8 4.41,15.5 4.41,16.5"
+            fill="none"
+            stroke="#CCCCCC"
+            strokeWidth="1.1"
+            strokeLinecap="round"
+            strokeDasharray="1.1 0.35"
+            opacity="0.7"
+          />
+        </svg>
+
+        {/* ── Nodos posicionados con % que coinciden exactamente con el SVG ── */}
         {nodes.map((node) => (
-          <LivingNodeButton
+          <PixelNode
             key={node.id}
             node={node}
             selected={selectedNode.id === node.id}
+            bossPower={bossPower}
             onSelect={() => {
               onSelectNode(node.id)
               if (node.status !== 'locked') onActivateNode(node)
@@ -247,148 +397,221 @@ function LivingPathMap({
           />
         ))}
 
+        {/* ── Nopalito posicionado sobre el nodo activo ── */}
         <motion.img
           src={nopalitoIdle}
           alt="Nopalito"
-          className="sprite-clean absolute right-[7%] top-[33%] w-[22%] max-w-[128px] drop-shadow-[0_10px_18px_rgba(43,79,53,0.24)]"
-          style={{ imageRendering: 'pixelated' }}
+          className="absolute -translate-x-1/2 pointer-events-none"
+          style={{
+            left: `${activeNode.position.x}%`,
+            top: `calc(${activeNode.position.y}% - 11%)`,
+            width: 56,
+            height: 56,
+            imageRendering: 'pixelated',
+            filter: 'drop-shadow(0 4px 8px rgba(43,79,53,0.35))',
+          }}
           animate={{ y: [0, -6, 0] }}
-          transition={{ repeat: Infinity, duration: 3.2, ease: 'easeInOut' }}
+          transition={{ repeat: Infinity, duration: 2.8, ease: 'easeInOut' }}
         />
+      </div>
 
-        <GastoHormigaMarker bossPower={bossPower} />
-
-        <div className="absolute bottom-4 left-4 right-4 rounded-2xl border bg-[#FEFBF6]/88 p-3 shadow-[0_10px_30px_rgba(43,79,53,0.14)] backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.55)' }}>
-          <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
-            Nodo seleccionado
-          </p>
-          <h2 className="font-heading text-lg font-bold leading-tight" style={{ color: 'var(--forest-deep)' }}>
-            {selectedNode.title}
-          </h2>
-          <p className="mt-1 line-clamp-2 text-xs leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
-            {selectedNode.description}
-          </p>
-        </div>
+      {/* ── Info card inferior pixel art retro ── */}
+      <div
+        className="p-4"
+        style={{
+          borderTop: '2px solid #8B6914',
+          background: '#F5E6C8',
+          backgroundImage: `
+            radial-gradient(circle at 4px 4px, #8B6914 2px, transparent 2px),
+            radial-gradient(circle at calc(100% - 4px) 4px, #8B6914 2px, transparent 2px),
+            radial-gradient(circle at 4px calc(100% - 4px), #8B6914 2px, transparent 2px),
+            radial-gradient(circle at calc(100% - 4px) calc(100% - 4px), #8B6914 2px, transparent 2px)
+          `,
+        }}
+      >
+        <p
+          className="text-[9px] font-black uppercase text-center mb-1.5"
+          style={{ color: '#8B6914', letterSpacing: '0.18em' }}
+        >
+          NODO SELECCIONADO
+        </p>
+        <h3
+          className="font-heading text-xl font-black text-center leading-tight"
+          style={{ color: '#1b2e1f' }}
+        >
+          {selectedNode.title}
+        </h3>
+        <p
+          className="text-xs text-center mt-1 leading-relaxed"
+          style={{ color: '#5a4010' }}
+        >
+          {selectedNode.description}
+        </p>
+        {selectedNode.status !== 'locked' && (
+          <button
+            type="button"
+            onClick={selectedNode.onAction}
+            className="mt-3 w-full py-2.5 font-black text-white text-sm rounded-sm transition-transform active:scale-95"
+            style={{
+              background: '#4CAF50',
+              border: '2px solid #2d6a1a',
+              boxShadow: '0 3px 0 #1a4010',
+            }}
+          >
+            {selectedNode.actionLabel}
+          </button>
+        )}
       </div>
     </div>
   )
 }
 
-function SenderoBackdrop() {
-  return (
-    <div className="absolute inset-0 overflow-hidden bg-[#EAF4C7]" aria-hidden="true">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(120,169,75,0.24),transparent_8rem),radial-gradient(circle_at_82%_20%,rgba(120,169,75,0.22),transparent_7rem),radial-gradient(circle_at_16%_72%,rgba(91,122,58,0.18),transparent_8rem),linear-gradient(180deg,#FFF2C7_0%,#EAF4C7_34%,#DDEEB9_100%)]" />
-      <svg
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 100 178"
-        preserveAspectRatio="none"
-        focusable="false"
-      >
-        <path
-          d="M50 0 C72 18 34 30 49 45 C65 60 34 72 48 88 C66 108 36 121 49 139 C62 155 42 165 50 178"
-          fill="none"
-          stroke="#D8B47A"
-          strokeWidth="17"
-          strokeLinecap="round"
-          opacity="0.28"
-        />
-        <path
-          d="M50 0 C72 18 34 30 49 45 C65 60 34 72 48 88 C66 108 36 121 49 139 C62 155 42 165 50 178"
-          fill="none"
-          stroke="#FFF0CA"
-          strokeWidth="14"
-          strokeLinecap="round"
-        />
-        <path
-          d="M50 0 C72 18 34 30 49 45 C65 60 34 72 48 88 C66 108 36 121 49 139 C62 155 42 165 50 178"
-          fill="none"
-          stroke="#FFE5B5"
-          strokeWidth="11"
-          strokeLinecap="round"
-          opacity="0.72"
-        />
-      </svg>
+// ─── Pixel node button ────────────────────────────────────────────────────────
 
-      <div className="absolute left-[5%] top-[18%] h-24 w-24 rounded-full bg-[#86B85F]/30 blur-sm" />
-      <div className="absolute right-[4%] top-[26%] h-28 w-24 rounded-full bg-[#6FA14D]/22 blur-sm" />
-      <div className="absolute left-[8%] top-[54%] h-28 w-28 rounded-full bg-[#7CB557]/26 blur-sm" />
-      <div className="absolute right-[8%] bottom-[12%] h-24 w-28 rounded-full bg-[#6C9D49]/24 blur-sm" />
-
-      <GardenPot className="left-[8%] top-[8%]" />
-      <GardenPot className="right-[7%] top-[42%]" />
-      <GardenPot className="left-[10%] bottom-[12%]" />
-      <CoinCluster className="right-[10%] bottom-[22%]" />
-      <CoinCluster className="left-[7%] top-[70%]" />
-    </div>
-  )
-}
-
-function GardenPot({ className }: { className: string }) {
-  return (
-    <div className={`absolute ${className} h-16 w-16`}>
-      <div className="absolute left-[35%] top-1 h-8 w-3 rounded-full bg-[#5B8E45]" />
-      <div className="absolute left-[18%] top-2 h-7 w-5 rounded-full bg-[#7CB557]" style={{ transform: 'rotate(-35deg)' }} />
-      <div className="absolute right-[20%] top-0 h-7 w-5 rounded-full bg-[#8FC665]" style={{ transform: 'rotate(35deg)' }} />
-      <div className="absolute bottom-0 left-[18%] h-9 w-10 rounded-b-xl rounded-t-md bg-[#C77A3B] shadow-[inset_0_-5px_0_rgba(106,75,36,0.18)]" />
-      <div className="absolute bottom-8 left-[14%] h-3 w-12 rounded-full bg-[#D8914C]" />
-    </div>
-  )
-}
-
-function CoinCluster({ className }: { className: string }) {
-  return (
-    <div className={`absolute ${className} h-12 w-16`}>
-      {[0, 1, 2].map((coin) => (
-        <img
-          key={coin}
-          src={coinSprout}
-          alt=""
-          className="absolute h-7 w-7"
-          style={{
-            left: `${coin * 17}px`,
-            top: `${coin % 2 === 0 ? 8 : 0}px`,
-            imageRendering: 'pixelated',
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-function WorldMapHeader({
-  completedScenarios,
-  selectedNodeIndex,
-  totalNodes,
+function PixelNode({
+  node,
+  selected,
+  bossPower,
+  onSelect,
 }: {
-  completedScenarios: number
-  selectedNodeIndex: number
-  totalNodes: number
+  node: AdventureNode
+  selected: boolean
+  bossPower: number
+  onSelect: () => void
 }) {
-  const progress = totalNodes > 1 ? Math.round((selectedNodeIndex / (totalNodes - 1)) * 100) : 0
+  const locked = node.status === 'locked'
+  const isNext = node.status === 'next'
+  const isBoss = node.type === 'boss'
+  const isCompleted = node.status === 'completed'
+  const isChest = node.type === 'chest'
+  const Icon = node.icon
+  const isWeakened = bossPower < 55
+
+  const selectionRing = selected
+    ? '0 0 0 3px #FFD700, 0 4px 0 #5a4010'
+    : '0 4px 0 #5a4010'
 
   return (
-    <div className="absolute left-4 right-4 top-4 flex items-start justify-between gap-2">
-      <div className="min-w-0 flex-1 rounded-[18px] border bg-[#FEFBF6]/90 px-3 py-2 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
-        <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
-          Sendero Semilla
-        </p>
-        <p className="font-heading text-sm font-bold" style={{ color: 'var(--forest-deep)' }}>
-          {SENDERO_PHASE_ONE_TITLE}
-        </p>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E8D2A9]" aria-hidden="true">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-[#78A94B] to-[#E5B84B]"
-            style={{ width: `${progress}%` }}
+    <button
+      type="button"
+      onClick={onSelect}
+      className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-0.5 active:scale-95 transition-transform"
+      style={{
+        left: `${node.position.x}%`,
+        top: `${node.position.y}%`,
+      }}
+      aria-label={locked ? `${node.title}: bloqueado. ${node.description}` : `Abrir ${node.title}: ${node.description}`}
+      data-status={node.status}
+      data-type={node.type}
+    >
+      {locked && !isBoss ? (
+        /* Roca verde + candado dorado */
+        <div
+          className="relative w-12 h-12 rounded-full flex items-center justify-center"
+          style={{
+            background: 'radial-gradient(circle at 35% 35%, #6aaa4a, #2d6a1a)',
+            boxShadow: selected
+              ? '0 0 0 3px #FFD700, 0 4px 0 #1a4010, inset 0 2px 4px rgba(255,255,255,0.2)'
+              : '0 4px 0 #1a4010, inset 0 2px 4px rgba(255,255,255,0.2)',
+          }}
+        >
+          <LockKeyhole
+            className="w-5 h-5"
+            style={{ color: '#FFD700', filter: 'drop-shadow(0 1px 0 #8B6914)' }}
           />
         </div>
-      </div>
-      <div className="flex shrink-0 items-center gap-1 rounded-full border bg-[#FEFBF6]/90 px-2 py-1.5 shadow-sm backdrop-blur-sm" style={{ borderColor: 'rgba(212,172,117,0.5)' }}>
-        <img src={coinSprout} alt="" className="h-6 w-6" style={{ imageRendering: 'pixelated' }} aria-hidden="true" />
-        <span className="text-xs font-bold" style={{ color: 'var(--forest-deep)' }}>
-          {completedScenarios} semillas
-        </span>
-      </div>
-    </div>
+      ) : isBoss ? (
+        /* Gasto Hormiga — boss node */
+        <div className="flex flex-col items-center gap-1">
+          <img
+            src={isWeakened ? gastoHormigaWeakened : gastoHormigaIdle}
+            alt="Gasto Hormiga"
+            style={{
+              width: 56,
+              height: 56,
+              imageRendering: 'pixelated',
+              filter: selected
+                ? 'drop-shadow(0 0 6px #FFD700) drop-shadow(0 4px 8px rgba(82,41,24,0.3))'
+                : 'drop-shadow(0 4px 8px rgba(82,41,24,0.3))',
+            }}
+            draggable={false}
+          />
+          <div
+            className="h-1.5 overflow-hidden rounded-sm"
+            style={{
+              width: 48,
+              border: '1px solid rgba(138,75,34,0.5)',
+              background: '#F8D8CF',
+            }}
+            aria-label={`Poder ${bossPower}%`}
+          >
+            <div
+              className="h-full rounded-sm"
+              style={{
+                width: `${bossPower}%`,
+                background: 'linear-gradient(90deg, #EF4444, #F59E0B)',
+              }}
+            />
+          </div>
+        </div>
+      ) : isChest ? (
+        /* Cofre de semillas */
+        <div
+          className="relative w-12 h-12 flex items-center justify-center rounded-sm"
+          style={{
+            background: isCompleted ? '#A0C070' : '#E8B64A',
+            border: selected ? '3px solid #FFD700' : '3px solid #8B6914',
+            boxShadow: selectionRing,
+          }}
+        >
+          <Sparkles className="w-6 h-6" style={{ color: '#5a3000' }} />
+          {isCompleted && (
+            <span
+              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-white text-[9px] font-black"
+              style={{ background: '#2d6a1a', border: '2px solid #1a4010' }}
+            >
+              ✓
+            </span>
+          )}
+        </div>
+      ) : isCompleted ? (
+        /* Nodo completado */
+        <div
+          className="relative w-12 h-12 flex items-center justify-center rounded-full"
+          style={{
+            background: 'radial-gradient(circle at 35% 35%, #78C850, #4a8a2a)',
+            border: selected ? '3px solid #FFD700' : '3px solid #2d6a1a',
+            boxShadow: selected
+              ? '0 0 0 2px #FFD700, 0 4px 0 #1a4010'
+              : '0 4px 0 #1a4010',
+          }}
+        >
+          <Star className="w-5 h-5 fill-yellow-300 text-yellow-400" />
+        </div>
+      ) : (
+        /* Nodo disponible / siguiente — libro pixel art con bounce */
+        <motion.div
+          className="relative w-12 h-12 flex items-center justify-center rounded-sm"
+          style={{
+            background: '#F5DEB3',
+            border: selected ? '3px solid #FFD700' : '3px solid #8B6914',
+            boxShadow: selectionRing,
+          }}
+          animate={isNext ? { y: [0, -5, 0] } : undefined}
+          transition={isNext ? { repeat: Infinity, duration: 2, ease: 'easeInOut' } : undefined}
+        >
+          <Icon className="w-6 h-6" style={{ color: '#4a2c10' }} />
+          {isNext && (
+            <span
+              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-white text-[8px] font-black"
+              style={{ background: '#E5B84B', border: '2px solid #8B6914' }}
+            >
+              !
+            </span>
+          )}
+        </motion.div>
+      )}
+    </button>
   )
 }
 
@@ -402,189 +625,38 @@ function getNodeIcon(type: SenderoNode['type']) {
     shop: ShoppingBag,
     boss: Trophy,
   }
-
   return icons[type]
 }
 
-function LivingNodeButton({
-  node,
-  selected,
-  onSelect,
-}: {
-  node: AdventureNode
-  selected: boolean
-  onSelect: () => void
-}) {
-  const Icon = node.icon
-  const locked = node.status === 'locked'
-  const palette = getNodePalette(node)
-
-  return (
-    <motion.button
-      type="button"
-      onClick={onSelect}
-      className="sendero-node-button absolute flex aspect-square w-[18.8%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-center transition active:scale-95"
-      style={{
-        left: `${node.position.x}%`,
-        top: `${node.position.y}%`,
-        borderColor: selected ? palette.border : 'rgba(255,255,255,0.9)',
-        background: palette.surface,
-        color: palette.color,
-        boxShadow: selected
-          ? `0 0 0 4px ${palette.ring}, 0 16px 24px rgba(43,79,53,0.25), inset 0 4px 0 rgba(255,255,255,0.68)`
-          : '0 12px 18px rgba(43,79,53,0.18), inset 0 4px 0 rgba(255,255,255,0.58)',
-      }}
-      aria-label={locked ? `${node.title}: bloqueado. ${node.description}` : `Abrir ${node.title}: ${node.description}`}
-      data-status={node.status}
-      data-type={node.type}
-      whileHover={locked ? undefined : { y: -3 }}
-      whileTap={locked ? undefined : { scale: 0.94 }}
-      animate={node.status === 'next' ? { y: [0, -4, 0] } : undefined}
-      transition={node.status === 'next' ? { repeat: Infinity, duration: 2.2, ease: 'easeInOut' } : undefined}
-    >
-      <span
-        className="absolute inset-x-[9%] bottom-[-8%] h-[24%] rounded-full"
-        style={{ background: palette.depth, filter: 'blur(0.2px)' }}
-        aria-hidden="true"
-      />
-      <img
-        src={pathNodeBase}
-        alt=""
-        className="absolute inset-[-4%] h-[108%] w-[108%] object-contain opacity-45"
-        style={{ imageRendering: 'pixelated' }}
-        aria-hidden="true"
-        draggable={false}
-      />
-      <span
-        className="absolute inset-[14%] rounded-full"
-        style={{ background: palette.inner, boxShadow: 'inset 0 3px 0 rgba(255,255,255,0.72)' }}
-        aria-hidden="true"
-      />
-      {locked ? (
-        <LockKeyhole className="relative z-10 h-[34%] w-[34%]" />
-      ) : (
-        <Icon className="relative z-10 h-[36%] w-[36%]" />
-      )}
-      {node.status === 'completed' && (
-        <span className="absolute -bottom-3 z-20 flex gap-0.5">
-          {[0, 1, 2].map((star) => (
-            <Star key={star} className="h-3 w-3 fill-yellow-400 text-yellow-500" />
-          ))}
-        </span>
-      )}
-      {node.status === 'boss' && (
-        <span className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-bold text-white">
-          !
-        </span>
-      )}
-    </motion.button>
-  )
-}
-
-function getNodePalette(node: AdventureNode) {
-  if (node.status === 'locked') {
-    return {
-      surface: 'linear-gradient(180deg, #D8D0BE, #B9AD97)',
-      inner: 'linear-gradient(180deg, #EDE7DB, #C2B6A1)',
-      depth: '#8E816D',
-      border: '#9B907E',
-      ring: 'rgba(155,144,126,0.2)',
-      color: '#6F6658',
-    }
-  }
-
-  if (node.status === 'boss') {
-    return {
-      surface: 'linear-gradient(180deg, #F6C6B8, #D87057)',
-      inner: 'linear-gradient(180deg, #FAD9CF, #E78A74)',
-      depth: '#A8412F',
-      border: '#BF4E39',
-      ring: 'rgba(216,112,87,0.26)',
-      color: '#7F1D1D',
-    }
-  }
-
-  if (node.type === 'game') {
-    return {
-      surface: 'linear-gradient(180deg, #CBEFBB, #7FC25D)',
-      inner: 'linear-gradient(180deg, #E9F7DA, #93D071)',
-      depth: '#4F8A34',
-      border: '#5B9E3D',
-      ring: 'rgba(91,158,61,0.22)',
-      color: '#1B3B26',
-    }
-  }
-
-  if (node.type === 'review') {
-    return {
-      surface: 'linear-gradient(180deg, #D3F0E8, #8BC7BA)',
-      inner: 'linear-gradient(180deg, #F1FBF6, #A8D9CE)',
-      depth: '#4E9487',
-      border: '#5FA99A',
-      ring: 'rgba(95,169,154,0.22)',
-      color: '#17413B',
-    }
-  }
-
-  if (node.type === 'chest' || node.status === 'completed') {
-    return {
-      surface: 'linear-gradient(180deg, #FFE4A3, #E8B64A)',
-      inner: 'linear-gradient(180deg, #FFF4CA, #F0C760)',
-      depth: '#B67C22',
-      border: '#CB922E',
-      ring: 'rgba(203,146,46,0.24)',
-      color: '#6B4B12',
-    }
-  }
-
-  return {
-    surface: 'linear-gradient(180deg, #FDF7E8, #A9D98F)',
-    inner: 'linear-gradient(180deg, #FFF9E8, #BEE5A4)',
-    depth: '#73A951',
-    border: '#7DB95B',
-    ring: 'rgba(125,185,91,0.22)',
-    color: '#1B3B26',
-  }
-}
-
-function GastoHormigaMarker({ bossPower }: { bossPower: number }) {
-  const isWeakened = bossPower < 55
-
-  return (
-    <div className="absolute left-[5%] top-[67%] w-[20%] max-w-[112px]">
-      <img
-        src={isWeakened ? gastoHormigaWeakened : gastoHormigaIdle}
-        alt="Gasto Hormiga"
-        className="mx-auto w-full drop-shadow-[0_10px_16px_rgba(82,41,24,0.24)]"
-        style={{ imageRendering: 'pixelated' }}
-        draggable={false}
-      />
-      <div
-        className="mx-auto -mt-2 h-2 w-[72%] overflow-hidden rounded-full border bg-[#F8D8CF]"
-        style={{ borderColor: 'rgba(138,75,34,0.35)' }}
-        aria-label={`Poder del Gasto Hormiga ${bossPower}%`}
-      >
-        <div className="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400" style={{ width: `${bossPower}%` }} />
-      </div>
-    </div>
-  )
-}
+// ─── Node detail panel (sin cambios) ─────────────────────────────────────────
 
 function NodeDetailPanel({ node }: { node: AdventureNode }) {
   const Icon = node.icon
   const locked = node.status === 'locked'
 
   return (
-    <div className="rounded-[22px] border bg-[#FEFBF6]/92 p-4 shadow-[0_14px_34px_rgba(43,79,53,0.12)]" style={{ borderColor: 'rgba(212,172,117,0.58)' }}>
+    <div
+      className="rounded-[22px] border bg-[#FEFBF6]/92 p-4 shadow-[0_14px_34px_rgba(43,79,53,0.12)]"
+      style={{ borderColor: 'rgba(212,172,117,0.58)' }}
+    >
       <div className="flex items-start gap-3">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl" style={{ background: 'rgba(112,181,91,0.16)', color: 'var(--forest-deep)' }}>
+        <div
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
+          style={{ background: 'rgba(112,181,91,0.16)', color: 'var(--forest-deep)' }}
+        >
           <Icon className="h-6 w-6" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
+          <p
+            className="text-xs font-bold uppercase tracking-wider"
+            style={{ color: 'var(--leaf-muted)' }}
+          >
             {node.status === 'boss' ? 'Bloqueo del camino' : 'Siguiente paso'}
           </p>
-          <h2 className="font-heading text-xl font-bold leading-tight" style={{ color: 'var(--forest-deep)' }}>
+          <h2
+            className="font-heading text-xl font-bold leading-tight"
+            style={{ color: 'var(--forest-deep)' }}
+          >
             {node.title}
           </h2>
           <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
@@ -593,7 +665,10 @@ function NodeDetailPanel({ node }: { node: AdventureNode }) {
         </div>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl px-3 py-2" style={{ background: 'rgba(229,184,75,0.14)', color: '#6B4B12' }}>
+      <div
+        className="mt-4 flex items-center justify-between gap-3 rounded-2xl px-3 py-2"
+        style={{ background: 'rgba(229,184,75,0.14)', color: '#6B4B12' }}
+      >
         <span className="text-xs font-bold uppercase tracking-wide">Recompensa</span>
         <span className="text-sm font-bold">{node.reward}</span>
       </div>
@@ -614,12 +689,17 @@ function NodeDetailPanel({ node }: { node: AdventureNode }) {
   )
 }
 
+// ─── Module branch preview (sin cambios) ─────────────────────────────────────
+
 function ModuleBranchPreview() {
   return (
     <section className="sendero-branch-panel" aria-label="Siguientes rutas del Sendero">
       <div>
         <p className="sendero-branch-kicker">Mapa de crecimiento</p>
-        <h2 className="font-heading text-lg font-bold leading-tight" style={{ color: 'var(--forest-deep)' }}>
+        <h2
+          className="font-heading text-lg font-bold leading-tight"
+          style={{ color: 'var(--forest-deep)' }}
+        >
           Despues de Finanzas Basicas eliges tu siguiente ruta.
         </h2>
       </div>
@@ -633,7 +713,12 @@ function ModuleBranchPreview() {
 }
 
 function ModuleBranchRow({ module }: { module: SenderoModulePreview }) {
-  const label = module.status === 'active' ? 'Actual' : module.status === 'choice' ? 'Elegible despues' : 'Pronto'
+  const label =
+    module.status === 'active'
+      ? 'Actual'
+      : module.status === 'choice'
+        ? 'Elegible despues'
+        : 'Pronto'
 
   return (
     <div className="sendero-branch-row" data-tone={module.tone} data-status={module.status}>
@@ -657,6 +742,8 @@ function ModuleBranchRow({ module }: { module: SenderoModulePreview }) {
     </div>
   )
 }
+
+// ─── Demo event modal (sin cambios) ──────────────────────────────────────────
 
 function SenderoDemoEventModal({
   node,
@@ -704,7 +791,11 @@ function SenderoDemoEventModal({
           </div>
           <div className="min-w-0 flex-1 pr-8">
             <p className="sendero-branch-kicker">{copy.kicker}</p>
-            <h2 id="sendero-demo-event-title" className="font-heading text-2xl font-black leading-tight" style={{ color: 'var(--forest-deep)' }}>
+            <h2
+              id="sendero-demo-event-title"
+              className="font-heading text-2xl font-black leading-tight"
+              style={{ color: 'var(--forest-deep)' }}
+            >
               {copy.title}
             </h2>
             <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
@@ -714,12 +805,20 @@ function SenderoDemoEventModal({
         </div>
 
         <div className="border-t p-4" style={{ borderColor: 'rgba(212,172,117,0.38)' }}>
-          <div className="rounded-2xl px-3 py-2 text-sm font-bold" style={{ background: 'rgba(229,184,75,0.14)', color: '#6B4B12' }}>
+          <div
+            className="rounded-2xl px-3 py-2 text-sm font-bold"
+            style={{ background: 'rgba(229,184,75,0.14)', color: '#6B4B12' }}
+          >
             Recompensa demo: {copy.reward}
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2">
             {node.type === 'chest' && (
-              <button type="button" onClick={onClaim} disabled={claimed} className="sendero-event-primary disabled:opacity-60">
+              <button
+                type="button"
+                onClick={onClaim}
+                disabled={claimed}
+                className="sendero-event-primary disabled:opacity-60"
+              >
                 {claimed ? 'Cofre reclamado' : 'Reclamar cofre'}
               </button>
             )}
@@ -785,9 +884,10 @@ function getDemoEventCopy(node: AdventureNode, claimed: boolean) {
     return {
       kicker: node.status === 'locked' ? 'Casita bloqueada' : 'Casita del jardin',
       title: 'Aqui viviran tus plantamigos.',
-      body: node.status === 'locked'
-        ? 'En el demo, la casita se desbloquea al completar mas semillas. Despues mostrara plantamigo principal, apoyo, nivel y cosmeticos.'
-        : 'La casita sera el hogar de Nopalito y los plantamigos desbloqueados durante la aventura.',
+      body:
+        node.status === 'locked'
+          ? 'En el demo, la casita se desbloquea al completar mas semillas. Despues mostrara plantamigo principal, apoyo, nivel y cosmeticos.'
+          : 'La casita sera el hogar de Nopalito y los plantamigos desbloqueados durante la aventura.',
       reward: 'coleccion y companeros',
     }
   }
@@ -799,6 +899,8 @@ function getDemoEventCopy(node: AdventureNode, claimed: boolean) {
     reward: node.reward,
   }
 }
+
+// ─── Plantamigo unlock modal (sin cambios) ────────────────────────────────────
 
 function PlantamigoUnlockModal({
   plantamigoName,
@@ -824,7 +926,10 @@ function PlantamigoUnlockModal({
           boxShadow: '0 24px 80px rgba(27,59,38,0.28)',
         }}
       >
-        <div className="mx-auto flex h-40 w-40 items-center justify-center rounded-2xl" style={{ background: 'rgba(76,175,80,0.12)' }}>
+        <div
+          className="mx-auto flex h-40 w-40 items-center justify-center rounded-2xl"
+          style={{ background: 'rgba(76,175,80,0.12)' }}
+        >
           <img
             src={nopalitoIdle}
             alt={plantamigoName}
@@ -834,14 +939,22 @@ function PlantamigoUnlockModal({
         </div>
 
         <div className="mt-4">
-          <div className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
+          <div
+            className="text-xs font-bold uppercase tracking-wider"
+            style={{ color: 'var(--leaf-muted)' }}
+          >
             Nuevo plantamigo encontrado
           </div>
-          <h2 id="plantamigo-unlock-title" className="mt-1 font-heading text-2xl font-bold" style={{ color: 'var(--forest-deep)' }}>
+          <h2
+            id="plantamigo-unlock-title"
+            className="mt-1 font-heading text-2xl font-bold"
+            style={{ color: 'var(--forest-deep)' }}
+          >
             {plantamigoName} se une a tu jardin
           </h2>
           <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--leaf-muted)' }}>
-            Ayuda a detectar fugas de gasto y hace mas fuerte tu ruta de Control. Sube su nivel completando semillas, repasos y retos.
+            Ayuda a detectar fugas de gasto y hace mas fuerte tu ruta de Control. Sube su nivel
+            completando semillas, repasos y retos.
           </p>
         </div>
 
@@ -871,6 +984,8 @@ function PlantamigoUnlockModal({
   )
 }
 
+// ─── Reward impact banner (sin cambios) ──────────────────────────────────────
+
 function RewardImpactBanner({
   reward,
   bossPower,
@@ -892,20 +1007,38 @@ function RewardImpactBanner({
       }}
     >
       <div className="flex items-start gap-3">
-        <img src={coinSprout} alt="" className="h-10 w-10 shrink-0" style={{ imageRendering: 'pixelated' }} aria-hidden="true" />
+        <img
+          src={coinSprout}
+          alt=""
+          className="h-10 w-10 shrink-0"
+          style={{ imageRendering: 'pixelated' }}
+          aria-hidden="true"
+        />
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--leaf-muted)' }}>
+          <div
+            className="text-xs font-bold uppercase tracking-wider"
+            style={{ color: 'var(--leaf-muted)' }}
+          >
             Impacto en el jardin
           </div>
           <h2 className="font-heading text-lg font-bold" style={{ color: 'var(--forest-deep)' }}>
             {reward.scenarioTitle} debilito al Gasto Hormiga
           </h2>
           <p className="mt-1 text-sm" style={{ color: 'var(--leaf-muted)' }}>
-            +{reward.coins} monedas, {reward.score}% de dominio y -{reward.bossDamage}% de poder enemigo.
-            {reward.unlockedPlantamigo ? ` ${reward.unlockedPlantamigo} ya puede acompanarte.` : ''}
+            +{reward.coins} monedas, {reward.score}% de dominio y -{reward.bossDamage}% de poder
+            enemigo.
+            {reward.unlockedPlantamigo
+              ? ` ${reward.unlockedPlantamigo} ya puede acompanarte.`
+              : ''}
           </p>
           <div className="mt-3 h-2 overflow-hidden rounded-full" style={{ background: 'rgba(127,29,29,0.12)' }}>
-            <div className="h-full rounded-full transition-all" style={{ width: `${bossPower}%`, background: 'linear-gradient(90deg, #EF4444, #F59E0B)' }} />
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${bossPower}%`,
+                background: 'linear-gradient(90deg, #EF4444, #F59E0B)',
+              }}
+            />
           </div>
         </div>
         <button
@@ -921,4 +1054,3 @@ function RewardImpactBanner({
     </motion.div>
   )
 }
-
