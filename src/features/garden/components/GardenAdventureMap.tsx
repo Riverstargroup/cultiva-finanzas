@@ -552,6 +552,7 @@ export function GardenAdventureMap({
         />
       )}
     </section>
+    </div>
   )
 }
 
