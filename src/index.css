@@ -120,6 +120,29 @@
     --garden-coin-gold: #FFC107;
     --garden-coin-shine: #FFEB82;
     --garden-coin-shadow: #B8860B;
+
+    /* Sendero Semilla — Pixel Art Tokens */
+    --px-sky-top: #7ab8d8;
+    --px-sky-bottom: #eef5fa;
+    --px-grass: #5d8742;
+    --px-grass-dark: #3e6b2a;
+    --px-panel-bg: #f4ecc8;
+    --px-panel-bg2: #e4d4a0;
+    --px-panel-line: #8b6a40;
+    --px-frame-dk: #2a1810;
+    --px-frame-mid: #5a3420;
+    --px-frame-hl: #c89060;
+    --px-path-shadow: #1a1812;
+    --px-path-dirt: #5a4830;
+    --px-path-stone: #928c7c;
+    --px-path-light: #dcd6c0;
+    --px-platform-gold: #c8a840;
+    --px-platform-gold2: #e8c860;
+    --px-btn-green: #3e7a28;
+    --px-btn-green-dk: #1f4a1c;
+    --px-btn-cream: #fff8dc;
+    --px-ink: #1a1a1a;
+    --px-font: 'Press Start 2P', 'Courier New', monospace;
   }
 
   .dark {

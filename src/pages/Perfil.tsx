@@ -57,9 +57,9 @@ export default function Perfil() {
 
   return (
     <BotanicalPage
-      title="Perfil"
-      subtitle={user?.email || "Tu invernadero personal"}
-      eyebrow="Bitacora del viajero"
+      title="Tu Bitácora"
+      subtitle={`${stats?.streakDays ?? 0} días de racha · Nivel ${stats?.level ?? 1} · ${stats?.totalPoints ?? 0} semillas`}
+      eyebrow="Viajero del Sendero"
       zoneLabel="Zona personal"
       zoneHint="Tu avance, herramientas y logros viven dentro del mismo recorrido."
       zoneItems={["Perfil", "Herramientas", "Logros"]}
