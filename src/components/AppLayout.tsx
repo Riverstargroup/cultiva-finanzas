@@ -27,10 +27,17 @@ export default function AppLayout({ children }: AppLayoutProps) {
     : "¡Bienvenido al Sendero Semilla! Toca el primer nodo para comenzar tu viaje.";
 
   return (
-    <div className={`flex min-h-screen w-full flex-col ${isSendero ? "" : "bg-background"}`}>
+    <div 
+      className={`flex flex-col w-full ${isSendero ? "" : "bg-background"}`}
+      style={{ minHeight: '100dvh' }}
+    >
       <main 
-        className={isSendero ? "flex-1 overflow-y-auto pb-20" : "flex-1 p-4 pb-20 md:p-6 md:pb-20 lg:p-8 lg:pb-20"}
-        style={isSendero ? { background: "transparent" } : undefined}
+        className="flex-1 w-full overflow-y-auto"
+        style={{ 
+          paddingBottom: '80px',
+          background: 'transparent',
+          minHeight: 0
+        }}
       >
         <SwipeNavigator>
           {children ?? <Outlet />}

@@ -126,7 +126,14 @@ export default function Juegos() {
   const activeGame = GAME_CARDS.find((g) => g.id === activeView);
 
   return (
-    <BotanicalPage
+    <div 
+      className="w-full px-4 py-4"
+      style={{ 
+        minHeight: 'calc(100dvh - 80px)',
+        background: 'var(--soil-warm)'
+      }}
+    >
+      <BotanicalPage
       title="Arena de Entrenamiento"
       subtitle="Los juegos que desbloqueas en el Sendero viven aquí. Practica cuando quieras."
       eyebrow="Campo de retos"
@@ -281,5 +288,6 @@ export default function Juegos() {
         )}
       </AnimatePresence>
     </BotanicalPage>
+    </div>
   );
 }

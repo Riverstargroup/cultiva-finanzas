@@ -107,7 +107,14 @@ export default function Cursos() {
   const item = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
   return (
-    <BotanicalPage
+    <div 
+      className="w-full px-4 py-4"
+      style={{ 
+        minHeight: 'calc(100dvh - 80px)',
+        background: 'var(--soil-warm)'
+      }}
+    >
+      <BotanicalPage
       title="Tu Mapa de Conocimiento"
       subtitle="Cada curso es un módulo del Sendero. Explora lo que te espera adelante."
       eyebrow="Invernadero de lecciones"
@@ -171,5 +178,6 @@ export default function Cursos() {
         </motion.div>
       )}
     </BotanicalPage>
+    </div>
   );
 }

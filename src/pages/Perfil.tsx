@@ -56,7 +56,13 @@ export default function Perfil() {
   const inputClass = "w-full rounded-lg px-3 py-2.5 text-sm border outline-none focus:ring-2 focus:ring-[var(--leaf-bright)]/30 transition-colors";
 
   return (
-    <div className="botanical-bg w-full h-full">
+    <div 
+      className="w-full px-4 py-4 space-y-4"
+      style={{ 
+        minHeight: 'calc(100dvh - 80px)',
+        background: 'var(--soil-warm)'
+      }}
+    >
       <BotanicalPage
         title="Tu Bitácora"
         subtitle={`${stats?.streakDays ?? 0} días de racha · Nivel ${stats?.level ?? 1} · ${stats?.totalPoints ?? 0} semillas`}
