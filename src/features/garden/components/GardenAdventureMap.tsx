@@ -207,7 +207,8 @@ export function GardenAdventureMap({
   }
 
   return (
-    <section className="relative w-full min-h-screen flex flex-col md:flex-row justify-center" style={{ background: 'transparent' }}>
+    <div className="w-full min-h-full botanical-bg">
+    <section className="relative w-full min-h-full flex flex-col md:flex-row justify-center" style={{ background: 'transparent' }}>
       {/* ── Modals / banners fuera del canvas ── */}
       {unlockModalOpen && recentReward?.unlockedPlantamigo && (
         <PlantamigoUnlockModal
@@ -221,7 +222,7 @@ export function GardenAdventureMap({
       )}
 
       {/* COLUMNA IZQUIERDA — solo desktop, info del módulo actual */}
-      <div className="hidden md:flex md:w-64 lg:w-80 flex-col items-start p-6 pt-20 gap-4 z-10">
+      <div className="hidden md:flex md:w-64 lg:w-72 flex-col p-6 gap-4 z-10">
         <div className="w-full rounded-lg p-4"
           style={{ background: '#F5E6C8', border: '3px solid #8B6914', boxShadow: '3px 3px 0 #5a4010' }}>
           <p className="text-[10px] font-bold uppercase tracking-widest font-mono" style={{ color: '#8B6914' }}>
@@ -262,141 +263,24 @@ export function GardenAdventureMap({
       <div className="flex-1 flex flex-col items-center relative" style={{ minHeight: '100vh' }}>
         
         {/* ── Game map container — aspect ratio fijo garantiza alineación ── */}
-        <div
-          className="relative w-full mx-auto"
-          style={{ maxWidth: 420, aspectRatio: '9/16' }}
-        >
-        {/* Sky gradient */}
-        <div
-          aria-hidden="true"
+        <div 
+          className="relative mx-auto overflow-hidden"
           style={{
-            position: 'absolute',
-            inset: 0,
-            background:
-              'linear-gradient(180deg, #7ab8d8 0%, #8ec6e8 10%, #a4d4ec 20%, #c4e2f2 30%, #eef5fa 40%)',
-            height: '40%',
-          }}
-        />
-
-        {/* Sun */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: 20,
-            right: 28,
-            width: 22,
-            height: 22,
-            borderRadius: '50%',
-            background:
-              'radial-gradient(circle at 40% 40%, #fff8c8 0%, #f6d058 40%, #e8b038 70%, #c08428 100%)',
-            boxShadow: '0 0 14px 4px rgba(248,208,88,0.55)',
-          }}
-        />
-
-        {/* Clouds */}
-        <div aria-hidden="true">
-          {[
-            { left: '7%', top: 8, w: 58, h: 18 },
-            { left: '14%', top: 14, w: 38, h: 13 },
-            { right: '16%', top: 7, w: 68, h: 18 },
-            { right: '28%', top: 16, w: 42, h: 13 },
-          ].map((cloud, i) => (
-            <div
-              key={i}
-              style={{
-                position: 'absolute',
-                background: 'white',
-                borderRadius: 999,
-                opacity: 0.92,
-                ...cloud,
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Mountain silhouette */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: '28%',
-            left: 0,
-            right: 0,
-            height: 60,
-            background:
-              'linear-gradient(180deg, transparent 0%, #2c4a3c 0%)',
-            clipPath:
-              'polygon(0% 100%, 0% 55%, 5% 30%, 10% 45%, 16% 15%, 22% 42%, 30% 20%, 38% 48%, 45% 10%, 52% 38%, 60% 18%, 68% 40%, 76% 8%, 84% 35%, 92% 20%, 100% 42%, 100% 100%)',
-            opacity: 0.72,
-          }}
-        />
-
-        {/* Grass field */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: '38%',
-            bottom: 0,
-            background:
-              'linear-gradient(180deg, #5d8742 0%, #4c7a2a 25%, #3a6020 60%, #2a4818 100%)',
-          }}
-        />
-
-        {/* Pixel trees — left */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            left: -4,
-            top: '32%',
-            width: 28,
-            height: 56,
-          }}
-        >
-          <PixelTree />
-        </div>
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            left: -4,
-            bottom: '14%',
-            width: 28,
-            height: 56,
-          }}
-        >
-          <PixelTree />
-        </div>
-
-        {/* Pixel trees — right */}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            right: -4,
-            top: '36%',
-            width: 28,
-            height: 56,
-          }}
-        >
-          <PixelTree flip />
-        </div>
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            right: -4,
-            bottom: '18%',
-            width: 28,
-            height: 56,
-          }}
-        >
-          <PixelTree flip />
-        </div>
+            maxWidth: 420,
+            aspectRatio: '9/16',
+            background: 'linear-gradient(180deg, #d4edda 0%, #c8e6c9 40%, #a5d6a7 100%)',
+            borderRadius: 24,
+            border: '2px solid rgba(45, 106, 79, 0.15)',
+            boxShadow: '0 8px 32px rgba(45, 106, 79, 0.12), 0 2px 8px rgba(0,0,0,0.08)',
+          }}>
+          
+          {/* Decoración interna — círculos difusos de luz como el fondo de Perfil */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-[-20%] left-[-10%] w-64 h-64 rounded-full opacity-20"
+              style={{ background: '#86efac', filter: 'blur(40px)' }} />
+            <div className="absolute bottom-[-10%] right-[-10%] w-48 h-48 rounded-full opacity-15"
+              style={{ background: '#4ade80', filter: 'blur(30px)' }} />
+          </div>
 
         {/* ── Cobblestone path SVG ── */}
         <svg
@@ -572,7 +456,7 @@ export function GardenAdventureMap({
       </div>
 
       {/* COLUMNA DERECHA — solo desktop, nodo seleccionado + mapa */}
-      <div className="hidden md:flex md:w-64 lg:w-80 flex-col items-start p-6 pt-20 gap-4 z-10">
+      <div className="hidden md:flex md:w-64 lg:w-72 flex-col p-6 gap-4 z-10">
         
         {/* Info del nodo seleccionado — desktop */}
         {selectedNode && (
