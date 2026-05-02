@@ -56,108 +56,110 @@ export default function Perfil() {
   const inputClass = "w-full rounded-lg px-3 py-2.5 text-sm border outline-none focus:ring-2 focus:ring-[var(--leaf-bright)]/30 transition-colors";
 
   return (
-    <BotanicalPage
-      title="Tu Bitácora"
-      subtitle={`${stats?.streakDays ?? 0} días de racha · Nivel ${stats?.level ?? 1} · ${stats?.totalPoints ?? 0} semillas`}
-      eyebrow="Viajero del Sendero"
-      zoneLabel="Zona personal"
-      zoneHint="Tu avance, herramientas y logros viven dentro del mismo recorrido."
-      zoneItems={["Perfil", "Herramientas", "Logros"]}
-    >
-      {/* Avatar + Info */}
-      <div className="organic-card p-6">
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div
-            className="organic-border h-16 w-16 flex items-center justify-center font-heading font-bold text-xl"
-            style={{ background: "color-mix(in srgb, var(--leaf-fresh) 20%, transparent)", color: "var(--leaf-bright)" }}
-          >
-            {loading ? "..." : initials}
-          </div>
-          <div className="flex-1 text-center sm:text-left">
-            {editing ? (
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--leaf-muted)" }}>
-                  Nombre
-                </Label>
-                <input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={`${inputClass} max-w-xs`}
-                  style={{ background: "var(--soil-warm)", borderColor: "var(--clay-soft)" }}
-                />
-                <div className="flex gap-2">
-                  <button onClick={handleSave} className="vibrant-btn min-h-[44px] px-5 text-sm">Guardar</button>
-                  <button
-                    onClick={() => setEditing(false)}
-                    className="min-h-[44px] px-5 text-sm rounded-full border font-semibold transition-colors"
-                    style={{ background: "transparent", borderColor: "var(--clay-soft)", color: "var(--text-warm)" }}
-                  >
-                    Cancelar
-                  </button>
+    <div className="botanical-bg w-full h-full">
+      <BotanicalPage
+        title="Tu Bitácora"
+        subtitle={`${stats?.streakDays ?? 0} días de racha · Nivel ${stats?.level ?? 1} · ${stats?.totalPoints ?? 0} semillas`}
+        eyebrow="Viajero del Sendero"
+        zoneLabel="Zona personal"
+        zoneHint="Tu avance, herramientas y logros viven dentro del mismo recorrido."
+        zoneItems={["Perfil", "Herramientas", "Logros"]}
+      >
+        {/* Avatar + Info */}
+        <div className="organic-card p-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div
+              className="organic-border h-16 w-16 flex items-center justify-center font-heading font-bold text-xl"
+              style={{ background: "color-mix(in srgb, var(--leaf-fresh) 20%, transparent)", color: "var(--leaf-bright)" }}
+            >
+              {loading ? "..." : initials}
+            </div>
+            <div className="flex-1 text-center sm:text-left">
+              {editing ? (
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--leaf-muted)" }}>
+                    Nombre
+                  </Label>
+                  <input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className={`${inputClass} max-w-xs`}
+                    style={{ background: "var(--soil-warm)", borderColor: "var(--clay-soft)" }}
+                  />
+                  <div className="flex gap-2">
+                    <button onClick={handleSave} className="vibrant-btn min-h-[44px] px-5 text-sm">Guardar</button>
+                    <button
+                      onClick={() => setEditing(false)}
+                      className="min-h-[44px] px-5 text-sm rounded-full border font-semibold transition-colors"
+                      style={{ background: "transparent", borderColor: "var(--clay-soft)", color: "var(--text-warm)" }}
+                    >
+                      Cancelar
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <>
-                <h2 className="font-heading font-bold text-lg" style={{ color: "var(--forest-deep)" }}>
-                  {loading ? "Cargando..." : profile?.full_name || "Sin nombre"}
-                </h2>
-                <p className="text-sm" style={{ color: "var(--leaf-muted)" }}>{user?.email}</p>
-                <button
-                  onClick={handleEdit}
-                  className="mt-2 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors min-h-[44px]"
-                  style={{ background: "white", borderColor: "var(--clay-soft)", color: "var(--text-warm)" }}
-                >
-                  Editar nombre
-                </button>
-              </>
-            )}
+              ) : (
+                <>
+                  <h2 className="font-heading font-bold text-lg" style={{ color: "var(--forest-deep)" }}>
+                    {loading ? "Cargando..." : profile?.full_name || "Sin nombre"}
+                  </h2>
+                  <p className="text-sm" style={{ color: "var(--leaf-muted)" }}>{user?.email}</p>
+                  <button
+                    onClick={handleEdit}
+                    className="mt-2 px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors min-h-[44px]"
+                    style={{ background: "white", borderColor: "var(--clay-soft)", color: "var(--text-warm)" }}
+                  >
+                    Editar nombre
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Stats */}
-      <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 sm:grid-cols-3">
-        <motion.div variants={item}>
-          <StatCard title="Escenarios" value={String(stats?.completedScenarios ?? 0)} icon={BookOpen} />
+        {/* Stats */}
+        <motion.div variants={stagger} initial="hidden" animate="show" className="grid gap-4 sm:grid-cols-3">
+          <motion.div variants={item}>
+            <StatCard title="Escenarios" value={String(stats?.completedScenarios ?? 0)} icon={BookOpen} />
+          </motion.div>
+          <motion.div variants={item}>
+            <StatCard title="Cursos" value={stats?.completedScenarios !== undefined && stats.completedScenarios > 0 ? "1" : "0"} icon={Award} />
+          </motion.div>
+          <motion.div variants={item}>
+            <StatCard title="Logros" value={`${stats?.badgesUnlocked ?? 0}/${stats?.totalBadges ?? 8}`} icon={Trophy} />
+          </motion.div>
         </motion.div>
-        <motion.div variants={item}>
-          <StatCard title="Cursos" value={stats?.completedScenarios !== undefined && stats.completedScenarios > 0 ? "1" : "0"} icon={Award} />
-        </motion.div>
-        <motion.div variants={item}>
-          <StatCard title="Logros" value={`${stats?.badgesUnlocked ?? 0}/${stats?.totalBadges ?? 8}`} icon={Trophy} />
-        </motion.div>
-      </motion.div>
 
-      {/* Herramientas */}
-      <div className="organic-card p-4 space-y-2">
-        <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--leaf-muted)" }}>
-          Herramientas
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => navigate("/calculadora")}
-            className="flex items-center gap-3 rounded-xl border p-4 text-sm font-semibold text-left transition-colors hover:bg-muted min-h-[56px]"
-            style={{ borderColor: "var(--clay-soft)", color: "var(--forest-deep)" }}
-          >
-            <Calculator className="h-5 w-5 shrink-0" style={{ color: "var(--leaf-bright)" }} />
-            Calculadora
-          </button>
-          <button
-            onClick={() => navigate("/logros")}
-            className="flex items-center gap-3 rounded-xl border p-4 text-sm font-semibold text-left transition-colors hover:bg-muted min-h-[56px]"
-            style={{ borderColor: "var(--clay-soft)", color: "var(--forest-deep)" }}
-          >
-            <Trophy className="h-5 w-5 shrink-0" style={{ color: "var(--leaf-bright)" }} />
-            Logros
-          </button>
+        {/* Herramientas */}
+        <div className="organic-card p-4 space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "var(--leaf-muted)" }}>
+            Herramientas
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => navigate("/calculadora")}
+              className="flex items-center gap-3 rounded-xl border p-4 text-sm font-semibold text-left transition-colors hover:bg-muted min-h-[56px]"
+              style={{ borderColor: "var(--clay-soft)", color: "var(--forest-deep)" }}
+            >
+              <Calculator className="h-5 w-5 shrink-0" style={{ color: "var(--leaf-bright)" }} />
+              Calculadora
+            </button>
+            <button
+              onClick={() => navigate("/logros")}
+              className="flex items-center gap-3 rounded-xl border p-4 text-sm font-semibold text-left transition-colors hover:bg-muted min-h-[56px]"
+              style={{ borderColor: "var(--clay-soft)", color: "var(--forest-deep)" }}
+            >
+              <Trophy className="h-5 w-5 shrink-0" style={{ color: "var(--leaf-bright)" }} />
+              Logros
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Sign Out */}
-      <button className="vibrant-btn w-full justify-center min-h-[44px] font-bold" onClick={handleSignOut}>
-        <LogOut className="mr-2 h-5 w-5" /> Cerrar sesión
-      </button>
-    </BotanicalPage>
+        {/* Sign Out */}
+        <button className="vibrant-btn w-full justify-center min-h-[44px] font-bold" onClick={handleSignOut}>
+          <LogOut className="mr-2 h-5 w-5" /> Cerrar sesión
+        </button>
+      </BotanicalPage>
+    </div>
   );
 }

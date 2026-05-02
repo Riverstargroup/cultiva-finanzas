@@ -100,7 +100,7 @@ export default function Dashboard() {
   return (
     <PageTransition>
       <LevelUpNotification level={userLevel.level} isLoading={userLevel.isLoading} />
-      <div className="dashboard-skin botanical-bg -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-28 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
+      <div className="dashboard-skin botanical-bg -mx-4 -mt-4 px-4 pt-6 pb-4 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8 h-full">
         <div className="mx-auto max-w-4xl space-y-6">
           {/* A) Header */}
           <div className="flex items-start justify-between">

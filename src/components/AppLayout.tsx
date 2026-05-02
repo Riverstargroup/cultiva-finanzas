@@ -29,7 +29,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className={`flex min-h-screen w-full flex-col ${isSendero ? "" : "bg-background"}`}>
       <main 
-        className={isSendero ? "flex-1 overflow-y-auto" : "flex-1 p-4 pb-24 md:p-6 md:pb-24 lg:p-8 lg:pb-24"}
+        className={isSendero ? "flex-1 overflow-y-auto pb-20" : "flex-1 p-4 pb-20 md:p-6 md:pb-20 lg:p-8 lg:pb-20"}
         style={isSendero ? { background: "transparent" } : undefined}
       >
         <SwipeNavigator>

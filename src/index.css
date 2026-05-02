@@ -197,9 +197,11 @@
     @apply border-border;
   }
 
-  body {
+  body, #root {
     @apply text-foreground;
     font-family: 'Nunito', sans-serif;
+    background-color: transparent;
+    min-height: 100vh;
   }
 
   h1,

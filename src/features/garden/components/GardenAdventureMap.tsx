@@ -263,7 +263,7 @@ export function GardenAdventureMap({
         
         {/* ── Game map container — aspect ratio fijo garantiza alineación ── */}
         <div
-          className="relative w-full overflow-hidden"
+          className="relative w-full mx-auto"
           style={{ maxWidth: 420, aspectRatio: '9/16' }}
         >
         {/* Sky gradient */}

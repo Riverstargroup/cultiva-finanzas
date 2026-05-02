@@ -80,11 +80,12 @@ export default function Sendero() {
       <OnboardingOverlay onComplete={openFirstLesson} />
 
       <div 
-        className="min-h-screen w-full relative"
+        className="w-full relative"
         style={{
-          background: 'linear-gradient(180deg, #87CEEB 0%, #87CEEB 25%, #4a9e3f 25%, #3d8a32 100%)',
+          minHeight: 'calc(100vh - 80px)',
+          background: 'linear-gradient(180deg, #87CEEB 0%, #87CEEB 22%, #5aad47 22%, #4a9e3f 100%)',
           backgroundAttachment: 'fixed',
-          backgroundSize: '100% 100vh',
+          backgroundSize: '100% calc(100vh - 80px)',
         }}
       >
         <GardenAdventureMap
