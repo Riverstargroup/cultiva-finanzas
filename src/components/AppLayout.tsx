@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import { Outlet } from "react-router-dom";
 import DockNav from "@/components/navigation/DockNav";
 import SwipeNavigator from "@/components/navigation/SwipeNavigator";
@@ -14,6 +15,8 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const [nopalitoOpen, setNopalitoOpen] = useState(false);
   const sendero = useSenderoProgress();
+  const location = useLocation();
+  const isSendero = location.pathname === "/sendero";
 
   const currentNode = sendero.nodes.find(
     (n) => n.status === "next" || n.status === "available"
@@ -24,8 +27,11 @@ export default function AppLayout({ children }: AppLayoutProps) {
     : "¡Bienvenido al Sendero Semilla! Toca el primer nodo para comenzar tu viaje.";
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <main className="flex-1 p-4 pb-24 md:p-6 md:pb-24 lg:p-8 lg:pb-24">
+    <div className={`flex min-h-screen w-full flex-col ${isSendero ? "" : "bg-background"}`}>
+      <main 
+        className={isSendero ? "flex-1 overflow-y-auto" : "flex-1 p-4 pb-24 md:p-6 md:pb-24 lg:p-8 lg:pb-24"}
+        style={isSendero ? { background: "transparent" } : undefined}
+      >
         <SwipeNavigator>
           {children ?? <Outlet />}
         </SwipeNavigator>

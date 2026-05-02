@@ -10,6 +10,7 @@ import {
   Trophy,
   X,
   ChevronRight,
+  Map,
   type LucideIcon,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
@@ -27,6 +28,16 @@ import {
 import { useSenderoProgress } from '@/features/sendero/useSenderoProgress'
 import { useStreak } from '@/hooks/useStreak'
 import { useUserLevel } from '@/hooks/useUserLevel'
+
+const NODE_TYPE_LABELS: Record<string, string> = {
+  lesson: 'Lección',
+  review: 'Repaso',
+  game: 'Minijuego',
+  chest: 'Cofre',
+  home: 'Jardín',
+  shop: 'Tienda',
+  boss: 'Jefe',
+}
 
 // ─── S-curve path through all node positions (viewBox 420×747) ───────────────
 // Node positions (x%, y%) → SVG coords: x/100*420, y/100*747
@@ -196,7 +207,7 @@ export function GardenAdventureMap({
   }
 
   return (
-    <section className="relative w-full" style={{ background: '#0d1f0a' }}>
+    <section className="relative w-full min-h-screen flex flex-col md:flex-row justify-center" style={{ background: 'transparent' }}>
       {/* ── Modals / banners fuera del canvas ── */}
       {unlockModalOpen && recentReward?.unlockedPlantamigo && (
         <PlantamigoUnlockModal
@@ -209,11 +220,52 @@ export function GardenAdventureMap({
         />
       )}
 
-      {/* ── Game map container — aspect ratio fijo garantiza alineación ── */}
-      <div
-        className="relative mx-auto w-full overflow-hidden"
-        style={{ maxWidth: 420, aspectRatio: '9/16' }}
-      >
+      {/* COLUMNA IZQUIERDA — solo desktop, info del módulo actual */}
+      <div className="hidden md:flex md:w-64 lg:w-80 flex-col items-start p-6 pt-20 gap-4 z-10">
+        <div className="w-full rounded-lg p-4"
+          style={{ background: '#F5E6C8', border: '3px solid #8B6914', boxShadow: '3px 3px 0 #5a4010' }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest font-mono" style={{ color: '#8B6914' }}>
+            FASE 1
+          </p>
+          <h2 className="font-heading text-xl font-black" style={{ color: '#1b2e1f' }}>
+            {SENDERO_PHASE_ONE_TITLE}
+          </h2>
+          <p className="text-sm mt-1" style={{ color: '#5a4010' }}>Tu aventura comienza</p>
+          <div className="mt-3 h-2 rounded-sm overflow-hidden" style={{ background: '#C8B89A' }}>
+            <div className="h-full rounded-sm" style={{ background: '#4CAF50', width: `${progressPct}%`, transition: 'width 0.5s' }} />
+          </div>
+        </div>
+        
+        <div className="w-full rounded-lg p-4"
+          style={{ background: '#F5E6C8', border: '3px solid #8B6914', boxShadow: '3px 3px 0 #5a4010' }}>
+          <div className="flex justify-around">
+            <div className="text-center">
+              <p className="text-2xl mb-1">🔥</p>
+              <p className="font-heading font-black text-lg leading-none" style={{ color: '#1b2e1f' }}>{streakDays}</p>
+              <p className="text-[10px] uppercase font-bold mt-1" style={{ color: '#8B6914' }}>Racha</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl mb-1">⭐</p>
+              <p className="font-heading font-black text-lg leading-none" style={{ color: '#1b2e1f' }}>Nv.{level}</p>
+              <p className="text-[10px] uppercase font-bold mt-1" style={{ color: '#8B6914' }}>Nivel</p>
+            </div>
+            <div className="text-center">
+              <img src={coinSprout} alt="" style={{ width: 28, height: 28, imageRendering: 'pixelated', margin: '0 auto 4px' }} />
+              <p className="font-heading font-black text-lg leading-none" style={{ color: '#1b2e1f' }}>{senderoProgress.completedScenarios}</p>
+              <p className="text-[10px] uppercase font-bold mt-1" style={{ color: '#8B6914' }}>Semillas</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* COLUMNA CENTRAL — el path (móvil: 100%, desktop: columna central) */}
+      <div className="flex-1 flex flex-col items-center relative" style={{ minHeight: '100vh' }}>
+        
+        {/* ── Game map container — aspect ratio fijo garantiza alineación ── */}
+        <div
+          className="relative w-full overflow-hidden"
+          style={{ maxWidth: 420, aspectRatio: '9/16' }}
+        >
         {/* Sky gradient */}
         <div
           aria-hidden="true"
@@ -495,19 +547,21 @@ export function GardenAdventureMap({
         />
 
         {/* ── HUD overlay ── */}
-        <PixelHUD
-          phase={SENDERO_PHASE_ONE_TITLE}
-          progress={progressPct}
-          streakDays={streakDays}
-          level={level}
-          completedScenarios={senderoProgress.completedScenarios}
-          onOpenMap={() => setMapDrawerOpen(true)}
-        />
+        <div className="md:hidden">
+          <PixelHUD
+            phase={SENDERO_PHASE_ONE_TITLE}
+            progress={progressPct}
+            streakDays={streakDays}
+            level={level}
+            completedScenarios={senderoProgress.completedScenarios}
+            onOpenMap={() => setMapDrawerOpen(true)}
+          />
+        </div>
       </div>
 
       {/* Reward banner below map */}
       {recentReward && (
-        <div className="px-4 pt-3">
+        <div className="px-4 pt-3 max-w-[420px] w-full">
           <RewardImpactBanner
             reward={recentReward}
             bossPower={bossPower}
@@ -515,6 +569,49 @@ export function GardenAdventureMap({
           />
         </div>
       )}
+      </div>
+
+      {/* COLUMNA DERECHA — solo desktop, nodo seleccionado + mapa */}
+      <div className="hidden md:flex md:w-64 lg:w-80 flex-col items-start p-6 pt-20 gap-4 z-10">
+        
+        {/* Info del nodo seleccionado — desktop */}
+        {selectedNode && (
+          <div className="w-full rounded-lg p-4"
+            style={{ background: '#F5E6C8', border: '3px solid #8B6914', boxShadow: '3px 3px 0 #5a4010' }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest font-mono mb-1" style={{ color: '#8B6914' }}>
+              {NODE_TYPE_LABELS[selectedNode.type] || 'Desafío'}
+            </p>
+            <h3 className="font-heading text-xl font-black mb-2" style={{ color: '#1b2e1f' }}>
+              {selectedNode.title}
+            </h3>
+            <p className="text-sm mb-4" style={{ color: '#5a4010' }}>
+              {selectedNode.description}
+            </p>
+            <button
+              onClick={() => selectedNode.onAction?.()}
+              className="w-full py-3 font-heading font-black text-white rounded-sm active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100"
+              disabled={selectedNode.status === 'locked'}
+              style={{ 
+                background: selectedNode.status === 'locked' ? '#8e8e8e' : '#4CAF50', 
+                border: selectedNode.status === 'locked' ? '3px solid #555' : '3px solid #2d6a1a', 
+                boxShadow: selectedNode.status === 'locked' ? '0 4px 0 #333' : '0 4px 0 #1a4010' 
+              }}>
+              {selectedNode.status === 'locked' ? 'BLOQUEADO' : selectedNode.actionLabel.toUpperCase()}
+            </button>
+          </div>
+        )}
+
+        {/* Botón mapa de crecimiento — desktop */}
+        <button
+          onClick={() => setMapDrawerOpen(true)}
+          className="w-full py-3 font-heading font-bold rounded-sm flex items-center justify-center gap-2 active:scale-95 transition-transform"
+          style={{ background: '#F5E6C8', border: '2px solid #8B6914', boxShadow: '2px 2px 0 #5a4010' }}>
+          <Map className="w-4 h-4" style={{ color: '#5a4010' }} />
+          <span className="text-sm font-bold uppercase font-mono" style={{ color: '#5a4010' }}>
+            MAPA DE CRECIMIENTO
+          </span>
+        </button>
+      </div>
 
       {/* ── Node info Sheet ── */}
       <Sheet open={nodeSheetOpen} onOpenChange={setNodeSheetOpen}>
