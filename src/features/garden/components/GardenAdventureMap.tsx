@@ -25,6 +25,8 @@ import {
   type SenderoModulePreview,
 } from '@/features/sendero/senderoNodes'
 import { useSenderoProgress } from '@/features/sendero/useSenderoProgress'
+import { useStreak } from '@/hooks/useStreak'
+import { useUserLevel } from '@/hooks/useUserLevel'
 
 type AdventureNode = SenderoNode & {
   icon: LucideIcon
@@ -49,6 +51,8 @@ export function GardenAdventureMap({
   totalMastery,
   onOpenNode,
 }: GardenAdventureMapProps) {
+  const { data: streakDays = 0 } = useStreak()
+  const { level } = useUserLevel()
   const [recentReward, setRecentReward] = useState<RecentSeedReward | null>(null)
   const [unlockModalOpen, setUnlockModalOpen] = useState(false)
   const [selectedNodeId, setSelectedNodeId] = useState('first-seed')
@@ -138,7 +142,52 @@ export function GardenAdventureMap({
   }
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-0">
+      {/* HUD compacto fijo — fase, racha y nivel */}
+      <div
+        className="flex items-center justify-between px-4 py-2 sticky top-0 z-10"
+        style={{
+          background: 'var(--soil-warm)',
+          borderBottom: '1px solid hsl(var(--border))',
+        }}
+      >
+        <div>
+          <p
+            className="text-[9px] font-bold uppercase tracking-widest"
+            style={{ color: 'var(--leaf-muted)' }}
+          >
+            FASE 1
+          </p>
+          <p
+            className="font-heading text-sm font-black leading-none"
+            style={{ color: 'var(--forest-deep)' }}
+          >
+            Adulto Funcional
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <span className="text-base" aria-hidden="true">🔥</span>
+            <span
+              className="font-heading font-bold text-sm"
+              style={{ color: 'var(--forest-deep)' }}
+            >
+              {streakDays}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="text-base" aria-hidden="true">⭐</span>
+            <span
+              className="font-heading font-bold text-sm"
+              style={{ color: 'var(--forest-deep)' }}
+            >
+              {level}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-4 px-4 pt-3">
       {unlockModalOpen && recentReward?.unlockedPlantamigo && (
         <PlantamigoUnlockModal
           plantamigoName={recentReward.unlockedPlantamigo}
@@ -190,6 +239,7 @@ export function GardenAdventureMap({
           }}
         />
       )}
+      </div>
     </section>
   )
 }

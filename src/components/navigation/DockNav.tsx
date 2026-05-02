@@ -12,7 +12,7 @@ interface DockItem {
 
 const DOCK_ITEMS: DockItem[] = [
   { path: "/perfil", label: "Perfil", icon: User },
-  { path: "/", label: "Inicio", icon: Sprout },
+  { path: "/", label: "Sendero", icon: Sprout },
   { path: "/cursos", label: "Cursos", icon: BookOpen },
   { path: "/juegos", label: "Juegos", icon: Gamepad2 },
 ];

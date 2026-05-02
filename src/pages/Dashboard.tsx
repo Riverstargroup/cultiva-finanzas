@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, Clock, Trophy, Flame, Sprout, Bell, ArrowRight, Zap } from "lucide-react";
+import { BookOpen, Clock, Trophy, Flame, Sprout, Bell, ArrowRight, Zap, MapPin } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useNavigate } from "react-router-dom";
 import PageTransition from "@/components/PageTransition";
@@ -119,6 +119,15 @@ export default function Dashboard() {
                 </p>
                 {!userLevel.isLoading && <LevelBadge level={userLevel.level} size="sm" />}
               </div>
+              <button
+                onClick={() => navigate('/')}
+                className="flex items-center gap-1.5 mt-2 text-sm font-semibold transition-opacity hover:opacity-80"
+                style={{ color: "var(--leaf-bright)" }}
+              >
+                <MapPin className="h-4 w-4" />
+                <span>Continúa tu Sendero Semilla</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
             <div className="hidden items-center gap-3 md:flex">
               <button

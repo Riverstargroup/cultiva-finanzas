@@ -108,8 +108,8 @@ export default function Cursos() {
 
   return (
     <BotanicalPage
-      title="Cursos"
-      subtitle="Explora y avanza en tu jardin financiero."
+      title="Tu Mapa de Conocimiento"
+      subtitle="Cada curso es un módulo del Sendero. Explora lo que te espera adelante."
       eyebrow="Invernadero de lecciones"
       zoneLabel="Zona de aprendizaje"
       zoneHint="Aqui se cultivan las semillas que desbloquean nodos del Sendero."

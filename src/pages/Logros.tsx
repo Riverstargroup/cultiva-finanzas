@@ -23,8 +23,8 @@ export default function Logros() {
 
   return (
     <BotanicalPage
-      title="Logros"
-      subtitle={isLoading ? "Cargando tus insignias..." : `${unlockedIds.length} de ${BADGES.length} insignias desbloqueadas.`}
+      title="Tu Cosecha"
+      subtitle={isLoading ? "Cargando tus insignias..." : `Todo lo que has conquistado en tu camino por el Sendero.`}
       eyebrow="Album del Sendero"
       zoneLabel="Zona de dominio"
       zoneHint="Las insignias muestran que no solo completaste: tambien regresaste y dominaste."

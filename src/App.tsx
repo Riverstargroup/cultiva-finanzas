@@ -25,6 +25,7 @@ const Perfil = lazy(() => import("./pages/Perfil"));
 const Logros = lazy(() => import("./pages/Logros"));
 const Calculadora = lazy(() => import("./pages/Calculadora"));
 const Jardin = lazy(() => import("./pages/Jardin"));
+const Sendero = lazy(() => import("./pages/Sendero"));
 const Polinizacion = lazy(() => import("./pages/Polinizacion"));
 const Flashcards = lazy(() => import("./pages/Flashcards"));
 const Ejercicios = lazy(() => import("./pages/Ejercicios"));
@@ -64,7 +65,7 @@ function HomeRoute() {
   return (
     <AppLayout>
       <Suspense fallback={sk}>
-        <Jardin />
+        <Sendero />
       </Suspense>
     </AppLayout>
   );
@@ -82,8 +83,12 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
-        {/* Legacy redirect: /jardin -> / (garden is now home) */}
-        <Route path="/jardin" element={<Navigate to="/" replace />} />
+        {/* Jardin decorativo — accesible directo, secundario al Sendero */}
+        <Route path="/jardin" element={
+          <AppLayout>
+            <Suspense fallback={sk}><Jardin /></Suspense>
+          </AppLayout>
+        } />
         <Route
           element={
             <ProtectedRoute>

@@ -127,8 +127,8 @@ export default function Juegos() {
 
   return (
     <BotanicalPage
-      title="Mini-Juegos"
-      subtitle="Aprende jugando"
+      title="Arena de Entrenamiento"
+      subtitle="Los juegos que desbloqueas en el Sendero viven aquí. Practica cuando quieras."
       eyebrow="Campo de retos"
       zoneLabel="Zona de practica"
       zoneHint="Retos cortos que se desbloquean desde los modulos y quedan disponibles para repasar."
