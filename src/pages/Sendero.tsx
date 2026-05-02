@@ -79,7 +79,13 @@ export default function Sendero() {
       <LevelUpNotification level={userLevel.level} isLoading={userLevel.isLoading} />
       <OnboardingOverlay onComplete={openFirstLesson} />
 
-      <div className="botanical-bg w-full min-h-full px-4 py-4">
+      <div 
+        className="min-h-screen w-full relative"
+        style={{
+          background: 'linear-gradient(180deg, #87CEEB 0%, #87CEEB 25%, #4a9e3f 25%, #3d8a32 100%)',
+          backgroundAttachment: 'fixed',
+        }}
+      >
         <GardenAdventureMap
           totalMastery={garden.totalMastery}
           onOpenNode={openSenderoNode}
