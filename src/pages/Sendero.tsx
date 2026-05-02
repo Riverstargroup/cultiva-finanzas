@@ -54,7 +54,7 @@ export default function Sendero() {
       return
     }
     if (node.action === 'game') {
-      navigate(node.gameId ? `/juegos?game=${node.gameId}` : '/juegos')
+      navigate(node.gameId ? `/juegos?game=${node.gameId}&fromSendero=true` : '/juegos?fromSendero=true')
       return
     }
     setShopOpen(true)
@@ -79,7 +79,7 @@ export default function Sendero() {
       <LevelUpNotification level={userLevel.level} isLoading={userLevel.isLoading} />
       <OnboardingOverlay onComplete={openFirstLesson} />
 
-      <div className="botanical-bg -mx-4 -mt-4 min-h-screen px-0 pt-0 pb-28">
+      <div className="botanical-bg -mx-4 -mt-4 min-h-screen px-0 pt-0 pb-0">
         <GardenAdventureMap
           totalMastery={garden.totalMastery}
           onOpenNode={openSenderoNode}

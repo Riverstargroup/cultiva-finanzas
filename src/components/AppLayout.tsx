@@ -25,7 +25,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      <main className="flex-1 p-4 pb-28 md:p-6 md:pb-28 lg:p-8 lg:pb-28">
+      <main className="flex-1 p-4 pb-24 md:p-6 md:pb-24 lg:p-8 lg:pb-24">
         <SwipeNavigator>
           {children ?? <Outlet />}
         </SwipeNavigator>

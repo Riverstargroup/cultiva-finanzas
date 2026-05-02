@@ -23,7 +23,7 @@ export default function BotanicalPage({
 }: BotanicalPageProps) {
   return (
     <PageTransition>
-      <div className="dashboard-skin world-shell -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-32 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
+      <div className="dashboard-skin world-shell -mx-4 -mt-4 min-h-screen px-4 pt-6 pb-0 md:-mx-6 md:-mt-6 md:px-6 md:pt-8 lg:-mx-8 lg:-mt-8 lg:px-8">
         <div className="world-shell-content mx-auto max-w-4xl space-y-6">
           <header className="world-page-header">
             <p className="world-page-kicker">
